@@ -1,0 +1,62 @@
+# docker-compose.yml
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+    environment:
+      MONGO_INITDB_DATABASE: battlearena
+
+  auth-service:
+    build:
+      context: ./backend-services/auth-service
+      dockerfile: ../../deployments/docker/Dockerfile-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/battlearena
+    depends_on:
+      - mongodb
+
+  user-profile-service:
+    build:
+      context: ./backend-services/profile-service
+      dockerfile: ../../deployments/docker/Dockerfile-user-profile-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/battlearena
+    depends_on:
+      - mongodb
+
+  leaderboard-service:
+    build:
+      context: ./backend-services/leaderboard-service
+      dockerfile: ../../deployments/docker/Dockerfile-leaderboard-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/battlearena
+    depends_on:
+      - mongodb
+
+  matchmaking-service:
+    build:
+      context: ./backend-services/matchmaking-service
+      dockerfile: ../../deployments/docker/Dockerfile-matchmaking-service
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+
+  game-engine-service:
+    build:
+      context: ./backend-services/game-engine
+      dockerfile: ../../deployments/docker/Dockerfile-game-engine-service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongodb
