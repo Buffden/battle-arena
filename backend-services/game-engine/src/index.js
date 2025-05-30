@@ -119,6 +119,7 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3003;
-server.listen(PORT, () => {
-  logger.info(`Game engine service running on port ${PORT}`);
+const HOST = '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  logger.info(`Game engine service running on ${HOST}:${PORT}`);
 }); 

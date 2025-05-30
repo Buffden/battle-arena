@@ -1,0 +1,13 @@
+<div class="api-test">
+  <h2>API Test Component</h2>
+  <button (click)="testAuthService()">Test Auth Service</button>
+  <button (click)="testProfileService()">Test Profile Service</button>
+  <div *ngIf="response">
+    <h3>Response:</h3>
+    <pre>{{ response | json }}</pre>
+  </div>
+  <div *ngIf="error">
+    <h3>Error:</h3>
+    <pre>{{ error | json }}</pre>
+  </div>
+</div> 

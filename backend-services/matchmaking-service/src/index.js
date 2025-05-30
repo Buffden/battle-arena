@@ -33,7 +33,8 @@ const io = socketIo(server, {
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000'
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
 }));
 app.use(express.json());
 
@@ -64,6 +65,7 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3002;
-server.listen(PORT, () => {
-  logger.info(`Matchmaking service running on port ${PORT}`);
+const HOST = '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  logger.info(`Matchmaking service running on ${HOST}:${PORT}`);
 }); 
