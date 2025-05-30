@@ -1,4 +1,4 @@
-package User.Profile.Service.com.battlearena.profile;
+package com.battlearena.profile;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
