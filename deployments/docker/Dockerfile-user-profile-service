@@ -4,6 +4,9 @@ FROM openjdk:21-jdk-slim
 # Set working directory
 WORKDIR /app
 
+# Copy the .env file from root directory
+COPY ../../.env .env
+
 # Copy the JAR file from the build directory
 COPY target/*.jar app.jar
 

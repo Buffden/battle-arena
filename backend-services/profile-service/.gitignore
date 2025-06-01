@@ -42,6 +42,7 @@ logs/
 # Environment specific configs
 application-*.properties
 application-*.yml
+.env
 
 # Compiled files
 *.class
