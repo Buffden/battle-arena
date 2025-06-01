@@ -1,0 +1,87 @@
+# docker-compose.yml
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: battle-arena-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./database/init:/docker-entrypoint-initdb.d
+    environment:
+      MONGO_INITDB_DATABASE: battlearena
+    networks:
+      - battle-arena-network
+
+  auth-service:
+    build:
+      context: ./backend-services/auth-service
+      dockerfile: ../../deployments/docker/Dockerfile-auth-service
+    container_name: battle-arena-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
+    depends_on:
+      - mongodb
+    networks:
+      - battle-arena-network
+
+  user-profile-service:
+    build:
+      context: ./backend-services/profile-service
+      dockerfile: ../../deployments/docker/Dockerfile-user-profile-service
+    container_name: battle-arena-profile-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
+    depends_on:
+      - mongodb
+    networks:
+      - battle-arena-network
+
+  leaderboard-service:
+    build:
+      context: ./backend-services/leaderboard-service
+      dockerfile: ../../deployments/docker/Dockerfile-leaderboard-service
+    container_name: battle-arena-leaderboard-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
+    depends_on:
+      - mongodb
+    networks:
+      - battle-arena-network
+
+  matchmaking-service:
+    build:
+      context: ./backend-services/matchmaking-service
+      dockerfile: ../../deployments/docker/Dockerfile-matchmaking-service
+    container_name: battle-arena-matchmaking-service
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+    networks:
+      - battle-arena-network
+
+  game-engine-service:
+    build:
+      context: ./backend-services/game-engine
+      dockerfile: ../../deployments/docker/Dockerfile-game-engine-service
+    container_name: battle-arena-game-engine-service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongodb
+    networks:
+      - battle-arena-network
+
+networks:
+  battle-arena-network:
+    driver: bridge
+
+volumes:
+  mongo_data:   # 🔥 This is where MongoDB stores its data
