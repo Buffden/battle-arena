@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import { ApiTestComponent } from './components/api-test/api-test.component';
-import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ApiTestComponent, HttpClientModule],
+  imports: [RouterModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
