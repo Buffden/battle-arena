@@ -6,6 +6,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
+      - mongo_data:/data/db
       - ./database/init:/docker-entrypoint-initdb.d
     environment:
       MONGO_INITDB_DATABASE: battlearena
@@ -81,3 +82,6 @@ services:
 networks:
   battle-arena-network:
     driver: bridge
+
+volumes:
+  mongo_data:   # 🔥 This is where MongoDB stores its data
