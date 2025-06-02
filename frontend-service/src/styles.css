@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.font-8bit {
+  font-family: 'Press Start 2P', 'VT323', monospace;
+}
+
+.bg-arcade-pattern {
+  background: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="2" height="2" fill="%23ff3c00" fill-opacity="0.15"/><rect x="10" y="10" width="2" height="2" fill="%23ff3c00" fill-opacity="0.15"/></svg>');
+  background-size: 20px 20px;
+}
+
+.pixel-avatar {
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 4px #ff3c00, 0 0 16px #ffb300;
+}
