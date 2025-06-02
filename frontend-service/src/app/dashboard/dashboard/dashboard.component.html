@@ -1,1 +1,111 @@
-<p>dashboard works!</p>
+<div class="h-screen w-screen bg-arcade-pattern overflow-hidden p-0">
+  <div class="flex flex-col h-full w-full max-w-screen-xxl mx-auto border-[#ff3c00] rounded-2xl shadow-2xl px-4 py-4 font-8bit text-[#ffb300] relative">
+
+    <!-- Top Bar -->
+    <div class="flex items-center justify-center mb-4">
+      <span class="text-2xl md:text-3xl font-bold tracking-widest select-none">BATTLE ARENA</span>
+    </div>
+
+    <!-- Middle Layout: Left Panel | Center | Right Panel -->
+    <div class="flex-1 flex flex-row gap-4 overflow-hidden">
+      
+      <!-- Left Sidebar -->
+      <div class="w-1/5 hidden md:flex flex-col gap-2">
+      </div>
+
+      <!-- Main Center Section -->
+      <div class="flex-1 flex flex-col items-center gap-4">
+        <!-- Game Mode Selection (Retro Style) -->
+        <div class="flex flex-col items-center gap-4 mt-16 select-none">
+          <div class="text-[#ffb300] text-2xl font-bold tracking-widest mb-4 font-8bit">PLAY SELECT</div>
+          <div class="flex flex-col gap-2 text-white text-xl font-8bit">
+            <div class="flex items-center cursor-pointer" (click)="selectedMode = 0">
+              <span class="w-6 inline-block text-[#ffb300] text-2xl">{{ selectedMode === 0 ? '→' : '' }}</span>
+              <span [class.text-[#ffb300]]="selectedMode === 0">1 PLAYER</span>
+            </div>
+            <div class="flex items-center cursor-pointer" (click)="selectedMode = 1">
+              <span class="w-6 inline-block text-[#ffb300] text-2xl">{{ selectedMode === 1 ? '→' : '' }}</span>
+              <span [class.text-[#ffb300]]="selectedMode === 1">2 PLAYERS</span>
+            </div>
+          </div>
+          <button (click)="onPlay()" class="mt-6 bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] text-xl px-12 py-4 font-bold rounded-lg border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md font-8bit">PLAY</button>
+        </div>
+
+        
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="w-1/5 hidden md:flex flex-col gap-4 items-end">
+        <!-- Player Info Section -->
+        <div class="w-full bg-[#2d0a0a] border-2 border-[#ff3c00] rounded-lg p-3 flex flex-col items-center">
+          <div class="w-10 h-10 bg-[#2d0a0a] border-2 border-[#ffb300] rounded-lg shadow-lg flex items-center justify-center text-black text-xl mb-2 pixel-avatar">
+            {{ profile?.avatar?.charAt(0)?.toUpperCase() || '?' }}
+          </div>
+          <div class="text-[#ffb300] text-xs font-bold">{{ profile?.displayName?.toUpperCase() || 'N/A' }}</div>
+          <div class="w-full bg-[#333] h-2 rounded mt-2">
+            <div class="h-full bg-[#ffb300] rounded" [style.width.%]="((profile?.xp || 0) / 1000) * 100"></div>
+          </div>
+          <div class="text-xs text-white mt-1">Level {{ profile?.level ?? 'N/A' }}</div>
+        </div>
+        <!-- Top Action Buttons Row (now below player info) -->
+        <div class="flex flex-row justify-evenly w-full mt-4 gap-2">
+          <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">🏆</button>
+          <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">🛒</button>
+          <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">💎</button>
+        </div>
+        <!-- Action Buttons -->
+        <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] px-1 py-1 rounded-md font-bold border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md w-full text-xs">🎯 Match History</button>
+        <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] px-1 py-1 rounded-md font-bold border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md w-full text-xs">➕👥 Friends</button>
+      </div>
+    </div>
+
+    <!-- Recent Matches -->
+    <div class="absolute w-2/5 min-w-[250px] bg-[#2d0a0a]/50 border-2 border-[#ff3c00] rounded-lg p-4 z-50 right-8 bottom-24 shadow-lg">
+      <div class="font-bold text-[#ffb300] text-sm mb-2">Recent Matches</div>
+      <hr class="border-t-2 border-[#ffb300] mb-2" />
+      <div class="flex flex-row font-bold text-[#ffb300] text-xs">
+        <div class="w-1/4">Opponent</div>
+        <div class="w-1/4">Result</div>
+        <div class="w-1/4">XP</div>
+        <div class="w-1/4">Invite</div>
+      </div>
+      <div class="max-h-40 overflow-y-auto">
+        <div *ngFor="let row of matches" class="flex flex-row text-white text-[10px] mt-1 items-center transition-colors duration-150 hover:bg-[#ffb300]/20 cursor-pointer rounded">
+          <div class="w-1/4">{{ row.opponent }}</div>
+          <div class="w-1/4">{{ row.result }}</div>
+          <div class="w-1/4">{{ row.xp }}</div>
+          <div class="w-1/20 flex justify-center">
+            <button class="bg-[#ffb300] hover:bg-[#ff3c00]  text-[#181820] hover:text-[#ffb300] rounded px-2 py-1 text-xs font-bold border-2 border-[#ff3c00] transition-all active:scale-95 shadow">➕ Invite</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Bottom Navigation Tabs -->
+    <div class="flex justify-around items-center mt-4 py-2 border-t border-[#ff3c00] text-sm">
+      <button class="transition-all active:scale-95 shadow-md">💬 Global Chat</button>
+      <button class="transition-all active:scale-95 shadow-md">🛡️ CLAN</button>
+      <button class="transition-all active:scale-95 shadow-md">📦 INVENTORY</button>
+      <button class="transition-all active:scale-95 shadow-md">📜 PROFILE</button>
+      <button class="transition-all active:scale-95 shadow-md">⚙ SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-arcade-pattern {
+  background: #181820 url('/assets/images/background/dashboard.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.pixel-avatar {
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 4px #ff3c00, 0 0 16px #ffb300;
+}
+.shadow-orange-glow {
+  box-shadow: 0 0 0 4px #ff3c00, 0 0 16px #ffb300;
+}
+</style>
