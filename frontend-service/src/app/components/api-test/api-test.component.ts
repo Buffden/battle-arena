@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-api-test',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   templateUrl: './api-test.component.html',
   styleUrl: './api-test.component.css'
 })
