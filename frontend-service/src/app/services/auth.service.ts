@@ -31,4 +31,12 @@ export class AuthService {
   register(data: { username: string; email: string; password: string }) {
     return this.http.post(`${this.baseUrl}/register`, data);
   }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+  }
 }

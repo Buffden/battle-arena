@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .font-8bit {
-  font-family: 'Press Start 2P', 'VT323', monospace;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .bg-arcade-pattern {
@@ -14,4 +14,27 @@
 .pixel-avatar {
   image-rendering: pixelated;
   box-shadow: 0 0 0 4px #ff3c00, 0 0 16px #ffb300;
+}
+
+/* Material Tabs Customization */
+.mat-mdc-tab-header {
+  --mdc-tab-indicator-active-indicator-color: #ffb300;
+  --mat-tab-header-active-label-text-color: #ffb300;
+  --mat-tab-header-active-ripple-color: #ffb300;
+  --mat-tab-header-active-background-color: transparent;
+  --mat-tab-header-active-focus-label-text-color: #ffb300;
+  --mat-tab-header-active-hover-label-text-color: #ffb300;
+  --mat-tab-header-active-background-color: transparent;
+  --mat-tab-header-active-focus-background-color: transparent;
+  --mat-tab-header-active-hover-background-color: transparent;
+}
+
+.mat-mdc-tab {
+  --mat-tab-header-active-label-text-color: #ffb300;
+  --mat-tab-header-active-ripple-color: #ffb300;
+  --mat-tab-header-active-focus-label-text-color: #ffb300;
+  --mat-tab-header-active-hover-label-text-color: #ffb300;
+  --mat-tab-header-active-background-color: transparent;
+  --mat-tab-header-active-focus-background-color: transparent;
+  --mat-tab-header-active-hover-background-color: transparent;
 }
