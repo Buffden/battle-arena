@@ -2,6 +2,8 @@
 
 ---
 
+Github Project Link: https://github.com/users/Buffden/projects/3
+
 ## Epic: Frontend Foundation & Dashboard
 
 - **FE-1: Initialize Angular project with routing**
