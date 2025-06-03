@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const winston = require('winston');
 const Matter = require('matter-js');
+const JwtUtil = require('./utils/jwtUtil');
 
 // Configure logger
 const logger = winston.createLogger({
@@ -53,6 +54,20 @@ app.use(limiter);
 const gameRooms = new Map();
 
 // Socket.io connection handling
+io.use((socket, next) => {
+  const token = socket.handshake.auth && socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error('Authentication error: No token provided'));
+  }
+  try {
+    const payload = JwtUtil.verify(token);
+    socket.userId = payload.sub;
+    return next();
+  } catch (err) {
+    return next(new Error('Authentication error: Invalid token'));
+  }
+});
+
 io.on('connection', (socket) => {
   logger.info(`New client connected: ${socket.id}`);
 
