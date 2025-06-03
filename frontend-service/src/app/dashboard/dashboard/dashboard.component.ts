@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, HostListener } from '@angular/core';
 import { AuthService, Profile } from '../../services/auth.service';
 import { STAT_CARDS, DASHBOARD_BUTTONS, TABLE_COLUMNS, StatCardConfig, DashboardButtonConfig, TableColumnConfig } from './dashboard.config';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,6 +15,7 @@ export class DashboardComponent implements OnInit {
   profile: Profile | null = null;
   loading = true;
   error: string | null = null;
+  isLoggedIn = false;
 
   statCards: StatCardConfig[] = STAT_CARDS;
   dashboardButtons: DashboardButtonConfig[] = DASHBOARD_BUTTONS;
@@ -27,10 +29,20 @@ export class DashboardComponent implements OnInit {
     { match: '#03511', opponent: 'NDYA', result: 'LOSS', xp: '+10 25', new: 'FIRECANNON!!' },
   ];
 
-  constructor(private authService: AuthService) {}
+  showRecentMatches = false;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.loadProfile();
+    this.isLoggedIn = this.authService.isLoggedIn();
+    if (this.isLoggedIn) {
+      this.loadProfile();
+    } else {
+      this.loading = false;
+    }
   }
 
   private loadProfile(): void {
@@ -45,6 +57,9 @@ export class DashboardComponent implements OnInit {
         console.error('Failed to fetch profile:', err);
         this.error = 'Failed to load profile. Please try again later.';
         this.loading = false;
+        // If profile fetch fails, user might not be logged in
+        this.isLoggedIn = false;
+        this.authService.logout();
       }
     });
   }
@@ -80,5 +95,24 @@ export class DashboardComponent implements OnInit {
     } else {
       console.log('Start 2 Player mode');
     }
+  }
+
+  onButtonClick(action: string) {
+    switch (action) {
+      case 'login':
+        if (this.isLoggedIn) {
+          this.authService.logout();
+          this.isLoggedIn = false;
+          this.profile = null;
+        } else {
+          this.router.navigate(['/login']);
+        }
+        break;
+      // Add other button actions here as needed
+    }
+  }
+
+  onRecentMatchesClick() {
+    this.showRecentMatches = !this.showRecentMatches;
   }
 }

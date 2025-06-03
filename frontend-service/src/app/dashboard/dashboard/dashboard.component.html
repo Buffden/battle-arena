@@ -52,15 +52,20 @@
           <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">🏆</button>
           <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">🛒</button>
           <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">💎</button>
+          <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] rounded-lg px-2 py-1 text-sm font-bold border-1 border-[#ff3c00] shadow-orange-glow transition-all active:scale-95 w-8 h-8 flex items-center justify-center">👥</button>
         </div>
         <!-- Action Buttons -->
-        <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] px-1 py-1 rounded-md font-bold border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md w-full text-xs">🎯 Match History</button>
-        <button class="bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] px-1 py-1 rounded-md font-bold border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md w-full text-xs">➕👥 Friends</button>
+        <div class="flex flex-col gap-3 w-full items-center mt-6">
+          <button (click)="onButtonClick('login')"
+            class="min-w-[220px] w-auto px-8 h-12 bg-[#ffb300] text-[#181820] font-8bit text-xs font-bold border-2 border-[#ff3c00] rounded-xl shadow-lg flex items-center justify-center transition-all duration-200 tracking-wider hover:bg-[#ff3c00] hover:text-[#ffb300] hover:scale-105 truncate overflow-hidden text-ellipsis">
+            {{ isLoggedIn ? 'LOGOUT' : 'LOGIN/REGISTER' }}
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Recent Matches -->
-    <div class="absolute w-2/5 min-w-[250px] bg-[#2d0a0a]/50 border-2 border-[#ff3c00] rounded-lg p-4 z-50 right-8 bottom-24 shadow-lg">
+    <div *ngIf="showRecentMatches" class="absolute w-2/5 min-w-[250px] bg-[#2d0a0a]/50 border-2 border-[#ff3c00] rounded-lg p-4 z-50 right-8 bottom-24 shadow-lg">
       <div class="font-bold text-[#ffb300] text-sm mb-2">Recent Matches</div>
       <hr class="border-t-2 border-[#ffb300] mb-2" />
       <div class="flex flex-row font-bold text-[#ffb300] text-xs">
@@ -87,6 +92,8 @@
       <button class="transition-all active:scale-95 shadow-md">📦 INVENTORY</button>
       <button class="transition-all active:scale-95 shadow-md">📜 PROFILE</button>
       <button class="transition-all active:scale-95 shadow-md">⚙ SETTINGS</button>
+      <button class="transition-all active:scale-95 shadow-md" (click)="onRecentMatchesClick()">🎯 Match History</button>
+      
     </div>
   </div>
 </div>

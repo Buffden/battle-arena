@@ -1,25 +1,96 @@
-<div class="max-w-md mx-auto mt-20 bg-white p-6 rounded-lg shadow-lg">
-  <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+<div class="h-screen w-screen bg-arcade-pattern overflow-hidden p-0">
+  <div class="flex flex-col h-full w-full max-w-screen-xxl mx-auto border-[#ff3c00] rounded-2xl shadow-2xl px-4 py-4 font-8bit text-[#ffb300] relative">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-center mb-4">
+      <span class="text-2xl md:text-3xl font-bold tracking-widest select-none">BATTLE ARENA</span>
+    </div>
 
-  <form (ngSubmit)="onSubmit()" class="space-y-4">
-    <input [(ngModel)]="username" name="username" type="text"
-      placeholder="Username"
-      class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+    <!-- Auth Container -->
+    <div class="max-w-md mx-auto mt-8 bg-[#2d0a0a] p-6 rounded-lg border-2 border-[#ff3c00] shadow-lg">
+      <h2 class="text-2xl font-bold mb-6 text-center text-[#ffb300] font-8bit">WELCOME TO BATTLE ARENA</h2>
 
-    <input [(ngModel)]="password" name="password" type="password"
-      placeholder="Password"
-      class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+      <mat-tab-group class="custom-tabs">
+        <!-- Login Tab -->
+        <mat-tab label="LOGIN">
+          <form (ngSubmit)="onLogin()" class="space-y-4 mt-4">
+            <input [(ngModel)]="username" name="username" type="text"
+              placeholder="Username"
+              class="w-full px-4 py-2 bg-[#181820] border-2 border-[#ff3c00] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffb300]" required />
 
-    <button type="submit"
-      class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">
-      Log In
-    </button>
+            <input [(ngModel)]="password" name="password" type="password"
+              placeholder="Password"
+              class="w-full px-4 py-2 bg-[#181820] border-2 border-[#ff3c00] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffb300]" required />
 
-    <div *ngIf="error" class="text-red-600 text-sm mt-2">{{ error }}</div>
-  </form>
+            <button type="submit"
+              class="w-full bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] font-bold py-2 rounded-lg border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md font-8bit">
+              LOGIN
+            </button>
 
-  <div class="mt-4 text-center text-sm">
-    Don't have an account?
-    <a routerLink="/register" class="text-blue-600 hover:underline">Register</a>
+            <div *ngIf="loginError" class="text-red-500 text-sm mt-2 font-8bit">{{ loginError }}</div>
+          </form>
+        </mat-tab>
+
+        <!-- Register Tab -->
+        <mat-tab label="REGISTER">
+          <form (ngSubmit)="onRegister()" class="space-y-4 mt-4">
+            <input [(ngModel)]="registerUsername" name="registerUsername" type="text"
+              placeholder="Username"
+              class="w-full px-4 py-2 bg-[#181820] border-2 border-[#ff3c00] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffb300]" required />
+
+            <input [(ngModel)]="registerEmail" name="registerEmail" type="email"
+              placeholder="Email"
+              class="w-full px-4 py-2 bg-[#181820] border-2 border-[#ff3c00] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffb300]" required />
+
+            <input [(ngModel)]="registerPassword" name="registerPassword" type="password"
+              placeholder="Password"
+              class="w-full px-4 py-2 bg-[#181820] border-2 border-[#ff3c00] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffb300]" required />
+
+            <button type="submit"
+              class="w-full bg-[#ffb300] hover:bg-[#ff3c00] text-[#181820] hover:text-[#ffb300] font-bold py-2 rounded-lg border-2 border-[#ff3c00] transition-all active:scale-95 shadow-md font-8bit">
+              REGISTER
+            </button>
+
+            <div *ngIf="registerError" class="text-red-500 text-sm mt-2 font-8bit">{{ registerError }}</div>
+            <div *ngIf="registerSuccess" class="text-green-500 text-sm mt-2 font-8bit">{{ registerSuccess }}</div>
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
   </div>
 </div>
+
+<style>
+.bg-arcade-pattern {
+  background: #181820 url('/assets/images/background/dashboard.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+:host ::ng-deep .custom-tabs {
+  .mat-mdc-tab-header {
+    border-bottom: 2px solid #ff3c00;
+  }
+
+  .mat-mdc-tab {
+    color: #ffb300;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+  }
+
+  .mat-mdc-tab.mdc-tab--active {
+    color: #ffb300;
+  }
+
+  .mat-mdc-tab-group {
+    --mdc-tab-indicator-active-indicator-color: #ffb300;
+  }
+
+  .mat-mdc-ink-bar {
+    background-color: #ffb300 !important;
+  }
+}
+</style>

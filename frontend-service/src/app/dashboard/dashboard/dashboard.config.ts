@@ -27,8 +27,7 @@ export const DASHBOARD_BUTTONS: DashboardButtonConfig[] = [
   { label: 'PREV MATCHES', icon: '📜', action: 'matches' },
   { label: 'PROFILE', icon: '👤', action: 'profile' },
   { label: 'SETTINGS', icon: '⚙️', action: 'settings' },
-  { label: 'LOGIN', icon: '🔑', action: 'login' },
-  { label: 'REGISTER', icon: '📝', action: 'register' },
+  { label: 'LOGIN/REGISTER', icon: '🔑', action: 'login' }
 ];
 
 export const TABLE_COLUMNS: TableColumnConfig[] = [
