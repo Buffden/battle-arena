@@ -24,13 +24,13 @@
     "logLevel": "debug"
   },
   "/api/matchmaking": {
-    "target": "http://localhost:5001",
+    "target": "http://localhost:3002",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/api/game": {
-    "target": "http://localhost:5002",
+    "target": "http://localhost:3003",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

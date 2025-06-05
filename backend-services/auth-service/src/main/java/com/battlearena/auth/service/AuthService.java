@@ -58,8 +58,9 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new ResponseStatusException(UNAUTHORIZED, "Invalid username or password");
         }
-
-        String token = jwtUtil.generateToken(user.getUsername());
+    
+        // Pass the user's xp to the token generator
+        String token = jwtUtil.generateToken(user.getUsername(), user.getXp());
         return new UserLoginResponseDTO(token, expirationMillis / 1000); // expiresIn in seconds
     }
 } 
