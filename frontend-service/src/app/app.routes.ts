@@ -18,6 +18,11 @@ export const routes: Routes = [
       import('./auth/login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'matchmaking',
+    loadComponent: () => import('./matchmaking/matchmaking.component').then(m => m.MatchmakingComponent),
+    canActivate: [() => import('./guards/auth.guard').then(m => m.authGuard)],
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

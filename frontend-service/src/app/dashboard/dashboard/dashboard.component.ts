@@ -36,13 +36,8 @@ export class DashboardComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-    if (this.isLoggedIn) {
-      this.loadProfile();
-    } else {
-      this.loading = false;
-    }
+  ngOnInit() {
+    this.loadProfile();
   }
 
   private loadProfile(): void {
@@ -52,12 +47,12 @@ export class DashboardComponent implements OnInit {
       next: (profile) => {
         this.profile = profile;
         this.loading = false;
+        this.isLoggedIn = true;
       },
       error: (err) => {
         console.error('Failed to fetch profile:', err);
         this.error = 'Failed to load profile. Please try again later.';
         this.loading = false;
-        // If profile fetch fails, user might not be logged in
         this.isLoggedIn = false;
         this.authService.logout();
       }
@@ -89,12 +84,22 @@ export class DashboardComponent implements OnInit {
   }
 
   onPlay() {
-    // TODO: Replace with actual navigation or game start logic
-    if (this.selectedMode === 0) {
-      console.log('Start 1 Player mode');
-    } else {
-      console.log('Start 2 Player mode');
+    if (!this.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
     }
+    
+    if (this.selectedMode === 0) {
+      // Solo queue
+      this.router.navigate(['/matchmaking']);
+    } else {
+      // TODO: Implement 2-player mode
+      console.log('2 Player mode not implemented yet');
+    }
+  }
+
+  onRecentMatchesClick() {
+    this.showRecentMatches = !this.showRecentMatches;
   }
 
   onButtonClick(action: string) {
@@ -108,11 +113,7 @@ export class DashboardComponent implements OnInit {
           this.router.navigate(['/login']);
         }
         break;
-      // Add other button actions here as needed
+      // Add other button actions here
     }
-  }
-
-  onRecentMatchesClick() {
-    this.showRecentMatches = !this.showRecentMatches;
   }
 }
