@@ -1,116 +1,49 @@
-# docker-compose.yml
-services:
-  mongodb:
-    image: mongo:6.0
-    container_name: battle-arena-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-      - ./database/init:/docker-entrypoint-initdb.d
-    environment:
-      MONGO_INITDB_DATABASE: battlearena
-    networks:
-      - battle-arena-network
+# Docker Compose configuration for Battle Arena
+# Services will be added as they are implemented
 
-  redis:
-    image: redis:7.0-alpine
-    container_name: battle-arena-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - battle-arena-network
+# TODO: Add infrastructure services (MongoDB, Redis) and microservices as they are implemented
+# See: docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md for service architecture
 
-  auth-service:
-    build:
-      context: ./backend-services/auth-service
-      dockerfile: ../../deployments/docker/Dockerfile-auth-service
-    container_name: battle-arena-auth-service
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=86400000
-    depends_on:
-      - mongodb
-    networks:
-      - battle-arena-network
+# Infrastructure Services:
+#   - MongoDB (Port 27017)
+#   - Redis (Port 6379)
 
-  user-profile-service:
-    build:
-      context: ./backend-services/profile-service
-      dockerfile: ../../deployments/docker/Dockerfile-user-profile-service
-    container_name: battle-arena-profile-service
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - mongodb
-      - auth-service
-    networks:
-      - battle-arena-network
+# Microservices:
+#   - Auth Service (Port 8081) - Spring Boot
+#   - Profile Service (Port 8082) - Spring Boot
+#   - Leaderboard Service (Port 8083) - Spring Boot
+#   - Matchmaking Service (Port 3002) - Node.js
+#   - Game Engine Service (Port 5002) - Node.js
 
-  leaderboard-service:
-    build:
-      context: ./backend-services/leaderboard-service
-      dockerfile: ../../deployments/docker/Dockerfile-leaderboard-service
-    container_name: battle-arena-leaderboard-service
-    ports:
-      - "8083:8083"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - mongodb
-    networks:
-      - battle-arena-network
+# Uncomment and configure services as they are implemented:
+# services:
+#   mongodb:
+#     image: mongo:6.0
+#     container_name: battle-arena-mongodb
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongo_data:/data/db
+#       - ./database/init:/docker-entrypoint-initdb.d
+#     environment:
+#       MONGO_INITDB_DATABASE: battlearena
+#     networks:
+#       - battle-arena-network
+#
+#   redis:
+#     image: redis:7.0-alpine
+#     container_name: battle-arena-redis
+#     ports:
+#       - "6379:6379"
+#     volumes:
+#       - redis_data:/data
+#     networks:
+#       - battle-arena-network
 
-  matchmaking-service:
-    build:
-      context: ./backend-services/matchmaking-service
-      dockerfile: ../../deployments/docker/Dockerfile-matchmaking-service
-    container_name: battle-arena-matchmaking-service
-    ports:
-      - "3002:3002"
-    environment:
-      - REDIS_URL=redis://battle-arena-redis:6379
-      - PORT=3002
-      - FRONTEND_URL=http://localhost:4200
-      - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - redis
-      - auth-service
-    networks:
-      - battle-arena-network
+# networks:
+#   battle-arena-network:
+#     driver: bridge
 
-  game-engine-service:
-    build:
-      context: ./backend-services/game-engine
-      dockerfile: ../../deployments/docker/Dockerfile-game-engine-service
-    container_name: battle-arena-game-engine-service
-    ports:
-      - "5002:5002"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://battle-arena-mongodb:27017/battlearena
-      - REDIS_URL=redis://battle-arena-redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=5002
-    depends_on:
-      - mongodb
-      - redis
-      - matchmaking-service
-    networks:
-      - battle-arena-network
-
-networks:
-  battle-arena-network:
-    driver: bridge
-
-volumes:
-  mongo_data:   # MongoDB data persistence
-  redis_data:   # Redis data persistence
+# volumes:
+#   mongo_data:
+#   redis_data:

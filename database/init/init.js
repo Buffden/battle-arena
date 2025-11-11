@@ -1,13 +1,12 @@
-// init.js (MongoDB Initialization Script)
-db.createCollection('players');
-db.players.insertOne({
-  username: "admin",
-  email: "admin@battlearena.com",
-  xp: 1000,
-  wins: 0,
-  losses: 0,
-  role: "admin"
-});
+// MongoDB Initialization Script
+// TODO: Implement database initialization based on database schema documentation
+// See: docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/DATABASE_SCHEMA.md
 
-db.createCollection('matches');
-db.createCollection('leaderboards');
+// Example structure (to be implemented):
+// db.createCollection('users');
+// db.createCollection('profiles');
+// db.createCollection('matches');
+// db.createCollection('leaderboards');
+// db.createCollection('heroes');
+// db.createCollection('weapons');
+// db.createCollection('arenas');

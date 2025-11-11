@@ -1,20 +1,11 @@
-# Use Node.js 20 as the base image
-FROM node:20
+# Dockerfile for Game Engine Service
+# TODO: Implement Dockerfile based on service structure
+# This service will be built using Node.js
 
-# Set working directory
-WORKDIR /usr/src/app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application
-COPY . .
-
-# Expose the port the app runs on
-EXPOSE 5002
-
-# Command to run the application
-CMD [ "npm", "start" ]
+# FROM node:20-alpine
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm install
+# COPY . .
+# EXPOSE 5002
+# CMD ["npm", "start"]
