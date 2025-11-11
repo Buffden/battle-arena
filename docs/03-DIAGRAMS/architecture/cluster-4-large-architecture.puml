@@ -1,0 +1,391 @@
+@startuml Cluster 4 Large Scale Architecture
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+title Battle Arena - Cluster 4: Large Scale Architecture\n(100K-1M users/day, $545-3,200/month)
+
+package "Frontend Layer" #LightBlue {
+  [Angular Frontend\nPort: 4200\nReplicas: 3-5] as Frontend
+  note right of Frontend
+    **Technology:** Angular (TypeScript, TailwindCSS, Phaser 3)
+    **Features:**
+    - User authentication
+    - Hero selection
+    - Matchmaking
+    - Gameplay
+    - Leaderboard
+    **Deployment:** Kubernetes pods
+    **Replicas:** 3-5 (auto-scaling)
+    **Resources:** 0.5 CPU, 1GB RAM per replica
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+}
+
+package "API Gateway" #LightGreen {
+  [Kong/Nginx API Gateway\nPort: 80, 443\nReplicas: 3-5] as Gateway
+  note right of Gateway
+    **Technology:** Kong or Nginx
+    **Features:**
+    - Request routing
+    - Load balancing (advanced)
+    - SSL termination (Let's Encrypt)
+    - Rate limiting (advanced)
+    - Health checks
+    - Sticky sessions (for WebSocket)
+    - API versioning
+    - Request/response transformation
+    - Circuit breakers
+    - Retry policies
+    **Deployment:** Kubernetes pods
+    **Replicas:** 3-5 (auto-scaling)
+    **Resources:** 0.5 CPU, 1GB RAM per replica
+    **Auto-Scaling:** Kubernetes HPA
+    **Cost:** $0/month (self-hosted)
+  end note
+}
+
+package "Service Mesh (Required)" #LightCoral {
+  [Istio/Linkerd\nService Mesh\nRequired] as ServiceMesh
+  note right of ServiceMesh
+    **Technology:** Istio or Linkerd
+    **Features:**
+    - Circuit breakers
+    - Retry policies
+    - Timeout policies
+    - Traffic splitting
+    - mTLS encryption
+    - Observability
+    - Advanced traffic management
+    - Service discovery
+    - Load balancing
+    **Deployment:** Kubernetes service mesh
+    **Required:** Yes (required for Cluster 4)
+    **Cost:** $0/month (self-hosted)
+  end note
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service\nSpring Boot\nPort: 8081\nReplicas: 3-5] as Auth
+  [Profile Service\nSpring Boot\nPort: 8082\nReplicas: 3-5] as Profile
+  [Leaderboard Service\nSpring Boot\nPort: 8083\nReplicas: 3-5] as Leaderboard
+  [Matchmaking Service\nNode.js\nPort: 3002\nReplicas: 5-10] as Matchmaking
+  [Game Engine Service\nNode.js\nPort: 3003\nReplicas: 5-10] as GameEngine
+  [Configuration Service\nSpring Boot\nPort: 8084\nReplicas: 3] as Config
+  
+  note right of Auth
+    **Features:**
+    - User registration
+    - User login
+    - JWT token generation
+    - Password encryption
+    **Resources:** 0.5 CPU, 1GB RAM per replica
+    **Replicas:** 3-5 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+  
+  note right of Profile
+    **Features:**
+    - Profile management
+    - Score tracking
+    - Rank tier calculation
+    - Statistics
+    **Resources:** 0.5 CPU, 1GB RAM per replica
+    **Replicas:** 3-5 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+  
+  note right of Leaderboard
+    **Features:**
+    - Leaderboard generation
+    - Ranking calculation
+    - Filtering (region, hero, weapon)
+    - Top players
+    **Resources:** 0.5 CPU, 1GB RAM per replica
+    **Replicas:** 3-5 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+  
+  note right of Matchmaking
+    **Features:**
+    - Matchmaking queue
+    - Hero selection
+    - Arena selection
+    - Weapon selection
+    - Match creation
+    **Resources:** 1 CPU, 2GB RAM per replica
+    **Replicas:** 5-10 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+  
+  note right of GameEngine
+    **Features:**
+    - Game state management
+    - Turn management
+    - Physics engine
+    - Scoring system
+    - Win/draw conditions
+    **Resources:** 1 CPU, 2GB RAM per replica
+    **Replicas:** 5-10 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+  
+  note right of Config
+    **Features:**
+    - Config file management
+    - Rank tier ranges
+    - Scoring formulas
+    - Game parameters
+    - Penalties
+    **Resources:** 0.3 CPU, 512MB RAM per replica
+    **Replicas:** 3 (auto-scaling)
+    **Auto-Scaling:** Kubernetes HPA
+  end note
+}
+
+package "Data Layer" #LightCyan {
+  database "MongoDB Atlas\n(Paid Tier)\n10GB-100GB Storage\nAdvanced Sharding\nReplica Set (3+ nodes)" as MongoDB {
+    note right
+      **Technology:** MongoDB 6.0+
+      **Storage:** 10GB-100GB (paid tier)
+      **Replication:** Replica set (3+ nodes)
+      **Sharding:** Advanced sharding (required)
+      **Shard Key:** User ID, Region, Hero ID
+      **Backup:** Automated backups (daily)
+      **Monitoring:** MongoDB Atlas monitoring
+      **Security:** Network isolation, encryption at rest
+      **Cost:** $50-300/month (MongoDB Atlas paid tier)
+    end note
+  }
+  
+  database "Redis Cloud\n(Paid Tier)\n500MB-2GB Memory\nAdvanced Sharding\nReplica Set (3+ nodes)" as Redis {
+    note right
+      **Technology:** Redis 7.0+
+      **Memory:** 500MB-2GB (paid tier)
+      **Replication:** Replica set (3+ nodes)
+      **Sharding:** Advanced sharding (required)
+      **Shard Key:** User ID, Region, Hero ID
+      **Persistence:** AOF (Append Only File)
+      **Monitoring:** Redis Cloud monitoring
+      **Security:** Network isolation, encryption at rest
+      **Cost:** $50-200/month (Redis Cloud paid tier)
+    end note
+  }
+}
+
+package "Message Queue" #LightPink {
+  queue "Apache Kafka\n(Required)\n5+ Brokers\n20-50 Partitions per Topic\n3 Replicas per Partition\nAdvanced Sharding" as Kafka {
+    note right
+      **Technology:** Apache Kafka
+      **Purpose:** Inter-service communication, event streaming (with message persistence)
+      **Topics:**
+      - matchmaking.events
+      - game.events
+      - profile.updates
+      - leaderboard.updates
+      **Characteristics:**
+      - Message persistence to disk
+      - Message replay capability
+      - High scalability (millions of messages per second)
+      - Fault tolerance (replication)
+      - Consumer groups for load balancing
+      - Partitioning for parallel processing
+      - Advanced sharding (required)
+      **Clustering:** Kafka cluster (5+ brokers)
+      **Deployment:** Self-hosted (Kubernetes) OR Confluent Cloud paid tier
+      **Partitions:** 20-50 partitions per topic (production)
+      **Replication:** 3 replicas per partition (production)
+      **Retention:** 7-30 days (configurable)
+      **Cost:** $0/month (self-hosted) OR $100-300/month (Confluent Cloud paid tier)
+    end note
+  }
+}
+
+package "Orchestration" #LightGray {
+  [Kubernetes\n(Required)\n5-10 Nodes\n4-8 CPU, 8-16GB RAM per Node\nAuto-Scaling (HPA/VPA)] as Kubernetes {
+    note right
+      **Technology:** Kubernetes
+      **Purpose:** Container orchestration, auto-scaling, load balancing
+      **Nodes:** 5-10 nodes (4-8 CPU, 8-16GB RAM per node)
+      **Auto-Scaling:** Kubernetes HPA/VPA
+      **Features:**
+      - Container orchestration
+      - Auto-scaling
+      - Load balancing
+      - Service discovery
+      - Rolling updates
+      - Health checks
+      - Resource management
+      **Deployment:** Managed Kubernetes (GKE, EKS, AKS)
+      **Cost:** $200-800/month (managed Kubernetes)
+    end note
+  }
+}
+
+package "Monitoring" #LightSalmon {
+  [Prometheus\nMetrics Collection\nSelf-Hosted] as Prometheus
+  [Grafana\nMetrics Visualization\nSelf-Hosted] as Grafana
+  [AlertManager\nAlerting\nSelf-Hosted] as AlertManager
+  
+  note right of Prometheus
+    **Technology:** Prometheus
+    **Purpose:** Metrics collection
+    **Features:**
+    - Metrics collection
+    - Time-series database
+    - Query language (PromQL)
+    - Alerting rules
+    **Deployment:** Self-hosted (Kubernetes)
+    **Cost:** $0/month (self-hosted)
+  end note
+  
+  note right of Grafana
+    **Technology:** Grafana
+    **Purpose:** Metrics visualization
+    **Features:**
+    - Metrics visualization
+    - Dashboards
+    - Alerting
+    - Data sources (Prometheus)
+    **Deployment:** Self-hosted (Kubernetes)
+    **Cost:** $0/month (self-hosted)
+  end note
+  
+  note right of AlertManager
+    **Technology:** AlertManager
+    **Purpose:** Alerting on critical issues
+    **Features:**
+    - Alerting on critical issues
+    - Notification channels
+    - Alert grouping
+    - Alert silencing
+    **Deployment:** Self-hosted (Kubernetes)
+    **Cost:** $0/month (self-hosted)
+  end note
+}
+
+package "Logging" #LightSeaGreen {
+  [ELK Stack\nOR\nLoki + Grafana\nSelf-Hosted] as Logging {
+    note right
+      **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana) OR Loki + Grafana
+      **Purpose:** Centralized log aggregation
+      **Features:**
+      - Centralized log aggregation
+      - Log search and filtering
+      - Log analytics
+      - Log retention policies
+      **Deployment:** Self-hosted (Kubernetes)
+      **Cost:** $0/month (self-hosted)
+    end note
+  }
+}
+
+package "Tracing (Required)" #LightSteelBlue {
+  [Jaeger\nDistributed Tracing\nSelf-Hosted\nRequired] as Jaeger {
+    note right
+      **Technology:** Jaeger
+      **Purpose:** Distributed tracing
+      **Features:**
+      - Request tracing across services
+      - Performance analysis
+      - Service dependency mapping
+      - Error tracking and debugging
+      **Deployment:** Self-hosted (Kubernetes)
+      **Required:** Yes (required for Cluster 4)
+      **Cost:** $0/month (self-hosted)
+    end note
+  }
+}
+
+package "CI/CD" #LightGoldenrodYellow {
+  [GitHub Actions\nCI/CD Pipeline\nFree Tier or Paid Tier] as CICD {
+    note right
+      **Technology:** GitHub Actions
+      **Purpose:** CI/CD pipeline
+      **Features:**
+      - Automated builds
+      - Automated tests
+      - Automated deployments
+      - Automated monitoring
+      **Deployment:** GitHub Actions (free tier or paid tier)
+      **Cost:** $0/month (free tier: 2,000 minutes/month) OR paid tier
+    end note
+  }
+}
+
+' Relationships
+Frontend --> Gateway : HTTP/HTTPS
+Gateway --> ServiceMesh : Service Mesh (Required)
+ServiceMesh --> Auth : Service-to-Service (mTLS)
+ServiceMesh --> Profile : Service-to-Service (mTLS)
+ServiceMesh --> Leaderboard : Service-to-Service (mTLS)
+ServiceMesh --> Matchmaking : Service-to-Service (mTLS)
+ServiceMesh --> GameEngine : Service-to-Service (mTLS)
+ServiceMesh --> Config : Service-to-Service (mTLS)
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Leaderboard --> MongoDB : MongoDB Driver
+Matchmaking --> MongoDB : MongoDB Driver
+GameEngine --> MongoDB : MongoDB Driver
+Config --> MongoDB : MongoDB Driver
+
+Auth --> Redis : Redis Client
+Profile --> Redis : Redis Client
+Leaderboard --> Redis : Redis Client
+Matchmaking --> Redis : Redis Client
+GameEngine --> Redis : Redis Client
+Config --> Redis : Redis Client
+
+Profile --> Kafka : Publisher (profile.updates)
+Leaderboard --> Kafka : Publisher (leaderboard.updates)
+Matchmaking --> Kafka : Publisher (matchmaking.events)
+GameEngine --> Kafka : Publisher (game.events)
+
+Profile --> Kafka : Consumer (matchmaking.events)
+Leaderboard --> Kafka : Consumer (game.events, profile.updates)
+GameEngine --> Kafka : Consumer (matchmaking.events)
+
+Auth --> Prometheus : Metrics
+Profile --> Prometheus : Metrics
+Leaderboard --> Prometheus : Metrics
+Matchmaking --> Prometheus : Metrics
+GameEngine --> Prometheus : Metrics
+Config --> Prometheus : Metrics
+
+Prometheus --> Grafana : Metrics
+Prometheus --> AlertManager : Alerts
+
+Auth --> Logging : Logs
+Profile --> Logging : Logs
+Leaderboard --> Logging : Logs
+Matchmaking --> Logging : Logs
+GameEngine --> Logging : Logs
+Config --> Logging : Logs
+
+Auth --> Jaeger : Traces (Required)
+Profile --> Jaeger : Traces (Required)
+Leaderboard --> Jaeger : Traces (Required)
+Matchmaking --> Jaeger : Traces (Required)
+GameEngine --> Jaeger : Traces (Required)
+Config --> Jaeger : Traces (Required)
+
+CICD --> Kubernetes : Deploy
+
+Kubernetes --> Frontend : Orchestration
+Kubernetes --> Gateway : Orchestration
+Kubernetes --> ServiceMesh : Orchestration (Required)
+Kubernetes --> Auth : Orchestration
+Kubernetes --> Profile : Orchestration
+Kubernetes --> Leaderboard : Orchestration
+Kubernetes --> Matchmaking : Orchestration
+Kubernetes --> GameEngine : Orchestration
+Kubernetes --> Config : Orchestration
+Kubernetes --> Kafka : Orchestration
+Kubernetes --> Prometheus : Orchestration
+Kubernetes --> Grafana : Orchestration
+Kubernetes --> Logging : Orchestration
+Kubernetes --> Jaeger : Orchestration (Required)
+
+@enduml
+

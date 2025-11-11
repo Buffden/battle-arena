@@ -1,0 +1,244 @@
+@startuml Cluster 4 Large Scale Deployment
+skinparam node {
+    backgroundColor #LightBlue
+    BorderColor #000000
+}
+skinparam database {
+    backgroundColor #LightCoral
+    BorderColor #000000
+}
+
+title Battle Arena - Cluster 4: Large Scale Deployment\n(100K-1M users/day, $545-3,200/month)
+
+node "Kubernetes Cluster\n(5-10 Nodes)\n4-8 CPU, 8-16GB RAM per Node\nAuto-Scaling (HPA/VPA)\n$200-800/month" as K8sCluster {
+    note right of K8sCluster
+        **Infrastructure:**
+        - 5-10 nodes per cluster
+        - 4-8 CPU cores per node
+        - 8-16GB RAM per node
+        - 80-160GB SSD per node
+        - 4-8TB bandwidth/month per node
+        **Cost:** $200-800/month (managed Kubernetes)
+        **Providers:** GKE, EKS, AKS
+        **Auto-Scaling:** Kubernetes HPA/VPA
+        **Features:**
+        - Container orchestration
+        - Auto-scaling
+        - Load balancing
+        - Service discovery
+        - Rolling updates
+        - Health checks
+        - Resource management
+    end note
+    
+    node "Node 1 (4-8 CPU, 8-16GB RAM)" as Node1 {
+        component [Frontend\nAngular\nReplicas: 3-5] as Frontend1
+        component [API Gateway\nKong/Nginx\nReplicas: 3-5] as Gateway1
+        component [Auth Service\nSpring Boot\nReplicas: 3-5] as Auth1
+        component [Profile Service\nSpring Boot\nReplicas: 3-5] as Profile1
+        component [Kafka Broker 1\n5+ Brokers] as Kafka1
+        component [Prometheus\nMetrics] as Prometheus1
+        component [Grafana\nDashboards] as Grafana1
+    }
+    
+    node "Node 2 (4-8 CPU, 8-16GB RAM)" as Node2 {
+        component [Leaderboard Service\nSpring Boot\nReplicas: 3-5] as Leaderboard1
+        component [Matchmaking Service\nNode.js\nReplicas: 5-10] as Matchmaking1
+        component [Game Engine Service\nNode.js\nReplicas: 5-10] as GameEngine1
+        component [Configuration Service\nSpring Boot\nReplicas: 3] as Config1
+        component [Kafka Broker 2\n5+ Brokers] as Kafka2
+        component [ELK Stack\nOR\nLoki + Grafana\nLogging] as Logging1
+        component [Jaeger\nTracing\nRequired] as Jaeger1
+    }
+    
+    node "Node 3 (4-8 CPU, 8-16GB RAM)" as Node3 {
+        component [Service Mesh\nIstio/Linkerd\nRequired] as ServiceMesh1
+        component [Kafka Broker 3\n5+ Brokers] as Kafka3
+        component [Zookeeper\nKafka Coordination] as Zookeeper1
+        component [AlertManager\nAlerting] as AlertManager1
+    }
+    
+    node "Node 4-5 (4-8 CPU, 8-16GB RAM)" as Node4 {
+        component [Kafka Broker 4-5\n5+ Brokers] as Kafka45
+        component [Additional Services\nAuto-Scaling\nLoad Balancing] as Additional1
+    }
+    
+    node "Node 6-10 (Optional)\n(4-8 CPU, 8-16GB RAM)" as Node6 {
+        component [Additional Services\nAuto-Scaling\nLoad Balancing\nHigh Availability] as Additional2
+    }
+}
+
+database "MongoDB Atlas\n(Paid Tier)\n10GB-100GB Storage\nAdvanced Sharding\nReplica Set (3+ nodes)\n$50-300/month" as MongoDB {
+    note right of MongoDB
+        **Technology:** MongoDB Atlas
+        **Storage:** 10GB-100GB (paid tier)
+        **Replication:** Replica set (3+ nodes)
+        **Sharding:** Advanced sharding (required)
+        **Shard Key:** User ID, Region, Hero ID
+        **Backup:** Automated backups (daily)
+        **Monitoring:** MongoDB Atlas monitoring
+        **Security:** Network isolation, encryption at rest
+        **Cost:** $50-300/month (MongoDB Atlas paid tier)
+    end note
+}
+
+database "Redis Cloud\n(Paid Tier)\n500MB-2GB Memory\nAdvanced Sharding\nReplica Set (3+ nodes)\n$50-200/month" as Redis {
+    note right of Redis
+        **Technology:** Redis Cloud
+        **Memory:** 500MB-2GB (paid tier)
+        **Replication:** Replica set (3+ nodes)
+        **Sharding:** Advanced sharding (required)
+        **Shard Key:** User ID, Region, Hero ID
+        **Persistence:** AOF (Append Only File)
+        **Monitoring:** Redis Cloud monitoring
+        **Security:** Network isolation, encryption at rest
+        **Cost:** $50-200/month (Redis Cloud paid tier)
+    end note
+}
+
+cloud "Users\n100K-1M users/day" as Users {
+    note right of Users
+        **Traffic:**
+        - 100,000-1,000,000 users/day
+        - ~3M-30M users/month
+        - Peak concurrent users: 10,000-100,000
+        - API requests: 1M-10M requests/day
+        - WebSocket connections: 10,000-100,000 concurrent connections
+    end note
+}
+
+cloud "CI/CD\nGitHub Actions\nPaid Tier\n$0-200/month" as CICD {
+    note right of CICD
+        **Technology:** GitHub Actions
+        **Purpose:** CI/CD pipeline
+        **Features:**
+        - Automated builds
+        - Automated tests
+        - Automated deployments
+        - Automated monitoring
+        **Cost:** $0-200/month (paid tier, depending on usage)
+    end note
+}
+
+cloud "Monitoring\nPrometheus + Grafana\nSelf-Hosted\n$0/month" as Monitoring {
+    note right of Monitoring
+        **Technology:** Prometheus + Grafana
+        **Purpose:** Monitoring and alerting
+        **Features:**
+        - Metrics collection
+        - Metrics visualization
+        - Alerting on critical issues
+        - Dashboards
+        **Cost:** $0/month (self-hosted)
+    end note
+}
+
+cloud "Logging\nELK Stack\nOR\nLoki + Grafana\nSelf-Hosted\n$0/month" as Logging {
+    note right of Logging
+        **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana) OR Loki + Grafana
+        **Purpose:** Centralized log aggregation
+        **Features:**
+        - Centralized log aggregation
+        - Log search and filtering
+        - Log analytics
+        - Log retention policies
+        **Cost:** $0/month (self-hosted)
+    end note
+}
+
+cloud "Tracing\nJaeger\nSelf-Hosted\nRequired\n$0/month" as Tracing {
+    note right of Tracing
+        **Technology:** Jaeger
+        **Purpose:** Distributed tracing
+        **Features:**
+        - Request tracing across services
+        - Performance analysis
+        - Service dependency mapping
+        - Error tracking and debugging
+        **Cost:** $0/month (self-hosted)
+        **Required:** Yes (required for Cluster 4)
+    end note
+}
+
+' Relationships
+Users --> K8sCluster : HTTPS (Port 443)
+Users --> K8sCluster : WebSocket (WSS)
+
+K8sCluster --> MongoDB : MongoDB Connection\n(mongodb+srv://...)
+K8sCluster --> Redis : Redis Connection\n(redis://...)
+
+CICD --> K8sCluster : Deploy\n(kubectl apply)
+
+K8sCluster --> Monitoring : Metrics\n(Prometheus)
+K8sCluster --> Logging : Logs\n(ELK Stack or Loki)
+K8sCluster --> Tracing : Traces\n(Jaeger, Required)
+
+Frontend1 --> Gateway1 : HTTP/HTTPS
+Gateway1 --> Auth1 : HTTP/HTTPS
+Gateway1 --> Profile1 : HTTP/HTTPS
+Gateway1 --> Leaderboard1 : HTTP/HTTPS
+Gateway1 --> Matchmaking1 : WebSocket
+Gateway1 --> GameEngine1 : WebSocket
+Gateway1 --> Config1 : HTTP/HTTPS
+
+Auth1 --> MongoDB : MongoDB Driver
+Profile1 --> MongoDB : MongoDB Driver
+Leaderboard1 --> MongoDB : MongoDB Driver
+Matchmaking1 --> MongoDB : MongoDB Driver
+GameEngine1 --> MongoDB : MongoDB Driver
+Config1 --> MongoDB : MongoDB Driver
+
+Auth1 --> Redis : Redis Client
+Profile1 --> Redis : Redis Client
+Leaderboard1 --> Redis : Redis Client
+Matchmaking1 --> Redis : Redis Client
+GameEngine1 --> Redis : Redis Client
+Config1 --> Redis : Redis Client
+
+Profile1 --> Kafka1 : Publisher (profile.updates)
+Leaderboard1 --> Kafka1 : Publisher (leaderboard.updates)
+Matchmaking1 --> Kafka1 : Publisher (matchmaking.events)
+GameEngine1 --> Kafka1 : Publisher (game.events)
+
+Profile1 --> Kafka1 : Consumer (matchmaking.events)
+Leaderboard1 --> Kafka1 : Consumer (game.events, profile.updates)
+GameEngine1 --> Kafka1 : Consumer (matchmaking.events)
+
+Kafka1 --> Zookeeper1 : Coordination
+Kafka2 --> Zookeeper1 : Coordination
+Kafka3 --> Zookeeper1 : Coordination
+Kafka45 --> Zookeeper1 : Coordination
+
+Auth1 --> Prometheus1 : Metrics
+Profile1 --> Prometheus1 : Metrics
+Leaderboard1 --> Prometheus1 : Metrics
+Matchmaking1 --> Prometheus1 : Metrics
+GameEngine1 --> Prometheus1 : Metrics
+Config1 --> Prometheus1 : Metrics
+
+Prometheus1 --> Grafana1 : Metrics
+Prometheus1 --> AlertManager1 : Alerts
+
+Auth1 --> Logging1 : Logs
+Profile1 --> Logging1 : Logs
+Leaderboard1 --> Logging1 : Logs
+Matchmaking1 --> Logging1 : Logs
+GameEngine1 --> Logging1 : Logs
+Config1 --> Logging1 : Logs
+
+Auth1 --> Jaeger1 : Traces (Required)
+Profile1 --> Jaeger1 : Traces (Required)
+Leaderboard1 --> Jaeger1 : Traces (Required)
+Matchmaking1 --> Jaeger1 : Traces (Required)
+GameEngine1 --> Jaeger1 : Traces (Required)
+Config1 --> Jaeger1 : Traces (Required)
+
+ServiceMesh1 --> Auth1 : Service Mesh (Required, mTLS)
+ServiceMesh1 --> Profile1 : Service Mesh (Required, mTLS)
+ServiceMesh1 --> Leaderboard1 : Service Mesh (Required, mTLS)
+ServiceMesh1 --> Matchmaking1 : Service Mesh (Required, mTLS)
+ServiceMesh1 --> GameEngine1 : Service Mesh (Required, mTLS)
+ServiceMesh1 --> Config1 : Service Mesh (Required, mTLS)
+
+@enduml
+
