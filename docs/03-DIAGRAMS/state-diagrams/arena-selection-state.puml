@@ -1,0 +1,41 @@
+@startuml Arena Selection State Diagram
+skinparam state {
+  BackgroundColor LightBlue
+  BorderColor Black
+  ArrowColor Black
+}
+
+title Arena Selection State Machine
+
+[*] --> InProgress: startArenaSelection()
+
+state InProgress {
+  [*] --> WaitingForElimination: Arena selection started
+  WaitingForElimination --> WaitingForElimination: eliminateArena()\n(Player 1 eliminates)
+  WaitingForElimination --> WaitingForElimination: eliminateArena()\n(Player 2 eliminates)
+  WaitingForElimination --> CheckingCompletion: Arena eliminated
+  CheckingCompletion --> WaitingForElimination: Multiple arenas remain
+  CheckingCompletion --> Completed: One arena remains
+}
+
+InProgress --> Completed: Only one arena remains\n(auto-select)
+
+Completed --> [*]: Arena selected
+
+note right of InProgress
+  **State:** InProgress
+  **Actions:**
+  - Players eliminate arenas
+  - Real-time updates
+  - State stored in Redis
+end note
+
+note right of Completed
+  **State:** Completed
+  **Actions:**
+  - Arena auto-selected
+  - Proceed to weapon selection
+end note
+
+@enduml
+

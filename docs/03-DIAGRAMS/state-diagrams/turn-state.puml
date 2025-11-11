@@ -1,0 +1,71 @@
+@startuml Turn State Diagram
+skinparam state {
+  BackgroundColor LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+title Turn State Machine (15 seconds per turn)
+
+[*] --> Active: startTurn()
+
+state Active {
+  [*] --> WaitingForAction: Turn started
+  WaitingForAction --> Processing: Action received\n(move, aim, fire)
+  Processing --> Completed: Action processed
+  WaitingForAction --> Expired: Timeout (15s)
+}
+
+Active --> Completed: Action completed
+
+Completed --> Active: Next turn\n(switch player)
+
+Active --> Expired: Timer expired\n(15 seconds)
+
+Expired --> Completed: Auto-end turn\n(random action or skip)
+
+Completed --> [*]: Turn ended
+
+note right of Active
+  **State:** Active
+  **Timer:** 15 seconds
+  **Actions:**
+  - Wait for player action
+  - Process action
+  - Update game state
+end note
+
+note right of WaitingForAction
+  **State:** WaitingForAction
+  **Timer:** 15 seconds
+  **Actions:**
+  - Player can move, aim, fire
+  - Timer counting down
+end note
+
+note right of Processing
+  **State:** Processing
+  **Actions:**
+  - Process player action
+  - Calculate physics
+  - Update game state
+end note
+
+note right of Expired
+  **State:** Expired
+  **Actions:**
+  - Turn timeout
+  - Auto-end turn
+  - Switch to next player
+end note
+
+note right of Completed
+  **State:** Completed
+  **Actions:**
+  - Turn completed
+  - Switch to next player
+  - Start next turn timer
+end note
+
+@enduml
+

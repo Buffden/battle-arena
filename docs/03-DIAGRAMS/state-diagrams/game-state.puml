@@ -1,0 +1,72 @@
+@startuml Game State Diagram
+skinparam state {
+  BackgroundColor LightYellow
+  BorderColor Black
+  ArrowColor Black
+}
+
+title Game State Machine
+
+[*] --> Waiting: Game room created
+
+Waiting --> Playing: Both players joined\nstartGame()
+
+state Playing {
+  [*] --> Player1Turn: Game started
+  Player1Turn --> Processing: Player action received
+  Processing --> Player2Turn: Action processed
+  Player2Turn --> Processing: Player action received
+  Processing --> Player1Turn: Action processed
+  Player1Turn --> CheckingWinCondition: Turn ended
+  Player2Turn --> CheckingWinCondition: Turn ended
+  CheckingWinCondition --> Player1Turn: Game continues
+  CheckingWinCondition --> Player2Turn: Game continues
+  CheckingWinCondition --> Ended: Win condition met
+}
+
+Playing --> Paused: Pause game
+Paused --> Playing: Resume game
+
+Playing --> Ended: Match timer expired (4-5 min)\nOR\n10 turns per player completed (20 total)\nOR\nPlayer HP = 0 (instant loss)
+
+Ended --> [*]: Match result processed
+
+note right of Waiting
+  **State:** Waiting
+  **Actions:**
+  - Wait for both players
+  - Initialize game state
+end note
+
+note right of Playing
+  **State:** Playing
+  **Actions:**
+  - Turn-based gameplay
+  - Real-time updates
+  - State stored in Redis
+end note
+
+note right of Paused
+  **State:** Paused
+  **Actions:**
+  - Game paused
+  - Can resume later
+end note
+
+note right of Ended
+  **State:** Ended
+  **End Conditions:**
+  - Match timer expired (4-5 minutes)
+  - OR 10 turns per player completed (20 total)
+  - OR Player HP = 0 (instant loss)
+  - OR Draw (same HP AND same score)
+  **Actions:**
+  - Match result processed
+  - Winner determined (higher HP if timer/turns)
+  - Scores updated (global score)
+  - Rank tiers updated
+  - Leaderboard updated
+end note
+
+@enduml
+
