@@ -1,7 +1,7 @@
 # 📚 Battle Arena - Documentation Index
 
 **Last Updated:** 2024  
-**Status:** Draft
+**Status:** Active
 
 ---
 
@@ -19,367 +19,296 @@
 
 ---
 
-## 📖 Documentation Overview
+## 📖 Documentation Structure
 
-This directory contains comprehensive design and architecture documentation for the Battle Arena multiplayer tank battle game system. All documentation follows industry best practices and emphasizes **reusability, clean code, clean architecture, and secure programming**.
-
----
-
-## 📑 Documentation Structure
-
-### 0. [UML Diagram Setup Guide](./UML_DIAGRAM_SETUP.md) 🆕
-**Purpose:** Guide for setting up UML diagram tools in Cursor IDE.
-
-**Contents:**
-- PlantUML Extension Setup
-- Mermaid Extension Setup
-- Draw.io Integration Setup
-- Diagram Export to PNG
-- Best Practices and Troubleshooting
-
-**Audience:** All Developers, Architects
-
-**Key Sections:**
-- Installation Instructions
-- Diagram Examples
-- Export Methods
-- File Structure Recommendations
+```
+docs/
+├── 00-PROJECT_DEFINITION/      # ✅ Source of Truth - Project Description & Scope
+│   ├── README.md
+│   ├── PROJECT_DESCRIPTION.md
+│   └── PROJECT_SCOPE.md
+│
+├── 01-GETTING_STARTED/          # Getting Started Guide
+│   └── README.md
+│
+├── 02-ARCHITECTURE/             # ✅ Architecture Documentation
+│   ├── HIGH_LEVEL_DESIGN/       # ✅ HLD - System Architecture (v2.0)
+│   ├── LOW_LEVEL_DESIGN/        # ⏳ LLD - Component Design (GoF Patterns) - To be created
+│   ├── DECISION_RECORDS/        # ✅ Architecture Decision Records (v2.0)
+│   └── README.md                # ✅ Architecture Index
+│
+└── 03-DIAGRAMS/                 # ✅ UML Diagrams (PlantUML)
+    └── (diagram files)
+```
 
 ---
 
-### 1. [High-Level Design (HLD)](./01-HIGH_LEVEL_DESIGN.md)
-**Purpose:** System architecture, component diagrams, and high-level design decisions.
+## 🎯 Documentation Phases
 
-**Contents:**
-- System Architecture Overview
-- Microservices Architecture
-- Component Design
-- Data Flow Diagrams
-- Communication Patterns
-- Database Design
-- Security Architecture
-- Scalability Considerations
-- Deployment Architecture
-- Non-Functional Requirements
+### Phase 1: Project Definition ✅ (Current Phase)
+**Status:** In Progress
 
-**Audience:** Architects, Technical Leads, Senior Developers
+1. **[Project Description](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md)** - Comprehensive project description
+2. **[Project Scope](./00-PROJECT_DEFINITION/PROJECT_SCOPE.md)** - Detailed project scope
+3. **Review & Finalize** - Review with stakeholders and finalize
 
-**Key Sections:**
-- System Architecture Diagrams
-- Microservices Breakdown
-- Data Flow and Communication Patterns
-- Database Schema Design
-- Security and Scalability Considerations
+**Next Step:** After finalizing project definition, proceed to High-Level Design (HLD)
 
 ---
 
-### 2. [Low-Level Design (LLD)](./02-LOW_LEVEL_DESIGN.md)
-**Purpose:** Detailed design specifications for components, classes, databases, and APIs.
+### Phase 2: High-Level Design (HLD) ✅ (Completed)
+**Status:** ✅ Complete (Version 2.0)
+
+**Reference Books:**
+- **Clean Architecture** by Robert C. Martin
+- **Microservices Patterns** by Chris Richardson
+
+**Documents to Create:**
+1. System Architecture Overview
+2. Component Design
+3. Data Flow Diagrams
+4. Communication Patterns
+5. Database Design
+6. Security Architecture
+7. Scalability Considerations
+8. Deployment Architecture
+9. Non-Functional Requirements
+
+**Next Step:** After completing HLD, proceed to Low-Level Design (LLD)
+
+---
+
+### Phase 3: Low-Level Design (LLD) ⏳ (After HLD)
+**Status:** Not Started
+
+**Reference Book:**
+- **Gang of Four (GoF) Design Patterns** - "Design Patterns: Elements of Reusable Object-Oriented Software"
+
+**Design Patterns to Use:**
+- **Creational Patterns:** Factory, Builder, Singleton
+- **Structural Patterns:** Adapter, Decorator, Facade, Proxy
+- **Behavioral Patterns:** Observer, Strategy, Command, State, Template Method
+
+**Documents to Create:**
+1. Service-specific LLD documents
+2. Class Diagrams
+3. Design Pattern Implementation
+4. API Specifications
+5. Database Schema
+6. Error Handling
+7. Testing Strategy
+
+**Next Step:** After completing LLD, proceed to Implementation
+
+---
+
+### Phase 4: Implementation ⏳ (After LLD)
+**Status:** Not Started
+
+**Steps:**
+1. Implement backend services
+2. Implement frontend application
+3. Implement database schemas
+4. Implement security measures
+5. Write tests
+6. Deploy to production
+
+---
+
+## 📑 Current Documentation
+
+### ✅ Project Definition (Current Phase)
+1. **[Project Description - Plain English](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION_PLAIN_ENGLISH.md)** 🌟 - Project description in simple, non-technical language
+2. **[Project Description (Technical)](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md)** - Comprehensive technical project description
+3. **[Project Scope](./00-PROJECT_DEFINITION/PROJECT_SCOPE.md)** - Detailed project scope
+4. **[Project Definition README](./00-PROJECT_DEFINITION/README.md)** - Project definition index
+
+### ✅ High-Level Design (HLD) - Complete
+**Status:** ✅ Updated (Version 2.0) - Aligned with clarified mechanics
+
+**Reference:** [High-Level Design README](./02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md)
 
 **Contents:**
-- Detailed Class Diagrams
-- Database Schema Specifications
-- API Endpoint Specifications
-- Service Layer Implementations
-- Data Flow Within Components
-- Error Handling and Validation
+- ✅ Executive Summary
+- ✅ System Architecture
+- ✅ Component Design
+- ✅ Data Flow
+- ✅ Communication Patterns
+- ✅ Database Design
+- ✅ Security Architecture
+- ✅ Scalability Considerations
+- ✅ Deployment Architecture
+- ✅ Non-Functional Requirements
+- ✅ Design Principles
+- ✅ Risk Assessment
+- ✅ Future Enhancements
+
+### ⏳ Low-Level Design (To be created)
+- Service-specific LLD documents (using GoF patterns)
+- Class Diagrams
+- Design Pattern Implementation
+- API Specifications
+- Database Schema
+- Error Handling
 - Testing Strategy
 
-**Audience:** Developers, QA Engineers
-
-**Key Sections:**
-- Service-specific Class Diagrams
-- Database Schema with Indexes
-- API Endpoint Specifications
-- Service Implementation Details
-- Error Handling Patterns
-- Testing Strategies
-
 ---
 
-### 3. [Feasibility Analysis](./03-FEASIBILITY_ANALYSIS.md)
-**Purpose:** Comprehensive feasibility analysis covering technical, operational, economic, and schedule feasibility.
-
-**Contents:**
-- Technical Feasibility Assessment
-- Operational Feasibility Analysis
-- Economic Feasibility and Cost Analysis
-- Schedule Feasibility for Rapid Deployment
-- Risk Assessment and Mitigation Strategies
-- Technology Stack Evaluation
-
-**Audience:** Project Managers, Stakeholders, Technical Leads
-
-**Key Sections:**
-- Technology Stack Assessment
-- Performance Feasibility
-- Security Feasibility
-- Deployment Feasibility
-- Cost Analysis
-- Timeline Estimates
-
----
-
-### 4. [Security Design](./04-SECURITY_DESIGN.md)
-**Purpose:** Comprehensive security design covering authentication, authorization, data protection, and security best practices.
-
-**Contents:**
-- Authentication Security (JWT, Password Hashing)
-- Authorization Security (RBAC, Resource-based)
-- Data Protection (Encryption, Sanitization)
-- Network Security (API Security, WebSocket Security)
-- Application Security (Secure Coding, Error Handling)
-- Security Monitoring and Auditing
-- Compliance (OWASP, GDPR)
-
-**Audience:** Security Team, Developers, Architects
-
-**Key Sections:**
-- Authentication and Authorization
-- Data Encryption and Protection
-- Input Validation and Output Encoding
-- Security Headers and Policies
-- Security Monitoring and Incident Response
-- Compliance Requirements
-
----
-
-### 5. [Architecture Decision Records (ADR)](./05-ARCHITECTURE_DECISION_RECORDS.md)
-**Purpose:** Document architectural decisions with context, decision, and consequences.
-
-**Contents:**
-- Microservices Architecture Decision
-- JWT-Based Authentication Decision
-- MongoDB for Data Storage Decision
-- Redis for Caching and Queue Management Decision
-- Socket.io for Real-time Communication Decision
-- Matter.js for Physics Engine Decision
-- Docker Containerization Decision
-- Angular for Frontend Framework Decision
-- Clean Architecture Layers Decision
-- Comprehensive Security Measures Decision
-
-**Audience:** Architects, Technical Leads, Developers
-
-**Key Sections:**
-- Decision Context and Rationale
-- Accepted Decisions
-- Proposed Decisions
-- Decision Consequences
-- Decision Review Process
-
----
-
-### 6. [API Design](./06-API_DESIGN.md)
-**Purpose:** Comprehensive API specifications for all REST APIs and WebSocket events.
-
-**Contents:**
-- Authentication Service APIs
-- Profile Service APIs
-- Leaderboard Service APIs
-- Matchmaking Service WebSocket Events
-- Game Engine Service WebSocket Events
-- Error Handling and Error Codes
-- Rate Limiting Policies
-- API Versioning Strategy
-
-**Audience:** API Developers, Frontend Developers, QA Engineers
-
-**Key Sections:**
-- REST API Endpoints
-- WebSocket Events
-- Request/Response Formats
-- Error Handling
-- Rate Limiting
-- API Versioning
-
----
-
-## 🚀 Quick Start Guide
-
-### For Architects and Technical Leads
-1. Start with [High-Level Design (HLD)](./01-HIGH_LEVEL_DESIGN.md) for system overview
-2. Review [Architecture Decision Records (ADR)](./05-ARCHITECTURE_DECISION_RECORDS.md) for key decisions
-3. Review [Feasibility Analysis](./03-FEASIBILITY_ANALYSIS.md) for feasibility assessment
-4. Review [Security Design](./04-SECURITY_DESIGN.md) for security considerations
-5. Setup [UML Diagram Tools](./UML_DIAGRAM_SETUP.md) for creating architecture diagrams
-
-### For Developers
-1. Start with [Low-Level Design (LLD)](./02-LOW_LEVEL_DESIGN.md) for detailed specifications
-2. Review [API Design](./06-API_DESIGN.md) for API specifications
-3. Review [Security Design](./04-SECURITY_DESIGN.md) for security requirements
-4. Reference [Architecture Decision Records (ADR)](./05-ARCHITECTURE_DECISION_RECORDS.md) for design decisions
-5. Setup [UML Diagram Tools](./UML_DIAGRAM_SETUP.md) for creating class and sequence diagrams
-
-### For QA Engineers
-1. Review [Low-Level Design (LLD)](./02-LOW_LEVEL_DESIGN.md) for testing strategy
-2. Review [API Design](./06-API_DESIGN.md) for API testing
-3. Review [Security Design](./04-SECURITY_DESIGN.md) for security testing
+## 🚀 Quick Start
 
 ### For Project Managers
-1. Review [Feasibility Analysis](./03-FEASIBILITY_ANALYSIS.md) for project feasibility
-2. Review [High-Level Design (HLD)](./01-HIGH_LEVEL_DESIGN.md) for system overview
-3. Review [Architecture Decision Records (ADR)](./05-ARCHITECTURE_DECISION_RECORDS.md) for key decisions
+1. **Start:** [Project Description - Plain English](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION_PLAIN_ENGLISH.md) 🌟
+2. **Then:** [Project Scope](./00-PROJECT_DEFINITION/PROJECT_SCOPE.md)
+3. **Review:** Review with stakeholders
+4. **Finalize:** Finalize project definition
+
+### For Architects
+1. **Wait:** Wait for project definition to be finalized
+2. **Then:** Create High-Level Design (HLD) document
+3. **Reference:** Clean Architecture and Microservices Patterns
+4. **Review:** Review HLD with stakeholders
+
+### For Developers
+1. **Wait:** Wait for HLD and LLD to be completed
+2. **Then:** Review LLD documents (using GoF patterns)
+3. **Reference:** Design patterns and clean code practices
+4. **Implement:** Start implementation
 
 ---
 
-## 🎯 Key Design Principles
+## 📋 Design Process
 
-### 1. Reusability
-- **Component Reusability:** Design components for maximum reusability
-- **Service Reusability:** Design services for reuse across different contexts
-- **Utility Reusability:** Create reusable utility functions and libraries
-- **Pattern Reusability:** Use established design patterns
+### Step 1: Project Definition ✅ (Current)
+1. Define project description
+2. Define project scope
+3. Review with stakeholders
+4. Finalize project definition
 
-### 2. Good Code Practices
-- **SOLID Principles:** Follow SOLID principles in all implementations
-- **DRY Principle:** Don't Repeat Yourself - avoid code duplication
-- **Industry Best Practices:** Follow industry best practices and standards
-- **Code Reviews:** Regular code reviews for quality assurance
+### Step 2: High-Level Design ✅ (Completed)
+1. ✅ Design system architecture
+2. ✅ Design components
+3. ✅ Design data flow
+4. ✅ Design communication patterns
+5. ✅ Design database
+6. ✅ Design security
+7. ⏳ Review and approve HLD
 
-### 3. Clean Code
-- **Readability:** Code must be readable and self-documenting
-- **Maintainability:** Code must be easy to maintain and modify
-- **Documentation:** Comprehensive documentation and comments
-- **Naming Conventions:** Meaningful and consistent naming conventions
+### Step 3: Low-Level Design ⏳ (Next Phase)
+1. Design detailed components using **GoF patterns**
+2. Design class diagrams
+3. Design API specifications
+4. Design database schema
+5. Design error handling
+6. Design testing strategy
+7. Review and approve LLD
 
-### 4. Clean Architecture
-- **Separation of Concerns:** Clear separation of concerns across layers
-- **Dependency Inversion:** Dependencies point inward
-- **Interface-Based Design:** Use interfaces for flexibility
-- **Testability:** Design for testability with dependency injection
+**Reference:** [Architecture README](./02-ARCHITECTURE/README.md)
 
-### 5. Secure Programming
-- **Security First:** Security-first approach in all implementations
-- **Input Validation:** Comprehensive input validation at all layers
-- **Output Encoding:** Output encoding to prevent XSS
-- **Defense in Depth:** Multiple layers of security
-- **Secure Communication:** Encrypted communication (HTTPS/WSS)
-- **Secure Storage:** Encrypted storage for sensitive data
-
----
-
-## 📊 Documentation Status
-
-| Document | Status | Last Updated | Next Review |
-|----------|--------|--------------|-------------|
-| UML Diagram Setup Guide | ✅ Complete | 2024 | As needed |
-| High-Level Design (HLD) | ✅ Complete | 2024 | After implementation |
-| Low-Level Design (LLD) | ✅ Complete | 2024 | After implementation |
-| Feasibility Analysis | ✅ Complete | 2024 | After implementation |
-| Security Design | ✅ Complete | 2024 | Quarterly |
-| Architecture Decision Records (ADR) | ✅ Complete | 2024 | Quarterly |
-| API Design | ✅ Complete | 2024 | After implementation |
+### Step 4: Implementation (After LLD)
+1. Implement backend services
+2. Implement frontend application
+3. Implement database schemas
+4. Write tests
+5. Deploy to production
 
 ---
 
-## 🔄 Documentation Maintenance
+## 📚 Reference Books
 
-### Update Frequency
-- **Architecture Documents:** Updated as architecture evolves
-- **API Documents:** Updated when APIs change
-- **Security Documents:** Updated quarterly or when security requirements change
-- **Decision Records:** Updated when new decisions are made
+### For Low-Level Design (LLD)
+- **Book:** "Design Patterns: Elements of Reusable Object-Oriented Software" by Gamma, Helm, Johnson, and Vlissides (Gang of Four)
+- **Focus:** Design patterns for object-oriented design
+- **Patterns:** Creational, Structural, Behavioral patterns
 
-### Review Process
-1. **Regular Reviews:** Quarterly reviews of all documentation
-2. **Change Requests:** Document change requests and approvals
-3. **Version Control:** Maintain version history of all documents
-4. **Stakeholder Approval:** Obtain stakeholder approval for major changes
+### For High-Level Design (HLD)
+- **Book:** "Clean Architecture" by Robert C. Martin
+- **Book:** "Microservices Patterns" by Chris Richardson
+- **Focus:** System architecture and microservices design
+- **Principles:** SOLID principles, Clean Architecture, Microservices patterns
 
-### Contribution Guidelines
-1. **Follow Principles:** All contributions must follow design principles
-2. **Document Changes:** Document all changes and rationale
-3. **Review Process:** All changes must go through review process
-4. **Approval Required:** Major changes require stakeholder approval
-
----
-
-## 📝 Documentation Standards
-
-### Writing Standards
-- **Clear and Concise:** Write clearly and concisely
-- **Structured:** Use clear structure and headings
-- **Examples:** Provide examples where applicable
-- **Diagrams:** Use diagrams for complex concepts
-- **Code Examples:** Include code examples for implementations
-
-### Format Standards
-- **Markdown Format:** Use Markdown format for all documents
-- **Consistent Style:** Maintain consistent style across all documents
-- **Version Control:** Use version control for all documents
-- **Template:** Use standard template for all documents
-
-### Review Standards
-- **Technical Review:** All documents must be technically reviewed
-- **Stakeholder Review:** Major documents must be stakeholder reviewed
-- **Approval Required:** All documents require approval before publication
-- **Update Process:** Document update process and approvals
+### For Code Quality
+- **Book:** "Clean Code" by Robert C. Martin
+- **Book:** "Refactoring" by Martin Fowler
+- **Focus:** Code quality and maintainability
+- **Principles:** Clean code practices, refactoring techniques
 
 ---
 
-## 🛠️ Tools and Resources
+## ✅ Current Status
 
-### Documentation Tools
-- **Markdown:** Markdown for documentation writing
-- **Diagrams:** PlantUML, Mermaid, or Draw.io for diagrams (see [UML Diagram Setup](./UML_DIAGRAM_SETUP.md))
-- **Version Control:** Git for version control
-- **Review Tools:** GitHub/GitLab for review process
+### Project Definition Phase ✅
+- [x] Project Description document created
+- [x] Project Scope document created
+- [x] Project Definition README created
+- [ ] Project Description reviewed by stakeholders
+- [ ] Project Scope reviewed by stakeholders
+- [ ] Project Definition finalized
+- [ ] Approval obtained for project definition
 
-### Diagram Tools
-- **PlantUML:** Text-based UML diagrams (recommended)
-- **Mermaid:** Modern diagram syntax for markdown
-- **Draw.io:** Visual diagram editor
-- **Setup Guide:** See [UML Diagram Setup Guide](./UML_DIAGRAM_SETUP.md)
+### High-Level Design Phase ✅
+- [x] HLD document structure created
+- [x] System Architecture Overview created
+- [x] Component Design created
+- [x] Data Flow Diagrams created
+- [x] Communication Patterns created
+- [x] Database Design created
+- [x] Security Architecture created
+- [x] Scalability Considerations created
+- [x] Deployment Architecture created
+- [x] Non-Functional Requirements created
+- [x] Design Principles documented
+- [x] Risk Assessment documented
+- [x] Future Enhancements documented
+- [x] HLD updated to reflect Artillery Battle Game (v2.0)
+- [ ] HLD reviewed and approved
 
-### Design Tools
-- **Architecture Diagrams:** Draw.io, Lucidchart, or similar
-- **Database Diagrams:** MongoDB Compass, or similar
-- **API Documentation:** Swagger/OpenAPI for API documentation
-- **Sequence Diagrams:** Mermaid or PlantUML for sequence diagrams
-
-### Reference Resources
-- **Clean Architecture:** Robert C. Martin's Clean Architecture
-- **SOLID Principles:** SOLID principles by Robert C. Martin
-- **Security Guidelines:** OWASP Top 10, OWASP ASVS
-- **API Design:** RESTful API Design best practices
-- **Microservices:** Microservices patterns and practices
-
----
-
-## 📞 Contact and Support
-
-### Documentation Team
-- **Architecture Team:** For architecture-related questions
-- **Security Team:** For security-related questions
-- **API Team:** For API-related questions
-- **Development Team:** For implementation-related questions
-
-### Feedback and Suggestions
-- **Documentation Issues:** Report documentation issues and suggestions
-- **Improvement Suggestions:** Submit improvement suggestions
-- **Clarification Requests:** Request clarification on unclear sections
-- **Additional Documentation:** Request additional documentation as needed
+### Low-Level Design Phase ⏳
+- [ ] LLD document structure created
+- [ ] Service-specific LLD documents created (using GoF patterns)
+- [ ] Class Diagrams created
+- [ ] Design Pattern Implementation documented
+- [ ] API Specifications created
+- [ ] Database Schema created
+- [ ] Error Handling documented
+- [ ] Testing Strategy documented
+- [ ] LLD reviewed and approved
 
 ---
 
-## 📜 License and Copyright
+## 🔗 Key Documents
 
-All documentation is proprietary and confidential. Unauthorized distribution or reproduction is strictly prohibited.
+### Current Phase
+- **[Project Description - Plain English](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION_PLAIN_ENGLISH.md)** 🌟 - Project description in simple, non-technical language
+- **[Project Description (Technical)](./00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md)** - Comprehensive technical project description
+- **[Project Scope](./00-PROJECT_DEFINITION/PROJECT_SCOPE.md)** - Detailed project scope
+- **[Project Definition README](./00-PROJECT_DEFINITION/README.md)** - Project definition index
 
----
-
-## 🎯 Next Steps
-
-1. **Review Documentation:** Review all documentation thoroughly
-2. **Implementation Planning:** Plan implementation based on documentation
-3. **Team Alignment:** Ensure team alignment with documentation
-4. **Regular Updates:** Update documentation as implementation progresses
-5. **Continuous Improvement:** Continuously improve documentation based on feedback
+### Next Phases
+- **High-Level Design (HLD)** - ✅ Complete (Version 2.0) - [View HLD](./02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md)
+- **Low-Level Design (LLD)** - ⏳ Next Phase - To be created using GoF patterns based on updated HLD
 
 ---
 
-**⚠️ REMINDER: Reusability | Good Code Practices | Clean Code | Clean Architecture | Secure Programming - These are MANDATORY for all implementations.**
+## 📝 Notes
+
+### Design Standards
+- **LLD:** Follow **Gang of Four (GoF) Design Patterns**
+- **HLD:** Follow **Clean Architecture** and **Microservices Patterns**
+- **Code:** Follow **SOLID principles** and **clean code practices**
+- **Security:** Follow **OWASP Top 10** security practices
+- **Testing:** Achieve **80%+ code coverage**
+
+### Design Process
+1. **Project Definition:** Define project description and scope (Current Phase)
+2. **High-Level Design:** Design system architecture and components
+3. **Low-Level Design:** Design detailed components using GoF patterns
+4. **Implementation:** Implement based on approved designs
+5. **Testing:** Test implementation
+6. **Deployment:** Deploy to production
+
+---
+
+**⚠️ REMINDER: Reusability | Good Code Practices | Clean Code | Clean Architecture | Secure Programming**
 
 ---
 
@@ -387,10 +316,6 @@ All documentation is proprietary and confidential. Unauthorized distribution or 
 - **Author:** Documentation Team
 - **Reviewer:** Technical Lead
 - **Approval:** CTO
-- **Last Updated:** 2024
-- **Next Review:** After implementation phase
-
----
-
-**Happy Coding! 🚀**
-
+- **Status:** Active
+- **Current Phase:** Project Definition
+- **Next Phase:** High-Level Design (HLD)

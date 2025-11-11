@@ -1,9 +1,9 @@
 # 📋 Architecture Decision Records (ADR)
-## Battle Arena - Multiplayer Tank Battle Game
+## Battle Arena - Multiplayer Artillery Battle Game
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
 **Last Updated:** 2024  
-**Status:** Draft
+**Status:** Draft - Updated with clarified mechanics
 
 ---
 
@@ -78,10 +78,11 @@ We need to build a scalable, maintainable system that can handle real-time multi
 #### Decision
 We will use a **microservices architecture** with the following services:
 - **Auth Service:** Spring Boot (Java) - User authentication and authorization
-- **Profile Service:** Spring Boot (Java) - User profile and progression
-- **Leaderboard Service:** Spring Boot (Java) - Leaderboard and rankings
-- **Matchmaking Service:** Node.js (Express, Socket.io) - Real-time matchmaking
-- **Game Engine Service:** Node.js (Express, Socket.io) - Real-time game logic
+- **Profile Service:** Spring Boot (Java) - User profile, global score, and rank tier tracking
+- **Leaderboard Service:** Spring Boot (Java) - Leaderboard and rankings with filtering
+- **Matchmaking Service:** Node.js (Express, Socket.io) - Hero selection, matchmaking, arena selection, weapon selection
+- **Game Engine Service:** Node.js (Express, Socket.io) - Turn-based 2D artillery game logic, movement, scoring, physics
+- **Configuration Service:** Configuration file management for weapons, penalties, rank tiers, scoring formulas
 
 #### Consequences
 **Positive:**

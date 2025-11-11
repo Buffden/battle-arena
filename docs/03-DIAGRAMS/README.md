@@ -1,6 +1,6 @@
 # 📊 Diagrams Directory
 
-This directory contains all UML diagrams for the Battle Arena project documentation.
+This directory contains all UML diagrams for the Battle Arena - Multiplayer Artillery Battle Game project documentation.
 
 ---
 
@@ -56,14 +56,17 @@ diagrams/
 - **auth-service.puml** - Auth Service class diagram
 - **profile-service.puml** - Profile Service class diagram (TODO)
 - **leaderboard-service.puml** - Leaderboard Service class diagram (TODO)
-- **matchmaking-service.puml** - Matchmaking Service class diagram (TODO)
-- **game-engine-service.puml** - Game Engine Service class diagram (TODO)
+- **matchmaking-service.puml** - Matchmaking Service class diagram (TODO - includes hero selection, arena selection, weapon selection)
+- **game-engine-service.puml** - Game Engine Service class diagram (TODO - includes movement, scoring, physics)
 
 ### Sequence Diagrams
 - **authentication-flow.puml** - User authentication flow
-- **matchmaking-flow.puml** - Matchmaking flow
-- **gameplay-flow.puml** - Gameplay flow (TODO)
-- **post-match-flow.puml** - Post-match flow (TODO)
+- **matchmaking-flow.puml** - Matchmaking flow (needs update for hero selection)
+- **hero-selection-flow.puml** - Hero selection flow (TODO)
+- **arena-selection-flow.puml** - Arena selection flow (TODO)
+- **weapon-selection-flow.puml** - Weapon selection flow (TODO)
+- **gameplay-flow.puml** - Gameplay flow (TODO - needs update for movement, scoring)
+- **post-match-flow.puml** - Post-match flow (TODO - needs update for score and rank updates)
 
 ---
 
