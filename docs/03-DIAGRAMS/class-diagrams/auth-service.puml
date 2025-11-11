@@ -110,7 +110,7 @@ package "Model Layer" #LightGray {
     +incrementFailedLoginAttempts(): void
     +resetFailedLoginAttempts(): void
     +lockAccount(duration: Long): void
-    +unlockAccount(): void
+    +unlockAccount(): void∑
   }
   
   enum UserRole {

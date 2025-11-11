@@ -1,0 +1,230 @@
+@startuml Frontend Components Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Frontend Components - Class Diagram
+
+package "Services Layer" #LightBlue {
+  class AuthService {
+    -httpClient: HttpClient
+    -router: Router
+    -tokenKey: String
+    -userSubject: BehaviorSubject<User | null>
+    +login(username: String, password: String): Observable<AuthResponse>
+    +register(userData: RegisterRequest): Observable<AuthResponse>
+    +logout(): void
+    +getToken(): String | null
+    +isAuthenticated(): Boolean
+    +getUser(): Observable<User | null>
+  }
+  
+  class GameService {
+    -socket: Socket
+    -gameStateSubject: BehaviorSubject<GameState | null>
+    +connectToGame(roomId: String): void
+    +moveHero(direction: String): void
+    +fireWeapon(angle: Number, power: Number, weaponId: String): void
+    +onGameStateUpdate(callback: Function): void
+    +onTurnUpdate(callback: Function): void
+    +onMatchEnd(callback: Function): void
+    +disconnectFromGame(): void
+    +reconnectToGame(roomId: String): void
+  }
+  
+  class HeroSelectionService {
+    -selectedHeroesSubject: BehaviorSubject<String[]>
+    +selectHeroes(heroIds: String[]): void
+    +getSelectedHeroes(): String[]
+    +clearSelection(): void
+    +updateHeroPriority(heroIds: String[]): void
+  }
+  
+  class MatchmakingService {
+    -socket: Socket
+    -matchFoundSubject: Subject<Match>
+    +joinQueue(heroIds: String[]): void
+    +leaveQueue(): void
+    +acceptMatch(matchId: String): void
+    +rejectMatch(matchId: String): void
+    +getQueueStatus(): Observable<QueueStatus>
+    +onMatchFound(callback: Function): void
+    +onHeroAssigned(callback: Function): void
+  }
+  
+  class ArenaSelectionService {
+    -socket: Socket
+    +getAvailableArenas(heroType: String): Observable<Arena[]>
+    +eliminateArena(arenaId: String): void
+    +onArenaEliminated(callback: Function): void
+    +onArenaSelected(callback: Function): void
+  }
+  
+  class WeaponSelectionService {
+    -socket: Socket
+    +selectWeapon(weaponId: String): void
+    +onWeaponSelected(callback: Function): void
+    +onSelectionComplete(callback: Function): void
+    +getSelectionTimer(): Observable<Number>
+  }
+  
+  class ProfileService {
+    -httpClient: HttpClient
+    +getProfile(): Observable<Profile>
+    +updateProfile(profileData: UpdateProfileRequest): Observable<Profile>
+    +getGlobalScore(): Observable<Number>
+    +getRankTier(): Observable<String>
+    +getStatistics(): Observable<PlayerStatistics>
+    +updateAvatar(avatarUrl: String): Observable<void>
+  }
+  
+  class LeaderboardService {
+    -httpClient: HttpClient
+    +getLeaderboard(filters: LeaderboardFilters, limit: Number): Observable<Leaderboard>
+    +getPlayerRank(playerId: String): Observable<PlayerRank>
+    +getPlayerRankTier(playerId: String): Observable<String>
+    +getTopPlayers(filters: LeaderboardFilters, limit: Number): Observable<Leaderboard>
+  }
+}
+
+package "Components Layer" #LightGreen {
+  class HeroSelectionComponent {
+    -heroService: HeroService
+    -heroSelectionService: HeroSelectionService
+    -selectedHeroes: String[]
+    +selectHeroes(heroIds: String[]): void
+    +navigateToMatchmaking(): void
+  }
+  
+  class MatchmakingComponent {
+    -matchmakingService: MatchmakingService
+    -queueStatus: QueueStatus
+    +joinQueue(): void
+    +leaveQueue(): void
+    +acceptMatch(): void
+    +rejectMatch(): void
+  }
+  
+  class ArenaSelectionComponent {
+    -arenaSelectionService: ArenaSelectionService
+    -availableArenas: Arena[]
+    +eliminateArena(arenaId: String): void
+    +navigateToWeaponSelection(): void
+  }
+  
+  class WeaponSelectionComponent {
+    -weaponSelectionService: WeaponSelectionService
+    -availableWeapons: Weapon[]
+    -selectionTimer: Number
+    +selectWeapon(weaponId: String): void
+  }
+  
+  class GameArenaComponent {
+    -gameService: GameService
+    -phaserGame: Phaser.Game
+    +moveHero(direction: String): void
+    +fireWeapon(angle: Number, power: Number, weaponId: String): void
+    +renderGame(): void
+  }
+}
+
+package "RxJS Observables" #LightYellow {
+  class BehaviorSubject<T> {
+    +next(value: T): void
+    +subscribe(observer: Observer<T>): Subscription
+    +getValue(): T
+  }
+  
+  class Subject<T> {
+    +next(value: T): void
+    +subscribe(observer: Observer<T>): Subscription
+  }
+  
+  class Observable<T> {
+    +subscribe(observer: Observer<T>): Subscription
+  }
+}
+
+package "External Dependencies" #LightGray {
+  class HttpClient {
+    +get(url: String): Observable<Response>
+    +post(url: String, body: any): Observable<Response>
+    +put(url: String, body: any): Observable<Response>
+    +delete(url: String): Observable<Response>
+  }
+  
+  class Socket {
+    +on(event: String, callback: Function): void
+    +emit(event: String, data: any): void
+    +disconnect(): void
+  }
+  
+  class Router {
+    +navigate(commands: any[]): Promise<Boolean>
+  }
+  
+  class Phaser.Game {
+    +scene: SceneManager
+    +physics: PhysicsManager
+    +add: GameObjectFactory
+  }
+}
+
+' Relationships
+AuthService --> HttpClient : uses
+AuthService --> Router : uses
+AuthService --> BehaviorSubject : uses
+GameService --> Socket : uses
+GameService --> BehaviorSubject : uses
+HeroSelectionService --> BehaviorSubject : uses
+MatchmakingService --> Socket : uses
+MatchmakingService --> Subject : uses
+MatchmakingService --> Observable : uses
+ArenaSelectionService --> Socket : uses
+ArenaSelectionService --> Observable : uses
+WeaponSelectionService --> Socket : uses
+WeaponSelectionService --> Observable : uses
+ProfileService --> HttpClient : uses
+ProfileService --> Observable : uses
+LeaderboardService --> HttpClient : uses
+LeaderboardService --> Observable : uses
+HeroSelectionComponent --> HeroService : uses
+HeroSelectionComponent --> HeroSelectionService : uses
+MatchmakingComponent --> MatchmakingService : uses
+ArenaSelectionComponent --> ArenaSelectionService : uses
+WeaponSelectionComponent --> WeaponSelectionService : uses
+GameArenaComponent --> GameService : uses
+GameArenaComponent --> Phaser.Game : uses
+
+note right of AuthService
+  **Singleton Pattern**
+  Angular service (providedIn: 'root')
+  Single instance across app
+end note
+
+note right of GameService
+  **Observer Pattern**
+  Uses RxJS Observables for
+  reactive state management
+end note
+
+note right of HeroSelectionService
+  **Observer Pattern**
+  Uses BehaviorSubject for
+  hero selection state
+end note
+
+note right of MatchmakingService
+  **Observer Pattern**
+  Uses Subject for match events
+  and Observable for queue status
+end note
+
+note right of BehaviorSubject
+  **Observer Pattern**
+  RxJS Observable that stores
+  current value and emits to subscribers
+end note
+
+@enduml
+

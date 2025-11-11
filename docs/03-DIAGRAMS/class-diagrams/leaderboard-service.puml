@@ -1,0 +1,195 @@
+@startuml Leaderboard Service Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Leaderboard Service - Class Diagram
+
+package "Controller Layer" #LightBlue {
+  class LeaderboardController {
+    -leaderboardService: LeaderboardService
+    +getTopPlayers(limit: int, filters: LeaderboardFilters): ResponseEntity<LeaderboardResponse>
+    +getFilteredLeaderboard(filters: LeaderboardFilters, limit: int): ResponseEntity<LeaderboardResponse>
+    +getPlayerRank(playerId: String): ResponseEntity<PlayerRankResponse>
+    +getPlayerRankTier(playerId: String): ResponseEntity<RankTierResponse>
+  }
+}
+
+package "Service Layer" #LightGreen {
+  class LeaderboardService {
+    -leaderboardRepository: LeaderboardRepository
+    -rankingStrategy: RankingStrategy
+    -filterStrategy: FilterStrategy
+    -rankTierCalculator: RankTierCalculator
+    -redisCache: RedisCache
+    +getTopPlayers(limit: int, filters: LeaderboardFilters): Leaderboard
+    +getFilteredLeaderboard(filters: LeaderboardFilters, limit: int): Leaderboard
+    +getPlayerRank(playerId: String): PlayerRank
+    +updateLeaderboard(matchResult: MatchResult): void
+  }
+  
+  class RankTierCalculator {
+    -rankTierStrategy: RankTierStrategy
+    -configurationManager: ConfigurationManager
+    +calculateRankTier(globalScore: long): String
+    +getRankTierRanges(): Map<String, RankTierRange>
+  }
+}
+
+package "Repository Layer" #LightYellow {
+  interface LeaderboardRepository {
+    +findTopByGlobalScoreOrderByGlobalScoreDesc(limit: int): List<LeaderboardEntry>
+    +findByRankTier(rankTier: String): List<LeaderboardEntry>
+    +findByRegion(region: String): List<LeaderboardEntry>
+    +findByHeroType(heroType: String): List<LeaderboardEntry>
+    +findRankByGlobalScore(globalScore: long): long
+  }
+  
+  class MongoLeaderboardRepository {
+    +findTopByGlobalScoreOrderByGlobalScoreDesc(limit: int): List<LeaderboardEntry>
+    +findByRankTier(rankTier: String): List<LeaderboardEntry>
+    +findByRegion(region: String): List<LeaderboardEntry>
+    +findByHeroType(heroType: String): List<LeaderboardEntry>
+    +findRankByGlobalScore(globalScore: long): long
+  }
+}
+
+package "Strategy Pattern - Ranking" #LightCoral {
+  interface RankingStrategy {
+    +rankPlayers(players: List<Player>): List<PlayerRank>
+  }
+  
+  class GlobalScoreRankingStrategy {
+    +rankPlayers(players: List<Player>): List<PlayerRank>
+  }
+}
+
+package "Strategy Pattern - Filtering" #LightSalmon {
+  interface FilterStrategy {
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+  
+  class RegionFilterStrategy {
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+  
+  class HeroTypeFilterStrategy {
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+  
+  class WinPercentageFilterStrategy {
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+  
+  class WeaponUsageFilterStrategy {
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+  
+  class CompositeFilterStrategy {
+    -filters: List<FilterStrategy>
+    +filter(leaderboard: Leaderboard, filters: LeaderboardFilters): Leaderboard
+  }
+}
+
+package "Proxy Pattern" #LightCyan {
+  class RedisCache {
+    -redisClient: RedisClient
+    +get(key: String): Object
+    +set(key: String, value: Object): void
+    +delete(key: String): void
+  }
+}
+
+package "Entity Layer" #LightGray {
+  class LeaderboardEntry {
+    -_id: ObjectId
+    -userId: ObjectId
+    -rank: int
+    -globalScore: long
+    -rankTier: String
+    -winRate: double
+    -region: String
+    -heroType: String
+    -weaponUsage: Map<String, Integer>
+    -updatedAt: Date
+  }
+  
+  class Leaderboard {
+    -entries: List<LeaderboardEntry>
+    -totalCount: int
+    +getEntries(): List<LeaderboardEntry>
+    +getTotalCount(): int
+  }
+}
+
+package "DTO Layer" #LightPink {
+  class LeaderboardResponse {
+    +entries: List<LeaderboardEntry>
+    +totalCount: int
+  }
+  
+  class LeaderboardFilters {
+    +region: String
+    +heroType: String
+    +minWinPercentage: double
+    +weaponId: String
+  }
+  
+  class PlayerRank {
+    +playerId: String
+    +rank: int
+    +globalScore: long
+    +rankTier: String
+  }
+}
+
+' Relationships
+LeaderboardController --> LeaderboardService : uses
+LeaderboardService --> LeaderboardRepository : uses
+LeaderboardService --> RankingStrategy : uses
+LeaderboardService --> FilterStrategy : uses
+LeaderboardService --> RankTierCalculator : uses
+LeaderboardService --> RedisCache : uses
+LeaderboardRepository <|.. MongoLeaderboardRepository : implements
+RankingStrategy <|.. GlobalScoreRankingStrategy : implements
+FilterStrategy <|.. RegionFilterStrategy : implements
+FilterStrategy <|.. HeroTypeFilterStrategy : implements
+FilterStrategy <|.. WinPercentageFilterStrategy : implements
+FilterStrategy <|.. WeaponUsageFilterStrategy : implements
+FilterStrategy <|.. CompositeFilterStrategy : implements
+CompositeFilterStrategy *-- FilterStrategy : contains
+LeaderboardRepository --> LeaderboardEntry : manages
+RedisCache --> RedisClient : uses
+
+note right of LeaderboardController
+  **Facade Pattern**
+  Provides simplified interface
+  for leaderboard operations
+end note
+
+note right of RankingStrategy
+  **Strategy Pattern**
+  Allows different ranking
+  algorithms
+end note
+
+note right of FilterStrategy
+  **Strategy Pattern + Composite Pattern**
+  Allows different filtering
+  strategies and composition
+end note
+
+note right of CompositeFilterStrategy
+  **Composite Pattern**
+  Combines multiple filters
+  into a single filter
+end note
+
+note right of RedisCache
+  **Proxy Pattern**
+  Provides caching layer
+  without changing repository
+end note
+
+@enduml
+
