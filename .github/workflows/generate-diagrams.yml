@@ -16,12 +16,17 @@ jobs:
   generate-diagrams:
     runs-on: ubuntu-latest
     name: Generate UML Diagrams from PlantUML
+    permissions:
+      contents: write
+      pull-requests: read
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
           
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -79,11 +84,12 @@ jobs:
       - name: Commit and push diagrams
         if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
         run: |
-          git config --global user.name "PlantUML Bot"
-          git config --global user.email "bot@github.com"
-          git add docs/diagrams/exported/*.png
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add docs/diagrams/exported/**/*.png
           git commit -m "docs: auto-update UML diagrams [skip ci]" || exit 0
-          git push
+          git push origin HEAD:${GITHUB_REF} || echo "Push failed or no changes to push"
           
       - name: Upload diagrams as artifact
         if: always()
