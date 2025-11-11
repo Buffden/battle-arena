@@ -1,0 +1,76 @@
+@startuml Database Access Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+participant "Service" as Service
+participant "Repository Interface" as Repository
+participant "MongoRepository" as MongoRepository
+participant "Query Builder" as QueryBuilder
+participant "Schema Validator" as Validator
+participant "MongoDB" as MongoDB
+
+title Database Access Flow (Repository Pattern)
+
+== Save Entity ==
+Service -> Repository: save(entity: T)
+activate Repository
+Repository -> Validator: validate(entity)
+activate Validator
+Validator -> Validator: Validate entity data
+Validator --> Repository: ValidationResult
+deactivate Validator
+Repository -> MongoRepository: save(entity)
+activate MongoRepository
+MongoRepository -> QueryBuilder: buildQuery(criteria)
+activate QueryBuilder
+QueryBuilder --> MongoRepository: Query
+deactivate QueryBuilder
+MongoRepository -> MongoDB: Insert/Update document
+activate MongoDB
+MongoDB --> MongoRepository: Document saved
+deactivate MongoDB
+MongoRepository --> Repository: Entity saved
+deactivate MongoRepository
+Repository --> Service: Entity
+deactivate Repository
+
+== Find Entity by ID ==
+Service -> Repository: findById(id: ID)
+activate Repository
+Repository -> MongoRepository: findById(id)
+activate MongoRepository
+MongoRepository -> QueryBuilder: buildQuery(criteria)
+activate QueryBuilder
+QueryBuilder --> MongoRepository: Query
+deactivate QueryBuilder
+MongoRepository -> MongoDB: Find document by ID
+activate MongoDB
+MongoDB --> MongoRepository: Document
+deactivate MongoDB
+MongoRepository --> Repository: Entity
+deactivate MongoRepository
+Repository --> Service: Optional<Entity>
+deactivate Repository
+
+== Find Entities by Query ==
+Service -> Repository: findByQuery(criteria)
+activate Repository
+Repository -> MongoRepository: findByQuery(criteria)
+activate MongoRepository
+MongoRepository -> QueryBuilder: buildQuery(criteria)
+activate QueryBuilder
+QueryBuilder -> QueryBuilder: Apply query strategy
+QueryBuilder --> MongoRepository: Query
+deactivate QueryBuilder
+MongoRepository -> MongoDB: Find documents
+activate MongoDB
+MongoDB --> MongoRepository: Documents
+deactivate MongoDB
+MongoRepository --> Repository: List<Entity>
+deactivate MongoRepository
+Repository --> Service: List<Entity>
+deactivate Repository
+
+@enduml
+

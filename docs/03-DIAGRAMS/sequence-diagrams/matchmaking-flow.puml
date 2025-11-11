@@ -8,51 +8,112 @@ actor Player2
 participant "Frontend 1" as Frontend1
 participant "Frontend 2" as Frontend2
 participant "Matchmaking Service\n(Node.js)" as Matchmaking
+participant "Matchmaking Engine" as MatchmakingEngine
+participant "Queue Manager" as QueueManager
+participant "Hero Selector" as HeroSelector
+participant "Lobby Manager" as LobbyManager
 participant "Redis" as Redis
 participant "Game Engine Service\n(Node.js)" as GameEngine
+
+title Matchmaking Flow (Hero Selection, Global Score/Rank-based Matching)
+
+== Hero Selection (Before Queue) ==
+Player1 -> Frontend1: Select Heroes
+activate Frontend1
+Frontend1 -> Frontend1: Store selected heroes\n(heroIds: string[])
+deactivate Frontend1
 
 == Join Queue ==
 Player1 -> Frontend1: Click "Find Match"
 activate Frontend1
-Frontend1 -> Matchmaking: WebSocket: join-queue\n{playerId, xp}
+Frontend1 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds, globalScore}
 activate Matchmaking
 Matchmaking -> Matchmaking: Validate JWT token
-Matchmaking -> Redis: Add to queue (Sorted Set)\nScore: XP
+Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, socketId)
+activate QueueManager
+QueueManager -> QueueManager: Add to hero-based queues\n(matchmaking:queue:{heroType} for each heroId)
+QueueManager -> Redis: Add to queue (Sorted Set)\nKey: matchmaking:queue:{heroType}\nScore: globalScore\nValue: {playerId, heroIds, socketId}
 activate Redis
-Redis --> Matchmaking: Added to queue
+Redis --> QueueManager: Added to queue
 deactivate Redis
+QueueManager -> QueueManager: calculateEstimatedWaitTime(heroType, playerScore)\n(based on number of players in queue)
+QueueManager --> Matchmaking: QueueStatus\n{position, estimatedWaitTime, heroTypes: heroIds}
+deactivate QueueManager
 Matchmaking --> Frontend1: queue-status\n{position, estimatedWaitTime}
 deactivate Matchmaking
 deactivate Frontend1
 
 Player2 -> Frontend2: Click "Find Match"
 activate Frontend2
-Frontend2 -> Matchmaking: WebSocket: join-queue\n{playerId, xp}
+Frontend2 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds, globalScore}
 activate Matchmaking
 Matchmaking -> Matchmaking: Validate JWT token
-Matchmaking -> Redis: Add to queue (Sorted Set)\nScore: XP
+Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, socketId)
+activate QueueManager
+QueueManager -> QueueManager: Add to hero-based queues
+QueueManager -> Redis: Add to queue (Sorted Set)
 activate Redis
-Redis --> Matchmaking: Added to queue
+Redis --> QueueManager: Added to queue
 deactivate Redis
+QueueManager --> Matchmaking: QueueStatus
+deactivate QueueManager
 
-== Match Found ==
-Matchmaking -> Matchmaking: Find match (XP-based algorithm)
-Matchmaking -> Redis: Get players in XP range
+== Match Found (Hero Compatibility + Global Score) ==
+Matchmaking -> MatchmakingEngine: findMatch(playerId)
+activate MatchmakingEngine
+MatchmakingEngine -> QueueManager: getPlayersInQueue(heroType, scoreRange)
+activate QueueManager
+QueueManager -> Redis: Get players in score range\n(hero-based queues)
 activate Redis
-Redis --> Matchmaking: Player candidates
+Redis --> QueueManager: QueueEntry[]
 deactivate Redis
-Matchmaking -> Matchmaking: Select best match
-Matchmaking -> Redis: Create lobby (Hash)\n{matchId, player1Id, player2Id}
-activate Redis
-Redis --> Matchmaking: Lobby created
-deactivate Redis
-Matchmaking -> Redis: Remove players from queue
-activate Redis
-Redis --> Matchmaking: Removed
-deactivate Redis
+QueueManager --> MatchmakingEngine: QueueEntry[]
+deactivate QueueManager
 
-Matchmaking --> Frontend1: match-found\n{matchId, opponent, timeout: 30s}
-Matchmaking --> Frontend2: match-found\n{matchId, opponent, timeout: 30s}
+MatchmakingEngine -> MatchmakingEngine: Check hero compatibility\n(player1Heroes ∩ player2Heroes)
+MatchmakingEngine -> MatchmakingEngine: Get matching config (from ConfigurationManager/Redis cache)
+alt Heroes Compatible
+    MatchmakingEngine -> MatchmakingEngine: Calculate match score\n(based on global score difference, config)
+    MatchmakingEngine -> MatchmakingEngine: Select best match
+    MatchmakingEngine -> HeroSelector: selectHero(player1Heroes, player2Heroes)
+    activate HeroSelector
+    HeroSelector -> HeroSelector: getCommonHeroes(player1Heroes, player2Heroes)
+    HeroSelector -> HeroSelector: Select random hero from common heroes
+    HeroSelector --> MatchmakingEngine: assignedHero: String
+    deactivate HeroSelector
+    
+    MatchmakingEngine -> LobbyManager: createLobby(player1Id, player2Id, assignedHero)
+    activate LobbyManager
+    LobbyManager -> Redis: Create lobby (Hash)\nKey: lobby:{matchId}
+    activate Redis
+    Redis --> LobbyManager: Lobby created
+    deactivate Redis
+    LobbyManager --> MatchmakingEngine: Lobby
+    deactivate LobbyManager
+    
+    MatchmakingEngine -> QueueManager: removeFromQueue(playerId)
+    activate QueueManager
+    QueueManager -> Redis: Remove from queue
+    activate Redis
+    Redis --> QueueManager: Removed
+    deactivate Redis
+    QueueManager --> MatchmakingEngine: Removed
+    deactivate QueueManager
+    
+    MatchmakingEngine --> Matchmaking: Match found
+else No Match Found
+    MatchmakingEngine -> QueueManager: expandQueueRange(heroType, baseScore)
+    activate QueueManager
+    QueueManager -> QueueManager: Get queue expansion config (from ConfigurationManager/Redis cache)
+    QueueManager -> QueueManager: Widen score range (after 5 minutes, based on config)
+    QueueManager --> MatchmakingEngine: Expanded score range
+    deactivate QueueManager
+    MatchmakingEngine --> Matchmaking: No match found (continue waiting)
+end
+deactivate MatchmakingEngine
+
+Matchmaking --> Frontend1: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
+Matchmaking --> Frontend2: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
 deactivate Matchmaking
 
 == Match Acceptance ==
@@ -60,43 +121,44 @@ Player1 -> Frontend1: Click "Accept"
 activate Frontend1
 Frontend1 -> Matchmaking: WebSocket: accept-match\n{matchId}
 activate Matchmaking
-Matchmaking -> Redis: Update lobby status
+Matchmaking -> LobbyManager: acceptMatch(matchId, playerId)
+activate LobbyManager
+LobbyManager -> Redis: Update lobby status
 activate Redis
-Redis --> Matchmaking: Updated
+Redis --> LobbyManager: Updated
 deactivate Redis
+LobbyManager --> Matchmaking: Lobby updated
+deactivate LobbyManager
 
 Player2 -> Frontend2: Click "Accept"
 activate Frontend2
 Frontend2 -> Matchmaking: WebSocket: accept-match\n{matchId}
 activate Matchmaking
-Matchmaking -> Redis: Check if both players accepted
+Matchmaking -> LobbyManager: acceptMatch(matchId, playerId)
+activate LobbyManager
+LobbyManager -> Redis: Check if both players accepted
 activate Redis
-Redis --> Matchmaking: Both accepted
+Redis --> LobbyManager: Both accepted
 deactivate Redis
-Matchmaking -> GameEngine: Create game room\n{matchId, player1Id, player2Id}
-activate GameEngine
-GameEngine --> Matchmaking: Game room created
-deactivate GameEngine
-Matchmaking -> Redis: Update lobby status to "accepted"
-activate Redis
-Redis --> Matchmaking: Updated
-deactivate Redis
+LobbyManager --> Matchmaking: Lobby accepted
+deactivate LobbyManager
 
-Matchmaking --> Frontend1: match-accepted\n{matchId, gameEngineUrl}
-Matchmaking --> Frontend2: match-accepted\n{matchId, gameEngineUrl}
+== Proceed to Arena Selection ==
+Matchmaking -> Matchmaking: Start arena selection
+Matchmaking --> Frontend1: match-accepted\n{matchId, proceedToArenaSelection}
+Matchmaking --> Frontend2: match-accepted\n{matchId, proceedToArenaSelection}
 deactivate Matchmaking
 deactivate Frontend1
 deactivate Frontend2
 
-== Join Game ==
-Frontend1 -> GameEngine: WebSocket: join-match\n{matchId, playerId}
-Frontend2 -> GameEngine: WebSocket: join-match\n{matchId, playerId}
-GameEngine -> GameEngine: Validate both players joined
-GameEngine -> GameEngine: Initialize game state
-GameEngine --> Frontend1: game-state-update\n{gameState}
-GameEngine --> Frontend2: game-state-update\n{gameState}
-GameEngine --> Frontend1: turn-started\n{playerId, timeLimit}
-GameEngine --> Frontend2: turn-started\n{playerId, timeLimit}
+== Match Rejection ==
+alt Player Rejects
+    Player -> Frontend: Click "Reject"
+    Frontend -> Matchmaking: WebSocket: reject-match\n{matchId}
+    Matchmaking -> LobbyManager: rejectMatch(matchId, playerId)
+    LobbyManager -> Redis: Delete lobby
+    LobbyManager -> QueueManager: Return players to queue
+    Matchmaking --> Frontend: match-rejected\n{returnToQueue}
+end
 
 @enduml
-

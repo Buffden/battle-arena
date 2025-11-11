@@ -1,0 +1,202 @@
+@startuml Gameplay Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Game Engine Service" as GameEngine
+participant "Game Room Manager" as GameRoomManager
+participant "Turn Manager" as TurnManager
+participant "Physics Engine" as PhysicsEngine
+participant "Health System" as HealthSystem
+participant "Scoring System" as ScoringSystem
+participant "Win Condition Checker" as WinChecker
+participant "Redis" as Redis
+
+title Gameplay Flow (Turn-based Artillery Battle)
+
+== Game Start ==
+GameEngine -> GameRoomManager: createGameRoom(matchId, gameConfig)
+activate GameRoomManager
+GameRoomManager -> GameRoomManager: Create initial game state\n(player1Hero, player2Hero, player1Weapons: 10, \nplayer2Weapons: 10, arenaId, player1HP, player2HP, \nplayer1Moves: 4, player2Moves: 4, matchTimer: 4-5min)
+GameRoomManager -> Redis: Store game state\n(game:{matchId})
+activate Redis
+Redis --> GameRoomManager: Stored
+deactivate Redis
+GameRoomManager --> GameEngine: GameRoom created
+deactivate GameRoomManager
+
+GameEngine -> TurnManager: startTurn(matchId, player1Id)
+activate TurnManager
+TurnManager -> TurnManager: Initialize turn state\n(turnNumber: 1, player1Turn, 15s timer)
+TurnManager -> TurnManager: Start 15-second turn timer\n(part of 4-5 minute match timer)
+TurnManager -> TurnManager: Start match timer (4-5 minutes)
+TurnManager --> GameEngine: TurnState
+deactivate TurnManager
+
+GameEngine --> Frontend1: game-started\n{gameState, currentTurn: player1, turnTimer: 15s, \nmatchTimer: 4-5min, player1Turns: 0/10, player2Turns: 0/10}
+GameEngine --> Frontend2: game-started\n{gameState, currentTurn: player1, turnTimer: 15s, \nmatchTimer: 4-5min, player1Turns: 0/10, player2Turns: 0/10}
+
+== Player Action (Move) ==
+Player1 -> Frontend1: Move Hero (Left/Right)
+activate Frontend1
+Frontend1 -> GameEngine: player-move\n{matchId, playerId, direction}
+activate GameEngine
+GameEngine -> GameEngine: Validate move (4 moves per game)
+GameEngine -> GameRoomManager: Update game state
+activate GameRoomManager
+GameRoomManager -> Redis: Update game state
+activate Redis
+Redis --> GameRoomManager: Updated
+deactivate Redis
+GameRoomManager --> GameEngine: GameState updated
+deactivate GameRoomManager
+GameEngine --> Frontend1: game-state-update\n{gameState, movesRemaining}
+GameEngine --> Frontend2: game-state-update\n{gameState, movesRemaining}
+deactivate GameEngine
+deactivate Frontend1
+
+== Player Action (Fire) ==
+Player1 -> Frontend1: Fire Weapon\n{angle, power, weaponId}
+activate Frontend1
+Frontend1 -> GameEngine: player-fire\n{matchId, playerId, angle, power, weaponId}
+activate GameEngine
+GameEngine -> TurnManager: Validate turn
+activate TurnManager
+TurnManager --> GameEngine: Turn valid
+deactivate TurnManager
+
+GameEngine -> PhysicsEngine: calculateTrajectory(weaponId, angle, power, arenaId, startPosition)
+activate PhysicsEngine
+PhysicsEngine -> PhysicsEngine: Get arena gravity (from MongoDB/Redis cache)
+PhysicsEngine -> PhysicsEngine: Get weapon physics (from MongoDB/Redis cache)
+PhysicsEngine -> PhysicsEngine: Calculate projectile trajectory (Matter.js)
+PhysicsEngine --> GameEngine: ProjectileTrajectory
+deactivate PhysicsEngine
+
+GameEngine -> PhysicsEngine: calculateImpact(trajectory, targetPosition)
+activate PhysicsEngine
+PhysicsEngine -> PhysicsEngine: Check collision with target
+PhysicsEngine --> GameEngine: ImpactResult
+deactivate PhysicsEngine
+
+GameEngine -> HealthSystem: calculateDamage(weaponId, accuracy)
+activate HealthSystem
+HealthSystem --> GameEngine: damage: Number
+deactivate HealthSystem
+
+GameEngine -> HealthSystem: applyDamage(matchId, playerId, damage)
+activate HealthSystem
+HealthSystem -> GameRoomManager: Update player health
+activate GameRoomManager
+GameRoomManager -> Redis: Update game state
+activate Redis
+Redis --> GameRoomManager: Updated
+deactivate Redis
+GameRoomManager --> HealthSystem: Health updated
+deactivate GameRoomManager
+HealthSystem --> GameEngine: HealthUpdate
+deactivate HealthSystem
+
+GameEngine -> ScoringSystem: calculateTotalScore(matchId, playerId, action)
+activate ScoringSystem
+ScoringSystem -> ScoringSystem: Get scoring formulas (from ConfigurationManager/Redis cache)
+ScoringSystem -> ScoringSystem: calculateAccuracyScore(hitArea, maxHitArea)
+ScoringSystem -> ScoringSystem: calculateBackToBackBonus(matchId, playerId)
+ScoringSystem -> ScoringSystem: calculateRepositioningSaveScore(matchId, playerId, enemyShot)
+ScoringSystem --> GameEngine: totalScore: Number
+deactivate ScoringSystem
+
+GameEngine -> WinChecker: checkWinCondition(matchId)
+activate WinChecker
+WinChecker -> HealthSystem: isPlayerDead(matchId, playerId)
+activate HealthSystem
+HealthSystem --> WinChecker: isDead: Boolean
+deactivate HealthSystem
+alt Player Dead (HP = 0)
+    WinChecker -> WinChecker: Determine winner
+    WinChecker --> GameEngine: WinConditionResult (game ended)
+    GameEngine -> GameEngine: End game
+    GameEngine --> Frontend1: match-ended\n{winner, matchResult}
+    GameEngine --> Frontend2: match-ended\n{winner, matchResult}
+else Game Continues
+    WinChecker --> GameEngine: WinConditionResult (game continues)
+    GameEngine -> TurnManager: endTurn(matchId)
+    activate TurnManager
+    TurnManager -> TurnManager: Increment turn count\n(player1Turns or player2Turns++)
+    TurnManager -> TurnManager: Check if match should end\n(10 turns per player OR timer expired)
+    TurnManager -> TurnManager: Switch to next player
+    TurnManager -> TurnManager: Start next turn timer (15s)
+    TurnManager --> GameEngine: TurnState
+    deactivate TurnManager
+    GameEngine -> GameRoomManager: Update game state
+    activate GameRoomManager
+    GameRoomManager -> Redis: Update game state\n(turnCount, currentTurn updated)
+    activate Redis
+    Redis --> GameRoomManager: Updated
+    deactivate Redis
+    GameRoomManager --> GameEngine: GameState updated
+    deactivate GameRoomManager
+    GameEngine --> Frontend1: game-state-update\n{gameState, currentTurn: player2, turnTimer: 15s, \nmatchTimer: remaining, player1Turns: X/10, player2Turns: Y/10}
+    GameEngine --> Frontend2: game-state-update\n{gameState, currentTurn: player2, turnTimer: 15s, \nmatchTimer: remaining, player1Turns: X/10, player2Turns: Y/10}
+end
+deactivate WinChecker
+deactivate GameEngine
+deactivate Frontend1
+
+== Match End (Timer or Turns) ==
+alt Match Timer Expired (4-5 minutes)
+    GameEngine -> GameEngine: Check match timer (4-5 minutes)
+    GameEngine -> WinChecker: determineWinner(matchId)
+    activate WinChecker
+    WinChecker -> HealthSystem: Get player healths
+    activate HealthSystem
+    HealthSystem --> WinChecker: player1HP, player2HP
+    deactivate HealthSystem
+    WinChecker -> ScoringSystem: Get player scores
+    activate ScoringSystem
+    ScoringSystem --> WinChecker: player1Score, player2Score
+    deactivate ScoringSystem
+    WinChecker -> WinChecker: Determine winner\n(higher HP wins, if same HP then higher score wins)
+    WinChecker --> GameEngine: winner: String | null
+    deactivate WinChecker
+else 10 Turns Completed (per player = 20 total)
+    GameEngine -> GameEngine: Check turn count\n(player1Turns === 10 && player2Turns === 10)
+    GameEngine -> WinChecker: determineWinner(matchId)
+    activate WinChecker
+    WinChecker -> HealthSystem: Get player healths
+    activate HealthSystem
+    HealthSystem --> WinChecker: player1HP, player2HP
+    deactivate HealthSystem
+    WinChecker -> ScoringSystem: Get player scores
+    activate ScoringSystem
+    ScoringSystem --> WinChecker: player1Score, player2Score
+    deactivate ScoringSystem
+    WinChecker -> WinChecker: Determine winner\n(higher HP wins, if same HP then higher score wins)
+    WinChecker --> GameEngine: winner: String | null
+    deactivate WinChecker
+end
+
+GameEngine -> WinChecker: checkDrawCondition(matchId)
+activate WinChecker
+WinChecker -> HealthSystem: Get player healths
+activate HealthSystem
+HealthSystem --> WinChecker: player1HP, player2HP
+deactivate HealthSystem
+WinChecker -> ScoringSystem: Get player scores
+activate ScoringSystem
+ScoringSystem --> WinChecker: player1Score, player2Score
+deactivate ScoringSystem
+WinChecker -> WinChecker: Check if same HP AND same score
+WinChecker --> GameEngine: isDraw: Boolean
+deactivate WinChecker
+
+GameEngine -> GameEngine: Process match result
+GameEngine --> Frontend1: match-ended\n{winner, isDraw, matchResult}
+GameEngine --> Frontend2: match-ended\n{winner, isDraw, matchResult}
+
+@enduml
+

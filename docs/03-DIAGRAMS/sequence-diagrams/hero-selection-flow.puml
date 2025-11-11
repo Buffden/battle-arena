@@ -1,0 +1,52 @@
+@startuml Hero Selection Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player
+participant "Frontend" as Frontend
+participant "Hero Selection Service" as HeroService
+participant "Local Storage" as LocalStorage
+
+title Hero Selection Flow
+
+== Hero Selection ==
+Player -> Frontend: Select Heroes
+activate Frontend
+Frontend -> HeroService: selectHeroes(heroIds: string[])
+activate HeroService
+HeroService -> HeroService: Validate hero IDs
+HeroService -> HeroService: Update selected heroes
+HeroService -> LocalStorage: Store selected heroes (optional)
+activate LocalStorage
+LocalStorage --> HeroService: Stored
+deactivate LocalStorage
+HeroService --> Frontend: Heroes selected
+deactivate HeroService
+Frontend --> Player: Display selected heroes
+deactivate Frontend
+
+== Update Hero Priority ==
+Player -> Frontend: Reorder Heroes
+activate Frontend
+Frontend -> HeroService: updateHeroPriority(heroIds: string[])
+activate HeroService
+HeroService -> HeroService: Update priority order
+HeroService --> Frontend: Priority updated
+deactivate HeroService
+Frontend --> Player: Display updated order
+deactivate Frontend
+
+== Ready for Matchmaking ==
+Player -> Frontend: Click "Find Match"
+activate Frontend
+Frontend -> HeroService: getSelectedHeroes()
+activate HeroService
+HeroService --> Frontend: selectedHeroes: string[]
+deactivate HeroService
+Frontend -> Frontend: Navigate to Matchmaking
+Frontend --> Player: Redirect to Matchmaking
+deactivate Frontend
+
+@enduml
+
