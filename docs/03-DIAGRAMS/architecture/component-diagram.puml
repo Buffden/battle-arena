@@ -9,10 +9,20 @@ package "Game Engine Service" #LightBlue {
   [GameRoomManager] as RoomManager
   [GameRoom] as GameRoom
   [GameState] as GameState
+  [TurnManager] as TurnManager
+  [TurnState] as TurnState
+  [MovementManager] as MovementManager
+  [MovementValidator] as MovementValidator
   [ActionHandler] as ActionHandler
   [PhysicsEngine] as PhysicsEngine
+  [ScoringSystem] as ScoringSystem
+  [HealthSystem] as HealthSystem
+  [WinConditionChecker] as WinChecker
+  [WeaponSynergySystem] as WeaponSynergy
+  [MatchResultProcessor] as MatchProcessor
   [GameSettings] as GameSettings
   [GamePersistence] as Persistence
+  [ConfigurationManager] as ConfigManager
 }
 
 package "External Dependencies" #LightGreen {
@@ -20,6 +30,8 @@ package "External Dependencies" #LightGreen {
   [Matter.js] as MatterJS
   [MongoDB Driver] as MongoDriver
   [Redis Client] as RedisClient
+  [Profile Service Client] as ProfileClient
+  [Leaderboard Service Client] as LeaderboardClient
 }
 
 package "Data Stores" #LightCoral {
@@ -31,10 +43,29 @@ package "Data Stores" #LightCoral {
 SocketHandler --> RoomManager : uses
 RoomManager --> GameRoom : creates/manages
 GameRoom --> GameState : maintains
+GameRoom --> TurnManager : uses
 GameRoom --> ActionHandler : uses
+GameRoom --> MovementManager : uses
 GameRoom --> PhysicsEngine : uses
+GameRoom --> ScoringSystem : uses
+GameRoom --> HealthSystem : uses
+GameRoom --> WinChecker : uses
+GameRoom --> WeaponSynergy : uses
 GameRoom --> GameSettings : uses
+GameRoom --> ConfigManager : uses
+
+TurnManager --> TurnState : manages
+MovementManager --> MovementValidator : uses
+MovementManager --> ScoringSystem : uses (repositioning saves)
 ActionHandler --> PhysicsEngine : uses
+ActionHandler --> MovementManager : uses
+ScoringSystem --> ConfigManager : uses
+HealthSystem --> ConfigManager : uses
+WinChecker --> HealthSystem : uses
+WinChecker --> ScoringSystem : uses
+WeaponSynergy --> ConfigManager : uses
+MatchProcessor --> ProfileClient : uses
+MatchProcessor --> LeaderboardClient : uses
 GameRoom --> Persistence : uses
 
 ' External dependencies
@@ -42,16 +73,20 @@ SocketHandler --> SocketIO : uses
 PhysicsEngine --> MatterJS : uses
 Persistence --> MongoDriver : uses
 Persistence --> RedisClient : uses
+ConfigManager --> RedisClient : uses (config cache)
+MatchProcessor --> MongoDriver : uses
 
 ' Data store relationships
 Persistence --> MongoDB : stores game data
 Persistence --> Redis : caches game state
+ConfigManager --> Redis : caches configurations
 
 note right of SocketHandler
   **Responsibility:**
   - Handle WebSocket connections
   - Route events to game rooms
   - Manage player connections
+  - Handle disconnections/reconnections
 end note
 
 note right of RoomManager
@@ -59,22 +94,84 @@ note right of RoomManager
   - Create and destroy game rooms
   - Manage room lifecycle
   - Route players to rooms
+  - Manage game state cache
 end note
 
 note right of GameRoom
   **Responsibility:**
   - Manage game state
   - Process player actions
+  - Coordinate all subsystems
   - Handle turn management
   - Detect win conditions
+end note
+
+note right of TurnManager
+  **Responsibility:**
+  - Manage turn state
+  - Enforce turn timers (15s/turn, part of 4-5min match timer)
+  - Track turn count (10 turns per player = 20 total)
+  - Switch between players
+  - Handle turn timeouts
+  - Check match end conditions (timer OR 10 turns per player)
+end note
+
+note right of MovementManager
+  **Responsibility:**
+  - Process movement (4 moves/game)
+  - Validate movement
+  - Calculate repositioning save scores
+  - Manage movement count
 end note
 
 note right of PhysicsEngine
   **Responsibility:**
   - Calculate projectile trajectories
+  - Calculate damage (arena-specific gravity)
+  - Apply physics rules (Matter.js)
+  - Handle collisions
+end note
+
+note right of ScoringSystem
+  **Responsibility:**
+  - Calculate accuracy scores
+  - Calculate back-to-back bonuses
+  - Calculate repositioning save scores
+  - Aggregate total scores
+end note
+
+note right of HealthSystem
+  **Responsibility:**
+  - Manage player health (hero-specific HP)
   - Calculate damage
-  - Apply physics rules
+  - Check if player is dead
+  - Apply damage modifiers
+end note
+
+note right of WinChecker
+  **Responsibility:**
+  - Check win conditions:
+    * HP = 0 (instant loss)
+    * Match timer expired (4-5 min)
+    * 10 turns per player completed (20 total)
+  - Check draw conditions (same HP AND same score)
+  - Determine winner (higher HP wins, if same HP then higher score wins)
+  - Trigger match end
+end note
+
+note right of WeaponSynergy
+  **Responsibility:**
+  - Check weapon synergies
+  - Apply synergy effects
+  - Manage synergy bonuses
+end note
+
+note right of MatchProcessor
+  **Responsibility:**
+  - Process match results
+  - Update profiles (scores, ranks)
+  - Update leaderboards
+  - Save match data
 end note
 
 @enduml
-

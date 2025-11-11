@@ -8,7 +8,7 @@ skinparam database {
     BorderColor #000000
 }
 
-title Battle Arena - Deployment Diagram
+title Battle Arena - Multiplayer Artillery Battle Game - Deployment Diagram
 
 node "Load Balancer" as LoadBalancer {
     component [Nginx] as Nginx
@@ -19,12 +19,14 @@ node "Application Servers" as AppServers {
         component [Auth Service] as Auth1
         component [Profile Service] as Profile1
         component [Leaderboard Service] as Leaderboard1
+        component [Configuration Service] as Config1
     }
     
     node "Backend Server 2" as Backend2 {
         component [Auth Service] as Auth2
         component [Profile Service] as Profile2
         component [Leaderboard Service] as Leaderboard2
+        component [Configuration Service] as Config2
     }
     
     node "Game Server 1" as GameServer1 {
@@ -99,17 +101,36 @@ end note
 note right of AppServers
   **Scaling:** Horizontal scaling based on load
   **Deployment:** Docker containers, Kubernetes pods
+  
+  **Services:**
+  - Auth Service (Spring Boot)
+  - Profile Service (Spring Boot)
+  - Leaderboard Service (Spring Boot)
+  - Configuration Service (Spring Boot) - Config file management
+  - Matchmaking Service (Node.js)
+  - Game Engine Service (Node.js)
 end note
 
 note right of DatabaseCluster
   **High Availability:** Replica set with automatic failover
   **Backup:** Daily automated backups
+  
+  **Collections:**
+  - Users, Profiles, Matches, Leaderboard
+  - Heroes (with configurations), Weapons (with configurations), Arenas (with configurations)
+  - ConfigFiles (metadata for config files)
 end note
 
 note right of CacheCluster
   **High Availability:** Master-replica setup
   **Persistence:** RDB + AOF for data durability
+  
+  **Data:**
+  - Matchmaking queue (hero-based)
+  - Lobby storage
+  - Arena/Weapon selection
+  - Game state cache
+  - Config cache
 end note
 
 @enduml
-

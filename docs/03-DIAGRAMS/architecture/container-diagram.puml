@@ -4,7 +4,7 @@ skinparam classAttributeIconSize 0
 skinparam linetype ortho
 skinparam backgroundColor #FFFFFF
 
-title Battle Arena - Container Diagram
+title Battle Arena - Multiplayer Artillery Battle Game - Container Diagram
 
 package "Client Applications" #LightBlue {
   [Angular Web Application] as WebApp
@@ -13,6 +13,14 @@ package "Client Applications" #LightBlue {
     **Port:** 4200
     **Purpose:** User interface
     **Deployment:** Static hosting
+    
+    **Features:**
+    - Hero Selection
+    - Arena Selection
+    - Weapon Selection
+    - Game Arena (Phaser 3)
+    - Profile Management
+    - Leaderboard
   end note
 }
 
@@ -31,6 +39,7 @@ package "Backend Services" #LightYellow {
   [Leaderboard Service] as LeaderboardService
   [Matchmaking Service] as MatchmakingService
   [Game Engine Service] as GameEngineService
+  [Configuration Service] as ConfigurationService
   
   note right of AuthService
     **Technology:** Spring Boot
@@ -44,6 +53,10 @@ package "Backend Services" #LightYellow {
     **Port:** 8082
     **Database:** MongoDB
     **Purpose:** User profiles & progression
+    **Features:**
+    - Global score tracking
+    - Rank tier calculation
+    - Player statistics
   end note
   
   note right of LeaderboardService
@@ -51,13 +64,24 @@ package "Backend Services" #LightYellow {
     **Port:** 8083
     **Database:** MongoDB
     **Purpose:** Leaderboard & rankings
+    **Features:**
+    - Filtering (region, hero, win%, weapons)
+    - Rank tier calculation
+    - Statistics aggregation
   end note
   
   note right of MatchmakingService
     **Technology:** Node.js + Socket.io
     **Port:** 3002
     **Cache:** Redis
+    **Database:** MongoDB (Heroes, Weapons, Arenas)
     **Purpose:** Player matchmaking
+    **Features:**
+    - Hero selection management
+    - Global score/rank-based matching
+    - Arena selection (voting/elimination)
+    - Weapon selection (alternating)
+    - Queue management
   end note
   
   note right of GameEngineService
@@ -66,6 +90,27 @@ package "Backend Services" #LightYellow {
     **Database:** MongoDB
     **Cache:** Redis
     **Purpose:** Game logic & physics
+    **Features:**
+    - Turn management (15s/turn, 4-5min)
+    - Movement system (4 moves/game)
+    - Physics calculations (Matter.js)
+    - Scoring system
+    - Health system
+    - Weapon synergies
+  end note
+  
+  note right of ConfigurationService
+    **Technology:** Spring Boot
+    **Port:** 8084
+    **Database:** MongoDB (Config Files Metadata)
+    **Purpose:** Configuration file management
+    **Features:**
+    - Rank tier ranges (config files)
+    - Scoring formulas (config files)
+    - Game parameters (config files)
+    - Penalties (config files)
+    - Serve configurations to services
+    - Note: Hero/Weapon/Arena data stored in MongoDB collections
   end note
 }
 
@@ -77,14 +122,27 @@ package "Data Stores" #LightCoral {
     **Technology:** MongoDB 6.0+
     **Port:** 27017
     **Purpose:** Persistent data storage
-    **Data:** Users, Profiles, Matches, Leaderboard
+    **Collections:**
+    - Users
+    - Profiles
+    - Matches
+    - Leaderboard
+    - Heroes (with configurations)
+    - Weapons (with configurations)
+    - Arenas (with configurations)
+    - ConfigFiles (metadata for config files)
   end note
   
   note right of Redis
     **Technology:** Redis 7.0+
     **Port:** 6379
     **Purpose:** Caching & queue management
-    **Data:** Matchmaking queue, Lobbies, Cache
+    **Data Structures:**
+    - Matchmaking queue (hero-based)
+    - Lobby storage
+    - Arena/Weapon selection
+    - Game state cache
+    - Hero/Weapon/Arena config cache
   end note
 }
 
@@ -95,13 +153,22 @@ Gateway --> ProfileService : HTTP/REST
 Gateway --> LeaderboardService : HTTP/REST
 Gateway --> MatchmakingService : WebSocket
 Gateway --> GameEngineService : WebSocket
+Gateway --> ConfigurationService : HTTP/REST
 
 AuthService --> MongoDB : MongoDB Driver
 ProfileService --> MongoDB : MongoDB Driver
 LeaderboardService --> MongoDB : MongoDB Driver
 MatchmakingService --> Redis : Redis Client
+MatchmakingService --> MongoDB : MongoDB Driver (Heroes, Weapons, Arenas)
 GameEngineService --> MongoDB : MongoDB Driver
 GameEngineService --> Redis : Redis Client
+ConfigurationService --> MongoDB : MongoDB Driver (ConfigFiles metadata)
+
+ProfileService --> MatchmakingService : Score/Rank updates (internal)
+GameEngineService --> ProfileService : Match results (HTTP)
+GameEngineService --> LeaderboardService : Match results (HTTP)
+MatchmakingService --> ConfigurationService : Get config files (HTTP - rank tiers, scoring formulas)
+GameEngineService --> ConfigurationService : Get config files (HTTP - rank tiers, scoring formulas, penalties)
+ConfigurationService --> Redis : Cache config files
 
 @enduml
-
