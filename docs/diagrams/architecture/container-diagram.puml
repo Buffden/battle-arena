@@ -1,0 +1,107 @@
+@startuml Container Diagram
+!define RECTANGLE class
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam backgroundColor #FFFFFF
+
+title Battle Arena - Container Diagram
+
+package "Client Applications" #LightBlue {
+  [Angular Web Application] as WebApp
+  note right of WebApp
+    **Technology:** Angular 17+
+    **Port:** 4200
+    **Purpose:** User interface
+    **Deployment:** Static hosting
+  end note
+}
+
+package "API Gateway" #LightGreen {
+  [Nginx Reverse Proxy] as Gateway
+  note right of Gateway
+    **Technology:** Nginx
+    **Purpose:** Load balancing, SSL termination
+    **Deployment:** Container/VM
+  end note
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service] as AuthService
+  [Profile Service] as ProfileService
+  [Leaderboard Service] as LeaderboardService
+  [Matchmaking Service] as MatchmakingService
+  [Game Engine Service] as GameEngineService
+  
+  note right of AuthService
+    **Technology:** Spring Boot
+    **Port:** 8081
+    **Database:** MongoDB
+    **Purpose:** Authentication & Authorization
+  end note
+  
+  note right of ProfileService
+    **Technology:** Spring Boot
+    **Port:** 8082
+    **Database:** MongoDB
+    **Purpose:** User profiles & progression
+  end note
+  
+  note right of LeaderboardService
+    **Technology:** Spring Boot
+    **Port:** 8083
+    **Database:** MongoDB
+    **Purpose:** Leaderboard & rankings
+  end note
+  
+  note right of MatchmakingService
+    **Technology:** Node.js + Socket.io
+    **Port:** 3002
+    **Cache:** Redis
+    **Purpose:** Player matchmaking
+  end note
+  
+  note right of GameEngineService
+    **Technology:** Node.js + Socket.io
+    **Port:** 5002
+    **Database:** MongoDB
+    **Cache:** Redis
+    **Purpose:** Game logic & physics
+  end note
+}
+
+package "Data Stores" #LightCoral {
+  database "MongoDB" as MongoDB
+  database "Redis" as Redis
+  
+  note right of MongoDB
+    **Technology:** MongoDB 6.0+
+    **Port:** 27017
+    **Purpose:** Persistent data storage
+    **Data:** Users, Profiles, Matches, Leaderboard
+  end note
+  
+  note right of Redis
+    **Technology:** Redis 7.0+
+    **Port:** 6379
+    **Purpose:** Caching & queue management
+    **Data:** Matchmaking queue, Lobbies, Cache
+  end note
+}
+
+' Relationships
+WebApp --> Gateway : HTTPS/WSS
+Gateway --> AuthService : HTTP/REST
+Gateway --> ProfileService : HTTP/REST
+Gateway --> LeaderboardService : HTTP/REST
+Gateway --> MatchmakingService : WebSocket
+Gateway --> GameEngineService : WebSocket
+
+AuthService --> MongoDB : MongoDB Driver
+ProfileService --> MongoDB : MongoDB Driver
+LeaderboardService --> MongoDB : MongoDB Driver
+MatchmakingService --> Redis : Redis Client
+GameEngineService --> MongoDB : MongoDB Driver
+GameEngineService --> Redis : Redis Client
+
+@enduml
+

@@ -1,0 +1,80 @@
+@startuml Component Diagram - Game Engine Service
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Game Engine Service - Component Diagram
+
+package "Game Engine Service" #LightBlue {
+  [GameSocketHandler] as SocketHandler
+  [GameRoomManager] as RoomManager
+  [GameRoom] as GameRoom
+  [GameState] as GameState
+  [ActionHandler] as ActionHandler
+  [PhysicsEngine] as PhysicsEngine
+  [GameSettings] as GameSettings
+  [GamePersistence] as Persistence
+}
+
+package "External Dependencies" #LightGreen {
+  [Socket.io] as SocketIO
+  [Matter.js] as MatterJS
+  [MongoDB Driver] as MongoDriver
+  [Redis Client] as RedisClient
+}
+
+package "Data Stores" #LightCoral {
+  database "MongoDB" as MongoDB
+  database "Redis" as Redis
+}
+
+' Internal relationships
+SocketHandler --> RoomManager : uses
+RoomManager --> GameRoom : creates/manages
+GameRoom --> GameState : maintains
+GameRoom --> ActionHandler : uses
+GameRoom --> PhysicsEngine : uses
+GameRoom --> GameSettings : uses
+ActionHandler --> PhysicsEngine : uses
+GameRoom --> Persistence : uses
+
+' External dependencies
+SocketHandler --> SocketIO : uses
+PhysicsEngine --> MatterJS : uses
+Persistence --> MongoDriver : uses
+Persistence --> RedisClient : uses
+
+' Data store relationships
+Persistence --> MongoDB : stores game data
+Persistence --> Redis : caches game state
+
+note right of SocketHandler
+  **Responsibility:**
+  - Handle WebSocket connections
+  - Route events to game rooms
+  - Manage player connections
+end note
+
+note right of RoomManager
+  **Responsibility:**
+  - Create and destroy game rooms
+  - Manage room lifecycle
+  - Route players to rooms
+end note
+
+note right of GameRoom
+  **Responsibility:**
+  - Manage game state
+  - Process player actions
+  - Handle turn management
+  - Detect win conditions
+end note
+
+note right of PhysicsEngine
+  **Responsibility:**
+  - Calculate projectile trajectories
+  - Calculate damage
+  - Apply physics rules
+end note
+
+@enduml
+

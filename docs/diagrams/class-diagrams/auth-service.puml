@@ -1,0 +1,199 @@
+@startuml Auth Service Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Controller Layer" #LightBlue {
+  class AuthController {
+    -authService: AuthService
+    +register(request: UserRegistrationRequest): ResponseEntity<UserRegistrationResponse>
+    +login(request: AuthRequest): ResponseEntity<AuthResponse>
+    +validateToken(token: String): ResponseEntity<TokenValidationResponse>
+    +refreshToken(request: RefreshTokenRequest): ResponseEntity<AuthResponse>
+  }
+}
+
+package "Service Layer" #LightGreen {
+  interface AuthService {
+    +registerUser(request: UserRegistrationRequest): UserRegistrationResponse
+    +authenticateUser(request: AuthRequest): AuthResponse
+    +validateToken(token: String): TokenValidationResponse
+    +refreshToken(refreshToken: String): AuthResponse
+    +lockAccount(username: String): void
+    +unlockAccount(username: String): void
+  }
+  
+  class AuthServiceImpl {
+    -userRepository: UserRepository
+    -jwtService: JwtService
+    -passwordService: PasswordService
+    -accountSecurityService: AccountSecurityService
+    +registerUser(request: UserRegistrationRequest): UserRegistrationResponse
+    +authenticateUser(request: AuthRequest): AuthResponse
+    +validateToken(token: String): TokenValidationResponse
+    +refreshToken(refreshToken: String): AuthResponse
+    +lockAccount(username: String): void
+    +unlockAccount(username: String): void
+    -validateRegistrationRequest(request: UserRegistrationRequest): void
+    -validateAuthRequest(request: AuthRequest): void
+  }
+}
+
+package "Repository Layer" #LightYellow {
+  interface UserRepository {
+    +findByUsername(username: String): Optional<User>
+    +findByEmail(email: String): Optional<User>
+    +save(user: User): User
+    +existsByUsername(username: String): Boolean
+    +existsByEmail(email: String): Boolean
+  }
+  
+  class UserRepositoryImpl {
+    -mongoTemplate: MongoTemplate
+    +findByUsername(username: String): Optional<User>
+    +findByEmail(email: String): Optional<User>
+    +save(user: User): User
+    +existsByUsername(username: String): Boolean
+    +existsByEmail(email: String): Boolean
+  }
+}
+
+package "Utility Layer" #LightCoral {
+  class JwtService {
+    -secret: String
+    -expiration: Long
+    +generateToken(user: User): String
+    +validateToken(token: String): Claims
+    +refreshToken(token: String): String
+    +getUsernameFromToken(token: String): String
+    +getExpirationDateFromToken(token: String): Date
+    -doGenerateToken(claims: Map<String, Object>, subject: String): String
+    -getClaimFromToken(token: String, claimsResolver: Function<Claims, T>): T
+  }
+  
+  class PasswordService {
+    -bcryptRounds: Int
+    +hashPassword(password: String): String
+    +verifyPassword(password: String, hash: String): Boolean
+    -validatePasswordStrength(password: String): void
+  }
+  
+  class AccountSecurityService {
+    -maxFailedAttempts: Int
+    -lockoutDuration: Long
+    +handleFailedLogin(username: String): void
+    +handleSuccessfulLogin(username: String): void
+    +isAccountLocked(user: User): Boolean
+    +lockAccount(user: User): void
+    +unlockAccount(user: User): void
+  }
+}
+
+package "Model Layer" #LightGray {
+  class User {
+    -id: ObjectId
+    -username: String
+    -email: String
+    -passwordHash: String
+    -role: UserRole
+    -isActive: Boolean
+    -createdAt: Date
+    -updatedAt: Date
+    -lastLoginAt: Date
+    -failedLoginAttempts: Int
+    -accountLockedUntil: Date
+    +getId(): ObjectId
+    +getUsername(): String
+    +getEmail(): String
+    +getPasswordHash(): String
+    +getRole(): UserRole
+    +isActive(): Boolean
+    +incrementFailedLoginAttempts(): void
+    +resetFailedLoginAttempts(): void
+    +lockAccount(duration: Long): void
+    +unlockAccount(): void
+  }
+  
+  enum UserRole {
+    USER
+    PREMIUM_USER
+    MODERATOR
+    ADMIN
+  }
+}
+
+package "DTO Layer" #LightSteelBlue {
+  class UserRegistrationRequest {
+    -username: String
+    -email: String
+    -password: String
+  }
+  
+  class UserRegistrationResponse {
+    -userId: String
+    -username: String
+    -email: String
+  }
+  
+  class AuthRequest {
+    -username: String
+    -password: String
+  }
+  
+  class AuthResponse {
+    -token: String
+    -refreshToken: String
+    -expiresIn: Long
+    -user: UserDto
+  }
+  
+  class TokenValidationResponse {
+    -valid: Boolean
+    -user: UserDto
+  }
+}
+
+' Relationships
+AuthController --> AuthService
+AuthService <|.. AuthServiceImpl
+AuthServiceImpl --> UserRepository
+AuthServiceImpl --> JwtService
+AuthServiceImpl --> PasswordService
+AuthServiceImpl --> AccountSecurityService
+UserRepository <|.. UserRepositoryImpl
+UserRepositoryImpl --> User
+JwtService --> User
+PasswordService --> User
+AccountSecurityService --> User
+User --> UserRole
+AuthController --> UserRegistrationRequest
+AuthController --> UserRegistrationResponse
+AuthController --> AuthRequest
+AuthController --> AuthResponse
+AuthController --> TokenValidationResponse
+
+note right of AuthService
+  **Design Principles:**
+  - Reusability
+  - Clean Architecture
+  - Secure Programming
+  - SOLID Principles
+end note
+
+note right of JwtService
+  **Security:**
+  - HS512 algorithm
+  - 24-hour expiration
+  - Token rotation
+  - Secure storage
+end note
+
+note right of PasswordService
+  **Security:**
+  - BCrypt hashing
+  - 12 rounds
+  - Password strength validation
+  - Secure storage
+end note
+
+@enduml
+

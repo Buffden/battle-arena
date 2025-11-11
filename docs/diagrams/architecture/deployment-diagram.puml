@@ -1,0 +1,115 @@
+@startuml Deployment Diagram
+skinparam node {
+    backgroundColor #LightBlue
+    BorderColor #000000
+}
+skinparam database {
+    backgroundColor #LightCoral
+    BorderColor #000000
+}
+
+title Battle Arena - Deployment Diagram
+
+node "Load Balancer" as LoadBalancer {
+    component [Nginx] as Nginx
+}
+
+node "Application Servers" as AppServers {
+    node "Backend Server 1" as Backend1 {
+        component [Auth Service] as Auth1
+        component [Profile Service] as Profile1
+        component [Leaderboard Service] as Leaderboard1
+    }
+    
+    node "Backend Server 2" as Backend2 {
+        component [Auth Service] as Auth2
+        component [Profile Service] as Profile2
+        component [Leaderboard Service] as Leaderboard2
+    }
+    
+    node "Game Server 1" as GameServer1 {
+        component [Matchmaking Service] as Matchmaking1
+        component [Game Engine Service] as GameEngine1
+    }
+    
+    node "Game Server 2" as GameServer2 {
+        component [Matchmaking Service] as Matchmaking2
+        component [Game Engine Service] as GameEngine2
+    }
+}
+
+node "Database Cluster" as DatabaseCluster {
+    database "MongoDB Primary" as MongoPrimary
+    database "MongoDB Secondary 1" as MongoSecondary1
+    database "MongoDB Secondary 2" as MongoSecondary2
+}
+
+node "Cache Cluster" as CacheCluster {
+    database "Redis Master" as RedisMaster
+    database "Redis Replica 1" as RedisReplica1
+    database "Redis Replica 2" as RedisReplica2
+}
+
+node "CDN" as CDN {
+    component [Static Assets] as StaticAssets
+}
+
+node "Monitoring" as Monitoring {
+    component [Prometheus] as Prometheus
+    component [Grafana] as Grafana
+    component [ELK Stack] as ELK
+}
+
+' Relationships
+LoadBalancer --> Backend1
+LoadBalancer --> Backend2
+LoadBalancer --> GameServer1
+LoadBalancer --> GameServer2
+
+Backend1 --> MongoPrimary
+Backend2 --> MongoPrimary
+GameServer1 --> MongoPrimary
+GameServer2 --> MongoPrimary
+
+Backend1 --> RedisMaster
+Backend2 --> RedisMaster
+GameServer1 --> RedisMaster
+GameServer2 --> RedisMaster
+
+MongoPrimary --> MongoSecondary1 : replication
+MongoPrimary --> MongoSecondary2 : replication
+
+RedisMaster --> RedisReplica1 : replication
+RedisMaster --> RedisReplica2 : replication
+
+CDN --> StaticAssets
+
+Monitoring --> Backend1 : metrics
+Monitoring --> Backend2 : metrics
+Monitoring --> GameServer1 : metrics
+Monitoring --> GameServer2 : metrics
+Monitoring --> MongoPrimary : metrics
+Monitoring --> RedisMaster : metrics
+
+note right of LoadBalancer
+  **Purpose:** Load balancing, SSL termination
+  **Technology:** Nginx, HAProxy, or AWS ELB
+end note
+
+note right of AppServers
+  **Scaling:** Horizontal scaling based on load
+  **Deployment:** Docker containers, Kubernetes pods
+end note
+
+note right of DatabaseCluster
+  **High Availability:** Replica set with automatic failover
+  **Backup:** Daily automated backups
+end note
+
+note right of CacheCluster
+  **High Availability:** Master-replica setup
+  **Persistence:** RDB + AOF for data durability
+end note
+
+@enduml
+
