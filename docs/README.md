@@ -287,6 +287,26 @@ docs/
 - **High-Level Design (HLD)** - ✅ Complete (Version 2.0) - [View HLD](./02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md)
 - **Low-Level Design (LLD)** - ⏳ Next Phase - To be created using GoF patterns based on updated HLD
 
+### Cluster-Specific Configurations 🆕
+- **[Configuration Guides by Cluster](./04-CONFIGURATIONS/README.md)** 🎯 - Configuration guides organized by traffic/cost clusters
+- **[Cluster 1: Student/Minimal](./04-CONFIGURATIONS/cluster-1-student/README.md)** 🎓 - Ultra low-cost configuration (<1K users/month, $0-10/month)
+- **[Cluster 2: Small Scale](./04-CONFIGURATIONS/cluster-2-small/README.md)** 📈 - Small scale configuration (1K-10K users/day, $10-110/month)
+- **[Cluster 3: Medium Scale](./04-CONFIGURATIONS/cluster-3-medium/README.md)** 📊 - Medium scale configuration (10K-100K users/day, $110-545/month)
+- **[Cluster 4: Large Scale](./04-CONFIGURATIONS/cluster-4-large/README.md)** 🚀 - Large scale configuration (100K-1M users/day, $545-3,200/month)
+- **[Cluster 5: Very Large Scale](./04-CONFIGURATIONS/cluster-5-very-large/README.md)** 🌟 - Very large scale configuration (1M+ users/day, $3,200-17K/month)
+
+### Migration Guides 🆕
+- **[Migration Guides](./05-MIGRATION_GUIDES/README.md)** 🔄 - Step-by-step guides for migrating between clusters
+- **[Cluster 1 → Cluster 2](./05-MIGRATION_GUIDES/cluster-1-to-2.md)** - Scaling from Student to Small Scale
+- **[Cluster 2 → Cluster 3](./05-MIGRATION_GUIDES/cluster-2-to-3.md)** - Scaling from Small to Medium Scale
+- **[Cluster 3 → Cluster 4](./05-MIGRATION_GUIDES/cluster-3-to-4.md)** - Scaling from Medium to Large Scale
+- **[Cluster 4 → Cluster 5](./05-MIGRATION_GUIDES/cluster-4-to-5.md)** - Scaling from Large to Very Large Scale
+
+### Legacy Resources (Still Available)
+- **[Student Minimal Configuration Guide](./STUDENT_MINIMAL_CONFIGURATION.md)** 🎓 - Legacy student configuration guide
+- **[Cost Scaling & Traffic Management](./COST_SCALING_AND_TRAFFIC_MANAGEMENT.md)** 💰 - Detailed cost scaling guide
+- **[Student-Friendly Industrial-Grade Guide](./STUDENT_FRIENDLY_INDUSTRIAL_GRADE.md)** 🎓 - Free/low-cost industrial-grade components
+
 ---
 
 ## 📝 Notes
