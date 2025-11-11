@@ -1,0 +1,74 @@
+@startuml System Architecture
+!define RECTANGLE class
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Client Layer" #LightBlue {
+  [Angular Frontend\nPort: 4200] as Frontend
+}
+
+package "API Gateway Layer" #LightGreen {
+  [Nginx Reverse Proxy] as Gateway
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service\nPort: 8081\nSpring Boot] as Auth
+  [Profile Service\nPort: 8082\nSpring Boot] as Profile
+  [Leaderboard Service\nPort: 8083\nSpring Boot] as Leaderboard
+  [Matchmaking Service\nPort: 3002\nNode.js] as Matchmaking
+  [Game Engine Service\nPort: 5002\nNode.js] as GameEngine
+}
+
+package "Data Layer" #LightCoral {
+  database "MongoDB\nPort: 27017" as MongoDB
+  database "Redis\nPort: 6379" as Redis
+}
+
+Frontend --> Gateway : HTTPS/WSS
+Gateway --> Auth : HTTP
+Gateway --> Profile : HTTP
+Gateway --> Leaderboard : HTTP
+Gateway --> Matchmaking : WebSocket
+Gateway --> GameEngine : WebSocket
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Leaderboard --> MongoDB : MongoDB Driver
+Matchmaking --> Redis : Redis Client
+GameEngine --> MongoDB : MongoDB Driver
+GameEngine --> Redis : Redis Client
+
+note right of Frontend
+  **Technologies:**
+  - Angular 17+
+  - TypeScript
+  - TailwindCSS
+  - Phaser 3
+end note
+
+note right of Auth
+  **Responsibilities:**
+  - User authentication
+  - JWT token generation
+  - Password hashing
+  - Session management
+end note
+
+note right of Matchmaking
+  **Responsibilities:**
+  - Player queue management
+  - XP-based matching
+  - Lobby creation
+  - Match acceptance
+end note
+
+note right of GameEngine
+  **Responsibilities:**
+  - Game room management
+  - Real-time game state
+  - Physics calculations
+  - Turn management
+end note
+
+@enduml
+

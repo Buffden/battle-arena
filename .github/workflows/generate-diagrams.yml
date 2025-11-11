@@ -1,0 +1,111 @@
+name: Generate UML Diagrams
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/diagrams/**/*.puml'
+      - '.github/workflows/generate-diagrams.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/diagrams/**/*.puml'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  generate-diagrams:
+    runs-on: ubuntu-latest
+    name: Generate UML Diagrams from PlantUML
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Download PlantUML
+        run: |
+          PLANTUML_VERSION="1.2023.12"
+          PLANTUML_URL="https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          curl -L -o plantuml.jar "$PLANTUML_URL"
+          
+      - name: Generate diagrams
+        run: |
+          mkdir -p docs/diagrams/exported
+          find docs/diagrams -name "*.puml" -type f | while read file; do
+            relative_path=$(echo "$file" | sed "s|^docs/diagrams/||")
+            output_dir="docs/diagrams/exported/$(dirname "$relative_path")"
+            mkdir -p "$output_dir"
+            echo "Processing: $file"
+            java -jar plantuml.jar -tpng "$file" -o "$(pwd)/$output_dir" || {
+              echo "Warning: Failed to generate diagram from $file"
+            }
+          done
+          
+      - name: Validate diagrams
+        run: |
+          echo "Validating PlantUML diagrams..."
+          errors=0
+          find docs/diagrams -name "*.puml" -type f | while read file; do
+            echo "Validating: $file"
+            java -jar plantuml.jar -checkmetadata "$file" || {
+              echo "Error: Validation failed for $file"
+              errors=$((errors + 1))
+            }
+          done
+          if [ $errors -gt 0 ]; then
+            echo "Error: $errors diagram(s) have validation errors"
+            exit 1
+          fi
+          
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain docs/diagrams/exported)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Diagrams were generated or updated"
+            git status docs/diagrams/exported
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No diagram changes detected"
+          fi
+          
+      - name: Commit and push diagrams
+        if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+        run: |
+          git config --global user.name "PlantUML Bot"
+          git config --global user.email "bot@github.com"
+          git add docs/diagrams/exported/*.png
+          git commit -m "docs: auto-update UML diagrams [skip ci]" || exit 0
+          git push
+          
+      - name: Upload diagrams as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagrams
+          path: docs/diagrams/exported/**/*.png
+          retention-days: 30
+          
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 📊 UML Diagrams Generation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          find docs/diagrams/exported -name "*.png" -type f | while read file; do
+            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Diagram Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total diagrams:** $(find docs/diagrams/exported -name "*.png" -type f | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source files:** $(find docs/diagrams -name "*.puml" -type f | wc -l)" >> $GITHUB_STEP_SUMMARY
+
