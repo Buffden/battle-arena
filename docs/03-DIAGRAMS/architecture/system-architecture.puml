@@ -104,6 +104,7 @@ package "Backend Services" #LightYellow {
 package "Data Layer" #LightCoral {
   database "MongoDB\nPort: 27017" as MongoDB
   database "Redis\nPort: 6379" as Redis
+  database "Apache Kafka\nPort: 9092" as Kafka #LightYellow
   
   note right of MongoDB
     **Collections:**
@@ -114,6 +115,10 @@ package "Data Layer" #LightCoral {
     - Heroes
     - Weapons
     - Arenas
+    - ConfigFiles
+    **Student Projects:**
+    - MongoDB Atlas free tier (512MB)
+    - OR self-hosted (Docker)
   end note
   
   note right of Redis
@@ -123,16 +128,157 @@ package "Data Layer" #LightCoral {
     - Arena/Weapon selection
     - Game state cache
     - Hero/Weapon/Arena config cache
+    **Message Queue:**
+    - Redis Pub/Sub (student projects, <1K users/month)
+    - OR Kafka (production, >10K users/day)
+    **Student Projects:**
+    - Redis Cloud free tier (30MB)
+    - OR self-hosted (Docker)
+    - Use Redis Pub/Sub for message queuing
+  end note
+  
+  note right of Kafka
+    **Topics:**
+    - matchmaking.events
+    - game.events
+    - profile.updates
+    - leaderboard.updates
+    **Characteristics:**
+    - Message persistence
+    - High scalability
+    - Fault tolerance
+    - Consumer groups
+    **Student Projects:**
+    - Skip Kafka, use Redis Pub/Sub
+    - OR self-hosted Kafka (single broker)
+    - Use Kafka only for >10K users/day
   end note
 }
 
-Frontend --> Gateway : HTTPS/WSS
+package "Observability Layer" #LightGreen {
+  [Prometheus\nMetrics] as Prometheus #LightYellow
+  [Grafana\nDashboards] as Grafana #LightYellow
+  [Jaeger\nTracing] as Jaeger #LightYellow
+  [ELK Stack\nLogging] as ELK #LightYellow
+  
+  note right of Prometheus
+    **Metrics Collection:**
+    - Application metrics
+    - Infrastructure metrics
+    - Custom metrics
+    - Service mesh metrics
+    **Student Projects:**
+    - Skip monitoring initially
+    - OR use Grafana Cloud free tier (10k metrics)
+    - Add self-hosted monitoring when needed
+  end note
+  
+  note right of Grafana
+    **Dashboards:**
+    - Service dashboards
+    - Infrastructure dashboards
+    - Business metrics
+    - Alerting
+    **Student Projects:**
+    - Skip monitoring initially
+    - OR use Grafana Cloud free tier
+    - Add self-hosted Grafana when needed
+  end note
+  
+  note right of Jaeger
+    **Distributed Tracing:**
+    - Request tracing
+    - Performance analysis
+    - Service dependency mapping
+    - Error tracking
+    **Student Projects:**
+    - Skip tracing initially (not needed for low traffic)
+    - Add tracing when traffic increases
+  end note
+  
+  note right of ELK
+    **Logging:**
+    - Centralized logging
+    - Log aggregation
+    - Log search
+    - Log analytics
+    **Student Projects:**
+    - Skip logging initially
+    - OR use Grafana Cloud free tier (50GB logs)
+    - Add self-hosted logging when needed
+  end note
+}
+
+package "Infrastructure Layer" #LightYellow {
+  [Kubernetes\nOrchestration] as K8s #LightYellow
+  [Service Mesh\nIstio/Linkerd] as ServiceMesh #LightYellow
+  [API Gateway\nKong/Nginx] as APIGateway
+  
+  note right of K8s
+    **Features:**
+    - Container orchestration
+    - Auto-scaling (HPA, VPA)
+    - Service discovery
+    - Health checks
+    - Rolling updates
+    - Resource management
+    **Student Projects:**
+    - Skip Kubernetes, use Docker Compose
+    - OR use Minikube (local, free)
+    - OR use GKE free tier (1 node, 720 hours/month)
+    - Use Kubernetes only for >10K users/day
+  end note
+  
+  note right of ServiceMesh
+    **Features:**
+    - Circuit breakers
+    - Retry policies
+    - Traffic splitting
+    - mTLS encryption
+    - Observability
+    **Student Projects:**
+    - Skip Service Mesh initially (not needed for low traffic)
+    - Add Service Mesh when traffic increases
+    - OR when need advanced features
+  end note
+  
+  note right of APIGateway
+    **Features:**
+    - Load balancing
+    - Rate limiting
+    - Authentication
+    - API versioning
+    - SSL termination
+    **Student Projects:**
+    - Use Nginx (simpler, free, single instance)
+    - Skip advanced features initially
+    - Add advanced features when needed
+  end note
+}
+
+Frontend --> APIGateway : HTTPS/WSS
+APIGateway --> Gateway : Load Balancing
 Gateway --> Auth : HTTP
 Gateway --> Profile : HTTP
 Gateway --> Leaderboard : HTTP
 Gateway --> Matchmaking : WebSocket
 Gateway --> GameEngine : WebSocket
 Gateway --> Config : HTTP
+
+Auth --> K8s : Kubernetes Pod
+Profile --> K8s : Kubernetes Pod
+Leaderboard --> K8s : Kubernetes Pod
+Matchmaking --> K8s : Kubernetes Pod
+GameEngine --> K8s : Kubernetes Pod
+Config --> K8s : Kubernetes Pod
+
+K8s --> ServiceMesh : Service Mesh
+ServiceMesh --> Auth : mTLS
+ServiceMesh --> Profile : mTLS
+ServiceMesh --> Leaderboard : mTLS
+ServiceMesh --> Matchmaking : mTLS
+ServiceMesh --> GameEngine : mTLS
+ServiceMesh --> Config : mTLS
 
 Auth --> MongoDB : MongoDB Driver
 Profile --> MongoDB : MongoDB Driver
@@ -143,7 +289,37 @@ GameEngine --> MongoDB : MongoDB Driver
 GameEngine --> Redis : Redis Client
 Config --> MongoDB : MongoDB Driver (Config Files Metadata)
 
-Profile --> Matchmaking : Score/Rank updates (internal)
+Matchmaking --> Kafka : Producer (matchmaking.events)\nOR Redis Pub/Sub (student projects)
+GameEngine --> Kafka : Producer (game.events)\nOR Redis Pub/Sub (student projects)
+Profile --> Kafka : Producer (profile.updates)\nOR Redis Pub/Sub (student projects)
+Leaderboard --> Kafka : Producer (leaderboard.updates)\nOR Redis Pub/Sub (student projects)
+
+Profile --> Kafka : Consumer (matchmaking.events)\nOR Redis Pub/Sub (student projects)
+Leaderboard --> Kafka : Consumer (game.events, profile.updates)\nOR Redis Pub/Sub (student projects)
+GameEngine --> Kafka : Consumer (matchmaking.events)\nOR Redis Pub/Sub (student projects)
+
+Matchmaking --> Redis : Pub/Sub Publisher (matchmaking:events)\nStudent Projects Only
+GameEngine --> Redis : Pub/Sub Publisher (game:events)\nStudent Projects Only
+Profile --> Redis : Pub/Sub Publisher (profile:updates)\nStudent Projects Only
+Leaderboard --> Redis : Pub/Sub Publisher (leaderboard:updates)\nStudent Projects Only
+
+Profile --> Redis : Pub/Sub Subscriber (matchmaking:events)\nStudent Projects Only
+Leaderboard --> Redis : Pub/Sub Subscriber (game:events, profile:updates)\nStudent Projects Only
+GameEngine --> Redis : Pub/Sub Subscriber (matchmaking:events)\nStudent Projects Only
+
+K8s --> Prometheus : Metrics
+ServiceMesh --> Prometheus : Metrics
+Kafka --> Prometheus : Metrics
+MongoDB --> Prometheus : Metrics
+Redis --> Prometheus : Metrics
+
+Prometheus --> Grafana : Dashboards
+K8s --> Jaeger : Traces
+ServiceMesh --> Jaeger : Traces
+K8s --> ELK : Logs
+ServiceMesh --> ELK : Logs
+
+Profile --> Matchmaking : Score/Rank updates (Kafka OR Redis Pub/Sub)
 GameEngine --> Profile : Match results (HTTP)
 GameEngine --> Leaderboard : Match results (HTTP)
 Matchmaking --> Config : Get config files (HTTP - rank tiers, scoring formulas)

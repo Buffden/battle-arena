@@ -8,36 +8,76 @@ skinparam database {
     BorderColor #000000
 }
 
-title Battle Arena - Multiplayer Artillery Battle Game - Deployment Diagram
+title Battle Arena - Multiplayer Artillery Battle Game - Deployment Diagram\n(Production Configuration - Student Projects: Use Docker Compose, Skip Kubernetes/Service Mesh, Use Redis Pub/Sub instead of Kafka)
+
+node "API Gateway" as APIGateway {
+    component [Kong/Nginx] as Gateway
+}
 
 node "Load Balancer" as LoadBalancer {
     component [Nginx] as Nginx
 }
 
-node "Application Servers" as AppServers {
-    node "Backend Server 1" as Backend1 {
-        component [Auth Service] as Auth1
-        component [Profile Service] as Profile1
-        component [Leaderboard Service] as Leaderboard1
-        component [Configuration Service] as Config1
+node "Kubernetes Cluster" as K8sCluster #LightYellow {
+    note right of K8sCluster
+        **Production Configuration:**
+        - Kubernetes cluster (3+ nodes)
+        - Auto-scaling (HPA, VPA)
+        - Service discovery
+        - Health checks
+        - Rolling updates
+        **Student Projects (<1K users/month):**
+        - Skip Kubernetes, use Docker Compose
+        - Single server/VM (2 CPU, 4GB RAM)
+        - Manual scaling
+        - Cost: $0/month (local) or $5-10/month (small VM)
+    end note
+    
+    node "Backend Pods" as BackendPods {
+        component [Auth Service Pods] as AuthPods
+        component [Profile Service Pods] as ProfilePods
+        component [Leaderboard Service Pods] as LeaderboardPods
+        component [Configuration Service Pods] as ConfigPods
     }
     
-    node "Backend Server 2" as Backend2 {
-        component [Auth Service] as Auth2
-        component [Profile Service] as Profile2
-        component [Leaderboard Service] as Leaderboard2
-        component [Configuration Service] as Config2
+    node "Game Pods" as GamePods {
+        component [Matchmaking Service Pods] as MatchmakingPods
+        component [Game Engine Service Pods] as GameEnginePods
     }
     
-    node "Game Server 1" as GameServer1 {
-        component [Matchmaking Service] as Matchmaking1
-        component [Game Engine Service] as GameEngine1
-    }
+    component [Service Mesh\nIstio/Linkerd] as ServiceMesh #LightYellow
+    component [Ingress Controller] as Ingress
     
-    node "Game Server 2" as GameServer2 {
-        component [Matchmaking Service] as Matchmaking2
-        component [Game Engine Service] as GameEngine2
-    }
+    note right of ServiceMesh
+        **Production Configuration:**
+        - Service Mesh (Istio/Linkerd)
+        - Circuit breakers
+        - Retry policies
+        - Traffic splitting
+        - mTLS encryption
+        **Student Projects:**
+        - Skip Service Mesh (not needed for low traffic)
+        - Add when traffic increases
+    end note
+}
+
+node "Message Queue Cluster" as MessageQueueCluster #LightYellow {
+    note right of MessageQueueCluster
+        **Production Configuration:**
+        - Kafka cluster (3+ brokers)
+        - Message persistence
+        - High scalability
+        - Fault tolerance
+        **Student Projects (<1K users/month):**
+        - Skip Kafka, use Redis Pub/Sub
+        - Uses existing Redis instance
+        - No additional infrastructure
+        - Cost: $0/month
+    end note
+    
+    database "Kafka Broker 1" as Kafka1
+    database "Kafka Broker 2" as Kafka2
+    database "Kafka Broker 3" as Kafka3
 }
 
 node "Database Cluster" as DatabaseCluster {
@@ -56,27 +96,78 @@ node "CDN" as CDN {
     component [Static Assets] as StaticAssets
 }
 
-node "Monitoring" as Monitoring {
+node "Monitoring Cluster" as MonitoringCluster #LightYellow {
+    note right of MonitoringCluster
+        **Production Configuration:**
+        - Prometheus (metrics)
+        - Grafana (dashboards)
+        - AlertManager (alerting)
+        **Student Projects:**
+        - Skip monitoring initially
+        - OR use Grafana Cloud free tier (10k metrics)
+        - Add self-hosted monitoring when needed
+    end note
+    
     component [Prometheus] as Prometheus
     component [Grafana] as Grafana
-    component [ELK Stack] as ELK
+    component [AlertManager] as AlertManager
+}
+
+node "Logging Cluster" as LoggingCluster #LightYellow {
+    note right of LoggingCluster
+        **Production Configuration:**
+        - ELK Stack (Elasticsearch, Logstash, Kibana)
+        - Centralized logging
+        - Log aggregation
+        **Student Projects:**
+        - Skip logging initially
+        - OR use Grafana Cloud free tier (50GB logs)
+        - Add self-hosted logging when needed
+    end note
+    
+    component [Elasticsearch] as Elasticsearch
+    component [Logstash] as Logstash
+    component [Kibana] as Kibana
+}
+
+node "Tracing Cluster" as TracingCluster #LightYellow {
+    note right of TracingCluster
+        **Production Configuration:**
+        - Jaeger (distributed tracing)
+        - Request tracing
+        - Performance analysis
+        **Student Projects:**
+        - Skip tracing (not needed for low traffic)
+        - Add when traffic increases
+    end note
+    
+    component [Jaeger] as Jaeger
+}
+
+node "Service Mesh" as ServiceMeshNode {
+    component [Istio Control Plane] as IstioCP
+    component [Envoy Proxies] as Envoy
 }
 
 ' Relationships
-LoadBalancer --> Backend1
-LoadBalancer --> Backend2
-LoadBalancer --> GameServer1
-LoadBalancer --> GameServer2
+APIGateway --> LoadBalancer
+LoadBalancer --> Ingress
+Ingress --> ServiceMesh
+ServiceMesh --> BackendPods
+ServiceMesh --> GamePods
 
-Backend1 --> MongoPrimary
-Backend2 --> MongoPrimary
-GameServer1 --> MongoPrimary
-GameServer2 --> MongoPrimary
+BackendPods --> MongoPrimary
+GamePods --> MongoPrimary
 
-Backend1 --> RedisMaster
-Backend2 --> RedisMaster
-GameServer1 --> RedisMaster
-GameServer2 --> RedisMaster
+BackendPods --> RedisMaster
+GamePods --> RedisMaster
+
+BackendPods --> MessageQueueCluster : Kafka Producers/Consumers
+GamePods --> MessageQueueCluster : Kafka Producers/Consumers
+
+Kafka1 --> Kafka2 : replication
+Kafka1 --> Kafka3 : replication
+Kafka2 --> Kafka3 : replication
 
 MongoPrimary --> MongoSecondary1 : replication
 MongoPrimary --> MongoSecondary2 : replication
@@ -86,29 +177,107 @@ RedisMaster --> RedisReplica2 : replication
 
 CDN --> StaticAssets
 
-Monitoring --> Backend1 : metrics
-Monitoring --> Backend2 : metrics
-Monitoring --> GameServer1 : metrics
-Monitoring --> GameServer2 : metrics
-Monitoring --> MongoPrimary : metrics
-Monitoring --> RedisMaster : metrics
+MonitoringCluster --> BackendPods : metrics
+MonitoringCluster --> GamePods : metrics
+MonitoringCluster --> MongoPrimary : metrics
+MonitoringCluster --> RedisMaster : metrics
+MonitoringCluster --> MessageQueueCluster : metrics
+MonitoringCluster --> ServiceMeshNode : metrics
+
+LoggingCluster --> BackendPods : logs
+LoggingCluster --> GamePods : logs
+LoggingCluster --> MongoPrimary : logs
+LoggingCluster --> RedisMaster : logs
+
+TracingCluster --> ServiceMeshNode : traces
+TracingCluster --> BackendPods : traces
+TracingCluster --> GamePods : traces
+
+note right of APIGateway
+  **Purpose:** API Gateway, request routing, rate limiting
+  **Technology:** Kong, Apigee, or Nginx-based gateway
+  **Features:**
+  - Authentication
+  - API versioning
+  - Request/response transformation
+  - API analytics
+end note
 
 note right of LoadBalancer
   **Purpose:** Load balancing, SSL termination
   **Technology:** Nginx, HAProxy, or AWS ELB
+  **Features:**
+  - Round-robin, least connections
+  - Health checks
+  - Sticky sessions (WebSocket)
 end note
 
-note right of AppServers
+note right of K8sCluster
   **Scaling:** Horizontal scaling based on load
-  **Deployment:** Docker containers, Kubernetes pods
-  
+  **Deployment:** Kubernetes pods
+  **Auto-scaling:** HPA, VPA
+  **Health Checks:** Liveness, readiness, startup probes
+  **Rolling Updates:** Zero-downtime deployments
   **Services:**
   - Auth Service (Spring Boot)
   - Profile Service (Spring Boot)
   - Leaderboard Service (Spring Boot)
-  - Configuration Service (Spring Boot) - Config file management
+  - Configuration Service (Spring Boot)
   - Matchmaking Service (Node.js)
   - Game Engine Service (Node.js)
+end note
+
+note right of ServiceMeshNode
+  **Purpose:** Service-to-service communication
+  **Technology:** Istio or Linkerd
+  **Features:**
+  - Circuit breakers
+  - Retry policies
+  - Traffic splitting
+  - mTLS encryption
+  - Observability
+end note
+
+note right of MessageQueueCluster
+  **Purpose:** Message queuing, event streaming
+  **Technology:** Apache Kafka
+  **Features:**
+  - Message persistence
+  - High scalability
+  - Fault tolerance
+  - Consumer groups
+  - Topic partitioning
+end note
+
+note right of MonitoringCluster
+  **Purpose:** Metrics collection and visualization
+  **Technology:** Prometheus, Grafana, AlertManager
+  **Features:**
+  - Application metrics
+  - Infrastructure metrics
+  - Custom metrics
+  - Alerting
+  - Dashboards
+end note
+
+note right of LoggingCluster
+  **Purpose:** Centralized logging
+  **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana)
+  **Features:**
+  - Log aggregation
+  - Log search
+  - Log analytics
+  - Log retention
+end note
+
+note right of TracingCluster
+  **Purpose:** Distributed tracing
+  **Technology:** Jaeger
+  **Features:**
+  - Request tracing
+  - Performance analysis
+  - Service dependency mapping
+  - Error tracking
 end note
 
 note right of DatabaseCluster
