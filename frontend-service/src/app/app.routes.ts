@@ -6,24 +6,9 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'dashboard'
   },
-  {
-    path: 'dashboard',
-    canActivate: [() => import('./guards/auth.guard').then(m => m.authGuard)],
-    loadComponent: () =>
-      import('./dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent)
-  },
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./auth/login/login.component').then(m => m.LoginComponent)
-  },
-  {
-    path: 'matchmaking',
-    loadComponent: () => import('./matchmaking/matchmaking.component').then(m => m.MatchmakingComponent),
-    canActivate: [() => import('./guards/auth.guard').then(m => m.authGuard)],
-  },
+  // TODO: Add routes based on component design documentation
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: ''
   }
 ];
