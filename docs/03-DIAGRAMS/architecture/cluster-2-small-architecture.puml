@@ -1,0 +1,330 @@
+@startuml Cluster 2 Small Scale Architecture
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+title Battle Arena - Cluster 2: Small Scale Architecture\n(1K-10K users/day, $10-110/month)
+
+package "Frontend Layer" #LightBlue {
+  [Angular Frontend\nPort: 4200\nReplicas: 1-2] as Frontend
+  note right of Frontend
+    **Technology:** Angular (TypeScript, TailwindCSS, Phaser 3)
+    **Features:**
+    - User authentication
+    - Hero selection
+    - Matchmaking
+    - Gameplay
+    - Leaderboard
+    **Deployment:** Docker container
+    **Replicas:** 1-2 (optional)
+    **Resources:** 0.2 CPU, 512MB RAM per replica
+  end note
+}
+
+package "API Gateway" #LightGreen {
+  [Nginx API Gateway\nPort: 80, 443\nReplicas: 1-2] as Gateway
+  note right of Gateway
+    **Technology:** Nginx
+    **Features:**
+    - Request routing
+    - Load balancing (advanced)
+    - SSL termination (Let's Encrypt)
+    - Rate limiting (advanced)
+    - Health checks
+    - Sticky sessions (for WebSocket)
+    **Deployment:** Docker container
+    **Replicas:** 1-2 (optional)
+    **Resources:** 0.2 CPU, 512MB RAM per replica
+    **Cost:** $0/month (self-hosted)
+  end note
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service\nSpring Boot\nPort: 8081\nReplicas: 1-2] as Auth
+  [Profile Service\nSpring Boot\nPort: 8082\nReplicas: 1-2] as Profile
+  [Leaderboard Service\nSpring Boot\nPort: 8083\nReplicas: 1-2] as Leaderboard
+  [Matchmaking Service\nNode.js\nPort: 3002\nReplicas: 1-2] as Matchmaking
+  [Game Engine Service\nNode.js\nPort: 3003\nReplicas: 1-2] as GameEngine
+  [Configuration Service\nSpring Boot\nPort: 8084\nReplicas: 1] as Config
+  
+  note right of Auth
+    **Features:**
+    - User registration
+    - User login
+    - JWT token generation
+    - Password encryption
+    **Resources:** 0.2 CPU, 512MB RAM per replica
+    **Replicas:** 1-2 (optional)
+  end note
+  
+  note right of Profile
+    **Features:**
+    - Profile management
+    - Score tracking
+    - Rank tier calculation
+    - Statistics
+    **Resources:** 0.2 CPU, 512MB RAM per replica
+    **Replicas:** 1-2 (optional)
+  end note
+  
+  note right of Leaderboard
+    **Features:**
+    - Leaderboard generation
+    - Ranking calculation
+    - Filtering (region, hero, weapon)
+    - Top players
+    **Resources:** 0.2 CPU, 512MB RAM per replica
+    **Replicas:** 1-2 (optional)
+  end note
+  
+  note right of Matchmaking
+    **Features:**
+    - Matchmaking queue
+    - Hero selection
+    - Arena selection
+    - Weapon selection
+    - Match creation
+    **Resources:** 0.3 CPU, 768MB RAM per replica
+    **Replicas:** 1-2 (optional)
+  end note
+  
+  note right of GameEngine
+    **Features:**
+    - Game state management
+    - Turn management
+    - Physics engine
+    - Scoring system
+    - Win/draw conditions
+    **Resources:** 0.3 CPU, 768MB RAM per replica
+    **Replicas:** 1-2 (optional)
+  end note
+  
+  note right of Config
+    **Features:**
+    - Config file management
+    - Rank tier ranges
+    - Scoring formulas
+    - Game parameters
+    - Penalties
+    **Resources:** 0.1 CPU, 256MB RAM
+    **Replicas:** 1
+  end note
+}
+
+package "Data Layer" #LightCoral {
+  database "MongoDB\nPort: 27017" as MongoDB
+  database "Redis\nPort: 6379" as Redis
+  
+  note right of MongoDB
+    **Technology:** MongoDB 6.0+
+    **Collections:**
+    - Users
+    - Profiles
+    - Matches
+    - Leaderboard
+    - Heroes
+    - Weapons
+    - Arenas
+    - ConfigFiles
+    **Storage:** 512MB-2GB (free tier or paid tier)
+    **Cost:** $0/month (MongoDB Atlas free tier) OR $9-25/month (paid tier) OR self-hosted
+    **Resources:** 0.5-1 CPU, 1-2GB RAM
+  end note
+  
+  note right of Redis
+    **Technology:** Redis 7.0+
+    **Data Structures:**
+    - Sorted Sets - Matchmaking queue
+    - Hash - Lobby storage, Game state cache
+    - String - Cache data, Configurations
+    - Pub/Sub - Message queuing (optional)
+    **Storage:** 30MB-100MB (free tier or paid tier)
+    **Cost:** $0/month (Redis Cloud free tier) OR $10-20/month (paid tier) OR self-hosted
+    **Resources:** 0.2-0.5 CPU, 512MB-1GB RAM
+  end note
+}
+
+package "Message Queue" #LightGray {
+  [Redis Pub/Sub\nRecommended] as RedisPubSub
+  [Apache Kafka\nOptional] as Kafka #LightYellow
+  
+  note right of RedisPubSub
+    **Technology:** Redis Pub/Sub
+    **Channels:**
+    - matchmaking:events
+    - game:events
+    - profile:updates
+    - leaderboard:updates
+    **Characteristics:**
+    - No message persistence (acceptable for small scale)
+    - No message replay (acceptable for small scale)
+    - Sufficient for 1K-10K users/day
+    - Simple setup, no additional infrastructure
+    **Cost:** $0/month (uses existing Redis instance)
+    **Recommendation:** Use Redis Pub/Sub (recommended)
+  end note
+  
+  note right of Kafka
+    **Technology:** Apache Kafka
+    **Topics:**
+    - matchmaking.events
+    - game.events
+    - profile.updates
+    - leaderboard.updates
+    **Characteristics:**
+    - Message persistence to disk
+    - Message replay capability
+    - High scalability
+    - Fault tolerance (replication)
+    **Deployment:** Self-hosted (single broker) OR Confluent Cloud free tier (5GB/month)
+    **Cost:** $0/month (self-hosted) OR $0/month (Confluent Cloud free tier)
+    **Recommendation:** Use Kafka only if need message persistence
+  end note
+}
+
+package "Orchestration" #LightPink {
+  [Docker Compose\nRecommended] as DockerCompose
+  [Kubernetes\nOptional] as Kubernetes #LightYellow
+  
+  note right of DockerCompose
+    **Technology:** Docker Compose
+    **Features:**
+    - Simple service orchestration
+    - Single or multiple VM deployment
+    - Manual scaling
+    - Basic health checks
+    - Environment variables
+    **Deployment:** Small VMs (2-4 CPU, 4-8GB RAM)
+    **Cost:** $10-50/month (small VMs)
+    **Recommendation:** Use Docker Compose (recommended)
+  end note
+  
+  note right of Kubernetes
+    **Technology:** Kubernetes
+    **Features:**
+    - Container orchestration
+    - Auto-scaling (HPA, optional)
+    - Service discovery
+    - Health checks
+    - Rolling updates
+    - Resource management
+    **Deployment:** Kubernetes cluster (1-2 nodes, 2-4 CPU, 4-8GB RAM per node)
+    **Cost:** $20-50/month (managed Kubernetes)
+    **Recommendation:** Use Kubernetes only if need auto-scaling
+  end note
+}
+
+package "Monitoring & Logging" #LightCyan {
+  [Grafana Cloud\nFree Tier] as GrafanaCloud
+  
+  note right of GrafanaCloud
+    **Technology:** Grafana Cloud
+    **Features:**
+    - Metrics collection (10k metrics)
+    - Log aggregation (50GB logs)
+    - Dashboards
+    - Alerting (basic)
+    **Cost:** $0/month (free tier)
+    **Recommendation:** Use Grafana Cloud free tier
+  end note
+}
+
+package "CI/CD" #LightCyan {
+  [GitHub Actions\nFree Tier] as GitHubActions
+  
+  note right of GitHubActions
+    **Technology:** GitHub Actions
+    **Features:**
+    - Automated testing
+    - Automated building
+    - Automated deployment
+    **Limits:** 2,000 minutes/month (free tier)
+    **Cost:** $0/month (free tier)
+  end note
+}
+
+' Relationships
+Frontend --> Gateway : HTTPS/WSS
+Gateway --> Auth : HTTP (Load Balanced)
+Gateway --> Profile : HTTP (Load Balanced)
+Gateway --> Leaderboard : HTTP (Load Balanced)
+Gateway --> Matchmaking : HTTP/WSS (Load Balanced, Sticky Sessions)
+Gateway --> GameEngine : HTTP/WSS (Load Balanced, Sticky Sessions)
+Gateway --> Config : HTTP
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Profile --> Redis : Redis Client
+Leaderboard --> MongoDB : MongoDB Driver
+Leaderboard --> Redis : Redis Client
+Matchmaking --> MongoDB : MongoDB Driver
+Matchmaking --> Redis : Redis Client
+GameEngine --> MongoDB : MongoDB Driver
+GameEngine --> Redis : Redis Client
+Config --> MongoDB : MongoDB Driver
+Config --> Redis : Redis Client
+
+Matchmaking --> RedisPubSub : Publisher (matchmaking:events)\nRecommended
+GameEngine --> RedisPubSub : Publisher (game:events)\nRecommended
+Profile --> RedisPubSub : Publisher (profile:updates)\nRecommended
+Leaderboard --> RedisPubSub : Publisher (leaderboard:updates)\nRecommended
+
+Profile --> RedisPubSub : Subscriber (matchmaking:events)\nRecommended
+Leaderboard --> RedisPubSub : Subscriber (game:events, profile:updates)\nRecommended
+GameEngine --> RedisPubSub : Subscriber (matchmaking:events)\nRecommended
+
+Matchmaking ..> Kafka : Publisher (matchmaking.events)\nOptional
+GameEngine ..> Kafka : Publisher (game.events)\nOptional
+Profile ..> Kafka : Publisher (profile.updates)\nOptional
+Leaderboard ..> Kafka : Publisher (leaderboard.updates)\nOptional
+
+Profile ..> Kafka : Consumer (matchmaking.events)\nOptional
+Leaderboard ..> Kafka : Consumer (game.events, profile.updates)\nOptional
+GameEngine ..> Kafka : Consumer (matchmaking.events)\nOptional
+
+Profile --> Matchmaking : Score/Rank updates (Redis Pub/Sub OR Kafka)
+GameEngine --> Profile : Match results (HTTP)
+GameEngine --> Leaderboard : Match results (HTTP)
+Matchmaking --> Config : Get config files (HTTP)
+GameEngine --> Config : Get config files (HTTP)
+Config --> Redis : Cache config files
+
+DockerCompose --> Frontend : Orchestrates\nRecommended
+DockerCompose --> Gateway : Orchestrates\nRecommended
+DockerCompose --> Auth : Orchestrates\nRecommended
+DockerCompose --> Profile : Orchestrates\nRecommended
+DockerCompose --> Leaderboard : Orchestrates\nRecommended
+DockerCompose --> Matchmaking : Orchestrates\nRecommended
+DockerCompose --> GameEngine : Orchestrates\nRecommended
+DockerCompose --> Config : Orchestrates\nRecommended
+DockerCompose --> MongoDB : Orchestrates (if self-hosted)
+DockerCompose --> Redis : Orchestrates (if self-hosted)
+
+Kubernetes ..> Frontend : Orchestrates\nOptional
+Kubernetes ..> Gateway : Orchestrates\nOptional
+Kubernetes ..> Auth : Orchestrates\nOptional
+Kubernetes ..> Profile : Orchestrates\nOptional
+Kubernetes ..> Leaderboard : Orchestrates\nOptional
+Kubernetes ..> Matchmaking : Orchestrates\nOptional
+Kubernetes ..> GameEngine : Orchestrates\nOptional
+Kubernetes ..> Config : Orchestrates\nOptional
+
+GitHubActions --> DockerCompose : Deploys\nRecommended
+GitHubActions ..> Kubernetes : Deploys\nOptional
+
+Auth --> GrafanaCloud : Metrics
+Profile --> GrafanaCloud : Metrics
+Leaderboard --> GrafanaCloud : Metrics
+Matchmaking --> GrafanaCloud : Metrics
+GameEngine --> GrafanaCloud : Metrics
+Config --> GrafanaCloud : Metrics
+
+Auth --> GrafanaCloud : Logs
+Profile --> GrafanaCloud : Logs
+Leaderboard --> GrafanaCloud : Logs
+Matchmaking --> GrafanaCloud : Logs
+GameEngine --> GrafanaCloud : Logs
+Config --> GrafanaCloud : Logs
+
+@enduml
+
