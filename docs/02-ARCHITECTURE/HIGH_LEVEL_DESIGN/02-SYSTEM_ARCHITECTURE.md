@@ -87,17 +87,37 @@
         │                     │                     │
         ▼                     ▼                     ▼
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   MONGODB    │    │    REDIS     │    │   EXTERNAL   │
-│  (Port 27017)│    │  (Port 6379) │    │   SERVICES   │
+│   MONGODB    │    │    REDIS     │    │    KAFKA     │
+│  (Port 27017)│    │  (Port 6379) │    │  (Port 9092) │
 │              │    │              │    │              │
-│ - Users      │    │ - Matchmaking│    │ - Auth APIs  │
-│ - Profiles   │    │   Queue      │    │ - Stats APIs │
-│ - Matches    │    │ - Lobby Data │    │              │
-│ - Leaderboard│    │ - Arena/Weapon│   │              │
-│ - Heroes     │    │   Selection  │    │              │
-│ - Weapons    │    │ - Game State │    │              │
-│ - Arenas     │    │ - Config Cache│   │              │
+│ - Users      │    │ - Matchmaking│    │ - matchmaking│
+│ - Profiles   │    │   Queue      │    │   .events    │
+│ - Matches    │    │ - Lobby Data │    │ - game.events│
+│ - Leaderboard│    │ - Arena/Weapon│   │ - profile.   │
+│ - Heroes     │    │   Selection  │    │   updates    │
+│ - Weapons    │    │ - Game State │    │ - leaderboard│
+│ - Arenas     │    │ - Config Cache│   │   .updates   │
 └──────────────┘    └──────────────┘    └──────────────┘
+        │                 │                     │
+        └─────────────────┼─────────────────────┘
+                          │
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+        ▼                 ▼                 ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  PROMETHEUS  │  │    GRAFANA   │  │     JAEGER   │
+│  (Metrics)   │  │  (Dashboards)│  │   (Tracing)  │
+└──────────────┘  └──────────────┘  └──────────────┘
+        │                 │                 │
+        └─────────────────┼─────────────────┘
+                          │
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+        ▼                 ▼                 ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ ELASTICSEARCH│  │   LOGSTASH   │  │    KIBANA    │
+│  (Logs)      │  │  (Processing)│  │ (Visualization)│
+└──────────────┘  └──────────────┘  └──────────────┘
 ```
 
 ---
@@ -199,11 +219,25 @@ The system follows a **microservices architecture** with the following services:
 - **Protocol:** WebSocket (WSS in production)
 - **Format:** JSON
 
-### 3.3 Message Queue (Redis)
-- **Redis Pub/Sub** for inter-service communication
+### 3.3 Message Queue (Apache Kafka / Redis Pub/Sub)
+- **Apache Kafka** for industrial-grade message queuing (recommended for production, high traffic)
+- **Redis Pub/Sub** for simple message queuing (recommended for student projects, low traffic <1,000 users/month)
+- **Kafka Topics** for event-driven communication (when using Kafka)
+- **Kafka Producers/Consumers** in services for publishing/consuming events (when using Kafka)
+- **Redis Pub/Sub Channels** for event-driven communication (when using Redis Pub/Sub)
+- **Message Persistence** - Kafka: Messages persisted to disk | Redis Pub/Sub: No persistence (acceptable for low traffic)
+- **Message Replay** - Kafka: Can replay messages | Redis Pub/Sub: No replay (acceptable for low traffic)
+- **High Scalability** - Kafka: Handles millions of messages per second | Redis Pub/Sub: Sufficient for low traffic
+- **Fault Tolerance** - Kafka: Replication for reliability | Redis Pub/Sub: Basic reliability (acceptable for low traffic)
+- **Consumer Groups** - Kafka: Multiple consumers with load balancing | Redis Pub/Sub: Multiple subscribers
+- **Student Recommendation:** Use Redis Pub/Sub for <1,000 users/month (simpler, free, sufficient), switch to Kafka when traffic exceeds 10,000 users/day
+
+### 3.4 Redis Data Structures (Caching & Message Queue)
 - **Redis Sorted Sets** for matchmaking queue
 - **Redis Hash** for lobby storage
 - **Redis Cache** for frequently accessed data
+- **Redis Pub/Sub** for inter-service communication (for student projects, low traffic)
+- **Note:** Redis Pub/Sub is sufficient for <1,000 users/month. Switch to Kafka when traffic exceeds 10,000 users/day or need message persistence/replay
 
 ---
 
@@ -225,23 +259,75 @@ The system follows a **microservices architecture** with the following services:
 ### 4.2 Redis
 - **Cache** for frequently accessed data
 - **Queue** for matchmaking (hero-based queues, player matching)
-- **Pub/Sub** for inter-service communication
 - **Data Structures:**
   - Sorted Sets - Matchmaking queue (hero-based queues, player matching)
   - Hash - Lobby storage (match lobbies, arena selection, weapon selection), Game state cache (real-time game state, turn management)
   - String - Cache data, Hero/Weapon/Arena configurations (cached configurations)
 - **Clustering:** Redis cluster for distributed caching
+- **Note:** Redis Pub/Sub replaced by Kafka for inter-service communication
+
+### 4.3 Message Queue (Apache Kafka / Redis Pub/Sub)
+
+#### **Apache Kafka (Recommended for Production, High Traffic)**
+- **Message Queue** for industrial-grade event streaming
+- **Topics:**
+  - `matchmaking.events` - Matchmaking events (match found, hero assigned, etc.)
+  - `game.events` - Game events (game start, turn updates, game end, etc.)
+  - `profile.updates` - Profile update events (score updates, rank changes, etc.)
+  - `leaderboard.updates` - Leaderboard update events (rank changes, new entries, etc.)
+- **Characteristics:**
+  - Message persistence to disk
+  - Message replay capability
+  - High scalability (millions of messages per second)
+  - Fault tolerance (replication)
+  - Consumer groups for load balancing
+  - Partitioning for parallel processing
+- **Clustering:** Kafka cluster (3+ brokers for production, single broker for development/student projects)
+- **Free Options:** Self-hosted Kafka (free, open source), Confluent Cloud free tier (5GB/month, 1 cluster)
+- **When to Use:** Production, high traffic (>10,000 users/day), need message persistence/replay
+
+#### **Redis Pub/Sub (Recommended for Student Projects, Low Traffic)**
+- **Message Queue** for simple event streaming (sufficient for <1,000 users/month)
+- **Channels:**
+  - `matchmaking:events` - Matchmaking events
+  - `game:events` - Game events
+  - `profile:updates` - Profile update events
+  - `leaderboard:updates` - Leaderboard update events
+- **Characteristics:**
+  - No message persistence (acceptable for low traffic)
+  - No message replay (acceptable for low traffic)
+  - Sufficient for low traffic (<1,000 users/month)
+  - Simple setup, no additional infrastructure
+  - Free (uses existing Redis instance)
+- **Setup:** Single Redis instance (same as caching Redis)
+- **Free Options:** Self-hosted Redis (free, open source), Redis Cloud free tier (30MB)
+- **Student Recommendation:** Use Redis Pub/Sub for <1,000 users/month (simpler, free, sufficient), switch to Kafka when traffic exceeds 10,000 users/day
 
 ---
 
 ## 5. API Gateway
 
-### 5.1 Nginx Reverse Proxy
+### 5.1 API Gateway (Kong/Nginx/Apigee)
 - **Request Routing** - Route requests to appropriate services
-- **Load Balancing** - Distribute load across service instances
+- **Load Balancing** - Distribute load across service instances (round-robin, least connections, IP hash for WebSocket)
 - **SSL Termination** - Handle HTTPS/WSS encryption
-- **Rate Limiting** - Prevent abuse and DDoS attacks
+- **Rate Limiting** - Prevent abuse and DDoS attacks (per IP, per user, per API)
 - **CORS Configuration** - Manage cross-origin requests
+- **Authentication** - JWT validation at gateway level
+- **API Versioning** - Support for multiple API versions
+- **Request/Response Transformation** - Transform requests and responses
+- **API Analytics** - Monitor API usage and performance
+- **Plugin System** - Extensible plugin system for additional functionality
+- **Free Options:** Kong Community Edition (free, open source), Nginx (free, open source), Traefik (free, open source)
+- **Student Recommendation:** Use Kong Community Edition or Nginx (both free and industrial-grade)
+
+### 5.2 Nginx Reverse Proxy (Alternative/Additional)
+- **Load Balancing** - Advanced load balancing algorithms
+- **Health Checks** - Health check endpoints for service instances
+- **Sticky Sessions** - Session affinity for WebSocket connections
+- **SSL/TLS** - Certificate management and renewal
+- **Rate Limiting** - Advanced rate limiting rules
+- **Caching** - Static asset caching
 
 ---
 
@@ -268,14 +354,46 @@ For detailed security architecture, see [Security Architecture](./07-SECURITY_AR
 ### 7.1 Horizontal Scaling
 - **Stateless services** for easy scaling
 - **Load balancing** at API gateway level
+- **Kubernetes orchestration** for container orchestration and auto-scaling
+- **Horizontal Pod Autoscaler (HPA)** for automatic scaling based on CPU/memory/custom metrics
+- **Vertical Pod Autoscaler (VPA)** for resource optimization
 - **Redis clustering** for distributed caching
 - **MongoDB replica sets** for read scaling
+- **Kafka clustering** for distributed message queuing
 
 ### 7.2 Performance Optimization
 - **Redis caching** for frequently accessed data
+- **Kafka message queuing** for high-throughput event streaming
 - **Database indexing** on frequently queried fields
 - **Connection pooling** for database connections
 - **WebSocket connection management** for efficient real-time communication
+- **Service Mesh** for optimized service-to-service communication
+
+### 7.3 Container Orchestration (Kubernetes / Docker Compose)
+- **Kubernetes** for container orchestration (recommended for production, high traffic)
+- **Docker Compose** for simple orchestration (recommended for student projects, low traffic <1,000 users/month)
+- **Deployment Manifests** for all services (when using Kubernetes)
+- **Service Definitions** for service discovery (when using Kubernetes)
+- **ConfigMaps** for configuration management (when using Kubernetes)
+- **Secrets** for sensitive data management (when using Kubernetes)
+- **Ingress** for external access (when using Kubernetes)
+- **Network Policies** for security (when using Kubernetes)
+- **Resource Limits** for resource management (when using Kubernetes)
+- **Health Checks** (liveness, readiness, startup probes) (when using Kubernetes)
+- **Rolling Updates** for zero-downtime deployments (when using Kubernetes)
+- **Rollback Capability** for quick recovery (when using Kubernetes)
+- **Student Recommendation:** Use Docker Compose for <1,000 users/month (simpler, free, easier to manage), switch to Kubernetes when traffic exceeds 10,000 users/day or need auto-scaling
+
+### 7.4 Service Mesh (Istio/Linkerd) - Optional
+- **Service Mesh** for service-to-service communication management (optional for student projects)
+- **Circuit Breakers** for resilience (optional)
+- **Retry Policies** for failed requests (optional)
+- **Timeout Policies** for request timeouts (optional)
+- **Traffic Splitting** for canary deployments (optional)
+- **mTLS** for service-to-service encryption (optional)
+- **Observability** (metrics, tracing, logging) (optional)
+- **Traffic Management** for advanced routing (optional)
+- **Student Recommendation:** Skip Service Mesh for <1,000 users/month (adds complexity, not needed for low traffic), add when traffic exceeds 10,000 users/day or need advanced features
 
 For detailed scalability considerations, see [Scalability Considerations](./08-SCALABILITY.md).
 
@@ -289,11 +407,39 @@ For detailed scalability considerations, see [Scalability Considerations](./08-S
 - **Local databases** (MongoDB, Redis)
 
 ### 8.2 Production Environment
+
+#### **Student Projects (<1,000 users/month) - Minimal Configuration**
 - **Containerized services** using Docker
-- **Reverse proxy** (Nginx) for routing
+- **Docker Compose** for simple orchestration (recommended for student projects)
+- **API Gateway** (Nginx) for request routing (single instance, free)
+- **Reverse proxy** (Nginx) for load balancing and SSL termination (single instance, free)
+- **SSL/TLS certificates** for HTTPS (free: Let's Encrypt)
+- **Environment-based configuration** via environment variables or Docker Compose
+- **Monitoring infrastructure** (Grafana Cloud free tier) OR skip monitoring initially
+- **Logging infrastructure** (Grafana Cloud free tier) OR skip logging initially
+- **Distributed tracing** (Optional - skip for student projects)
+- **Secret management** (Kubernetes Secrets or environment variables)
+- **CI/CD pipeline** (GitHub Actions free tier: 2,000 minutes/month)
+- **Auto-scaling** (Manual scaling with Docker Compose) OR skip auto-scaling
+- **Disaster recovery** (Self-hosted backups or cloud storage free tiers: 5GB free)
+- **Cost:** $0-10/month (within free tier limits or small cloud VM)
+
+#### **Production (High Traffic >10,000 users/day) - Full Configuration**
+- **Containerized services** using Docker
+- **Kubernetes orchestration** for container orchestration
+- **API Gateway** (Kong/Nginx/Apigee) for request routing and load balancing
+- **Service Mesh** (Istio/Linkerd) for service-to-service communication (optional)
+- **Reverse proxy** (Nginx) for load balancing and SSL termination
 - **SSL/TLS certificates** for HTTPS
-- **Environment-based configuration** via environment variables
-- **Logging and monitoring** infrastructure
+- **Environment-based configuration** via ConfigMaps and Secrets
+- **Monitoring infrastructure** (Prometheus, Grafana, AlertManager)
+- **Logging infrastructure** (ELK Stack: Elasticsearch, Logstash, Kibana)
+- **Distributed tracing** (Jaeger/Zipkin)
+- **Secret management** (HashiCorp Vault/Kubernetes Secrets)
+- **CI/CD pipeline** (GitHub Actions/Jenkins/GitLab CI)
+- **Auto-scaling** (Kubernetes HPA/VPA)
+- **Disaster recovery** (automated backups, recovery procedures)
+- **Cost:** $110-3,200/month (depending on traffic)
 
 For detailed deployment architecture, see [Deployment Architecture](./09-DEPLOYMENT.md).
 
@@ -307,6 +453,10 @@ For detailed deployment architecture, see [Deployment Architecture](./09-DEPLOYM
 - [Database Design](./06-DATABASE_DESIGN.md) - Database schema
 - [Security Architecture](./07-SECURITY_ARCHITECTURE.md) - Security design
 - [Scalability Considerations](./08-SCALABILITY.md) - Scalability design
+- [Cost Optimization](./14-COST_OPTIMIZATION.md) - Cost optimization strategies
+- [Traffic Scaling & Cost Management](./15-TRAFFIC_SCALING_AND_COST_MANAGEMENT.md) - Cost scaling guide
+- [Student Minimal Configuration](../STUDENT_MINIMAL_CONFIGURATION.md) 🎓 - Student project configuration guide
+- [Cost Scaling & Traffic Management](../COST_SCALING_AND_TRAFFIC_MANAGEMENT.md) 💰 - Detailed cost scaling guide
 
 ---
 

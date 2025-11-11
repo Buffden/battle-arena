@@ -96,25 +96,89 @@
 
 ---
 
-## 3. Message Queue (Redis)
+## 3. Message Queue (Apache Kafka / Redis Pub/Sub)
 
-### 3.1 Redis Pub/Sub
+### 3.1 Message Queue Options
+
+#### **Apache Kafka (Recommended for Production, High Traffic)**
+- **Protocol:** Apache Kafka
+- **Format:** JSON
+- **Pattern:** Publish-Subscribe, Consumer Groups
+- **Used for:** Inter-service communication, event streaming
+- **When to Use:** Production, high traffic (>10,000 users/day), need message persistence/replay
+
+#### **Redis Pub/Sub (Recommended for Student Projects, Low Traffic)**
 - **Protocol:** Redis Pub/Sub
 - **Format:** JSON
 - **Pattern:** Publish-Subscribe
-- **Used for:** Inter-service communication
+- **Used for:** Inter-service communication, event streaming
+- **When to Use:** Student projects, low traffic (<1,000 users/month), simple setup
+- **Student Recommendation:** Use Redis Pub/Sub for <1,000 users/month (simpler, free, sufficient)
 
-### 3.2 Redis Pub/Sub Characteristics
+### 3.2 Kafka Characteristics (Production, High Traffic)
 - **Decoupled** - Services don't need to know about each other
-- **Scalable** - Multiple subscribers
-- **Real-time** - Near-instantaneous delivery
-- **Reliable** - Redis reliability
+- **Scalable** - Handles millions of messages per second
+- **Persistent** - Messages persisted to disk
+- **Reliable** - Replication for fault tolerance
+- **Replayable** - Can replay messages for debugging
+- **Ordered** - Messages ordered within partitions
+- **Partitioned** - Topics partitioned for parallel processing
+- **Consumer Groups** - Multiple consumers with load balancing
 
-### 3.3 Redis Pub/Sub Channels
+### 3.3 Redis Pub/Sub Characteristics (Student Projects, Low Traffic)
+- **Decoupled** - Services don't need to know about each other
+- **Sufficient** - Sufficient for low traffic (<1,000 users/month)
+- **Simple** - Simple setup, no additional infrastructure
+- **Free** - Free (uses existing Redis instance)
+- **Real-time** - Near-instantaneous delivery
+- **Limitations** - No message persistence, no message replay (acceptable for low traffic)
+
+### 3.4 Kafka Topics (Production, High Traffic)
+- **Matchmaking Events Topic:** `matchmaking.events`
+  - Partitions: 10 (production), 1 (development/student projects)
+  - Replication: 3 (production), 1 (development/student projects)
+  - Retention: 7 days
+  - Events: Match found, hero assigned, match accepted, etc.
+- **Game Events Topic:** `game.events`
+  - Partitions: 10 (production), 1 (development/student projects)
+  - Replication: 3 (production), 1 (development/student projects)
+  - Retention: 7 days
+  - Events: Game start, turn updates, game end, etc.
+- **Profile Updates Topic:** `profile.updates`
+  - Partitions: 5 (production), 1 (development/student projects)
+  - Replication: 3 (production), 1 (development/student projects)
+  - Retention: 30 days
+  - Events: Score updates, rank changes, etc.
+- **Leaderboard Updates Topic:** `leaderboard.updates`
+  - Partitions: 5 (production), 1 (development/student projects)
+  - Replication: 3 (production), 1 (development/student projects)
+  - Retention: 30 days
+  - Events: Rank changes, new entries, etc.
+
+### 3.5 Redis Pub/Sub Channels (Student Projects, Low Traffic)
 - **Matchmaking Channel:** `matchmaking:events`
+  - Events: Match found, hero assigned, match accepted, etc.
 - **Game Events Channel:** `game:events`
+  - Events: Game start, turn updates, game end, etc.
 - **Profile Updates Channel:** `profile:updates`
+  - Events: Score updates, rank changes, etc.
 - **Leaderboard Updates Channel:** `leaderboard:updates`
+  - Events: Rank changes, new entries, etc.
+
+### 3.6 Kafka Producers and Consumers (Production, High Traffic)
+- **Producers** - Services that publish events to Kafka topics
+- **Consumers** - Services that consume events from Kafka topics
+- **Consumer Groups** - Multiple consumers in a group for load balancing
+- **Offset Management** - Kafka manages consumer offsets
+- **Partition Assignment** - Kafka assigns partitions to consumers
+- **Rebalancing** - Automatic rebalancing when consumers join/leave
+
+### 3.7 Redis Pub/Sub Publishers and Subscribers (Student Projects, Low Traffic)
+- **Publishers** - Services that publish events to Redis Pub/Sub channels
+- **Subscribers** - Services that subscribe to Redis Pub/Sub channels
+- **Multiple Subscribers** - Multiple subscribers can listen to same channel
+- **Real-time Delivery** - Near-instantaneous delivery
+- **No Offset Management** - No offset management needed (simpler)
 
 ---
 
@@ -175,7 +239,15 @@
 - **Message Validation** - Validate WebSocket messages
 - **Connection Limits** - Limit concurrent connections
 
-### 5.3 Redis Security
+### 5.3 Kafka Security
+- **Authentication** - SASL authentication (PLAIN, SCRAM, GSSAPI)
+- **TLS/SSL** - Encrypted Kafka connections
+- **Authorization** - Kafka ACLs for topic and consumer group access control
+- **Network Isolation** - Isolated Kafka network
+- **Encryption** - End-to-end encryption for messages
+- **Audit Logging** - Kafka audit logging for security
+
+### 5.4 Redis Security
 - **Authentication** - Redis password authentication
 - **TLS/SSL** - Encrypted Redis connections
 - **Network Isolation** - Isolated Redis network
@@ -199,12 +271,26 @@
 - **Manage connections** - Proper connection management
 - **Handle errors** - Proper error handling
 
-### 6.3 Redis Best Practices
+### 6.3 Kafka Best Practices
+- **Use appropriate topics** - Choose the right topic for events
+- **Partition topics** - Partition topics for parallel processing
+- **Use consumer groups** - Use consumer groups for load balancing
+- **Monitor lag** - Monitor consumer lag
+- **Handle failures** - Proper failure handling and retry logic
+- **Use idempotent producers** - Use idempotent producers for exactly-once semantics
+- **Configure retention** - Configure appropriate retention periods
+- **Monitor performance** - Monitor Kafka performance and throughput
+- **Use compression** - Use message compression for efficiency
+- **Batch messages** - Batch messages for better throughput
+
+### 6.4 Redis Best Practices
 - **Use appropriate data structures** - Choose the right data structure
 - **Set TTL** - Set expiration times for cached data
 - **Monitor performance** - Monitor Redis performance
 - **Handle failures** - Proper failure handling
 - **Use pipelines** - Use Redis pipelines for batch operations
+- **Note:** Redis Pub/Sub replaced by Kafka for inter-service communication
+- **Redis for caching only** - Use Redis only for caching and queue management
 
 ---
 

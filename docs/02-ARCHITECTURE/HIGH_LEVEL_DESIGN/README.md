@@ -92,6 +92,16 @@ This High-Level Design document is organized into the following sections:
 - Planned Features
 - Infrastructure Improvements
 
+### 14. [Cost Optimization](./14-COST_OPTIMIZATION.md)
+- Cost Optimization Strategies
+- Student-Friendly Options
+- Free Tier Recommendations
+
+### 15. [Traffic Scaling & Cost Management](./15-TRAFFIC_SCALING_AND_COST_MANAGEMENT.md)
+- Cost Scaling at High Traffic
+- Cost Optimization Strategies
+- Traffic Management
+
 ---
 
 ## 🚀 Quick Navigation
