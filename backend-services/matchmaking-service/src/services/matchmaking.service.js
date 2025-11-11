@@ -1,5 +1,6 @@
 const redisService = require('./redis.service');
 const logger = require('../utils/logger');
+const axios = require('axios');
 
 class MatchmakingService {
   constructor() {
@@ -147,6 +148,17 @@ class MatchmakingService {
       }
       // Create lobby
       const lobbyId = await redisService.createLobby(players);
+      // Notify game engine to create the room
+      try {
+        await axios.post('http://game-engine-service:5002/api/rooms/create-room', {
+          roomId: lobbyId,
+          players
+        });
+        logger.info(`Notified game engine to create room ${lobbyId}`);
+      } catch (err) {
+        logger.error('Failed to notify game engine to create room:', err);
+        // Optionally: handle error, retry, or abort match creation
+      }
       // Update pending notifications with lobbyId
       for (const player of players) {
         if (this.pendingMatchNotifications[player.id]) {

@@ -23,6 +23,11 @@ export const routes: Routes = [
     canActivate: [() => import('./guards/auth.guard').then(m => m.authGuard)],
   },
   {
+    path: 'arena/:roomId',
+    loadComponent: () => import('./pages/arena/scenes/game-scene.component').then(m => m.GameSceneComponent),
+    canActivate: [() => import('./guards/auth.guard').then(m => m.authGuard)],
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

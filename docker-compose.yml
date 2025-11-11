@@ -90,7 +90,7 @@ services:
 
   game-engine-service:
     build:
-      context: ./backend-services/game-engine
+      context: ./backend-services/game-engine-service
       dockerfile: ../../deployments/docker/Dockerfile-game-engine-service
     container_name: battle-arena-game-engine-service
     ports:

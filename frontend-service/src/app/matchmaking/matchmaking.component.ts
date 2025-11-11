@@ -22,16 +22,22 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    console.log('MatchmakingComponent initialized');
     this.subscriptions.push(
       this.matchmakingService.onQueueStatusChange().subscribe(
-        status => this.isInQueue = status
+        status => {
+          this.isInQueue = status;
+          console.log('Queue status changed:', status);
+        }
       ),
       this.matchmakingService.onMatchFound().subscribe(
         match => {
           this.matchFound = match;
-          // Navigate to game lobby after a short delay
+          console.log('Match found:', match);
+          // Navigate to arena after a short delay
           setTimeout(() => {
-            this.router.navigate(['/game', match.lobbyId]);
+            console.log('Navigating to arena:', match.lobbyId);
+            this.router.navigate(['/arena', match.lobbyId]);
           }, 2000);
         }
       )
@@ -39,14 +45,17 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    console.log('MatchmakingComponent destroyed');
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.matchmakingService.disconnect();
   }
 
   toggleQueue() {
     if (this.isInQueue) {
+      console.log('Leaving queue');
       this.matchmakingService.leaveQueue();
     } else {
+      console.log('Joining queue');
       this.matchmakingService.joinQueue();
     }
   }
