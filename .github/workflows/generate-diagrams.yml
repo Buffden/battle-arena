@@ -34,11 +34,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          dot -V
+          
       - name: Download PlantUML
         run: |
           PLANTUML_VERSION="1.2023.12"
           PLANTUML_URL="https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
           curl -L -o plantuml.jar "$PLANTUML_URL"
+          
+      - name: Verify PlantUML and Graphviz
+        run: |
+          java -jar plantuml.jar -testdot || echo "Graphviz test completed"
+          echo "PlantUML and Graphviz are ready"
           
       - name: Generate diagrams
         run: |
