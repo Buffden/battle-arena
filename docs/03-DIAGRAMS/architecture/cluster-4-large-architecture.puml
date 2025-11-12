@@ -202,24 +202,23 @@ package "Message Queue" #LightPink {
 }
 
 package "Orchestration" #LightGray {
-  [Kubernetes\n(Required)\n5-10 Nodes\n4-8 CPU, 8-16GB RAM per Node\nAuto-Scaling (HPA/VPA)] as Kubernetes {
-    note right
-      **Technology:** Kubernetes
-      **Purpose:** Container orchestration, auto-scaling, load balancing
-      **Nodes:** 5-10 nodes (4-8 CPU, 8-16GB RAM per node)
-      **Auto-Scaling:** Kubernetes HPA/VPA
-      **Features:**
-      - Container orchestration
-      - Auto-scaling
-      - Load balancing
-      - Service discovery
-      - Rolling updates
-      - Health checks
-      - Resource management
-      **Deployment:** Managed Kubernetes (GKE, EKS, AKS)
-      **Cost:** $200-800/month (managed Kubernetes)
-    end note
-  }
+  [Kubernetes\n(Required)\n5-10 Nodes\n4-8 CPU, 8-16GB RAM per Node\nAuto-Scaling (HPA/VPA)] as Kubernetes
+  note right of Kubernetes
+    **Technology:** Kubernetes
+    **Purpose:** Container orchestration, auto-scaling, load balancing
+    **Nodes:** 5-10 nodes (4-8 CPU, 8-16GB RAM per node)
+    **Auto-Scaling:** Kubernetes HPA/VPA
+    **Features:**
+    - Container orchestration
+    - Auto-scaling
+    - Load balancing
+    - Service discovery
+    - Rolling updates
+    - Health checks
+    - Resource management
+    **Deployment:** Managed Kubernetes (GKE, EKS, AKS)
+    **Cost:** $200-800/month (managed Kubernetes)
+  end note
 }
 
 package "Monitoring" #LightSalmon {
@@ -265,52 +264,49 @@ package "Monitoring" #LightSalmon {
 }
 
 package "Logging" #LightSeaGreen {
-  [ELK Stack\nOR\nLoki + Grafana\nSelf-Hosted] as Logging {
-    note right
-      **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana) OR Loki + Grafana
-      **Purpose:** Centralized log aggregation
-      **Features:**
-      - Centralized log aggregation
-      - Log search and filtering
-      - Log analytics
-      - Log retention policies
-      **Deployment:** Self-hosted (Kubernetes)
-      **Cost:** $0/month (self-hosted)
-    end note
-  }
+  [ELK Stack\nOR\nLoki + Grafana\nSelf-Hosted] as LoggingStack
+  note right of LoggingStack
+    **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana) OR Loki + Grafana
+    **Purpose:** Centralized log aggregation
+    **Features:**
+    - Centralized log aggregation
+    - Log search and filtering
+    - Log analytics
+    - Log retention policies
+    **Deployment:** Self-hosted (Kubernetes)
+    **Cost:** $0/month (self-hosted)
+  end note
 }
 
 package "Tracing (Required)" #LightSteelBlue {
-  [Jaeger\nDistributed Tracing\nSelf-Hosted\nRequired] as Jaeger {
-    note right
-      **Technology:** Jaeger
-      **Purpose:** Distributed tracing
-      **Features:**
-      - Request tracing across services
-      - Performance analysis
-      - Service dependency mapping
-      - Error tracking and debugging
-      **Deployment:** Self-hosted (Kubernetes)
-      **Required:** Yes (required for Cluster 4)
-      **Cost:** $0/month (self-hosted)
-    end note
-  }
+  [Jaeger\nDistributed Tracing\nSelf-Hosted\nRequired] as Jaeger
+  note right of Jaeger
+    **Technology:** Jaeger
+    **Purpose:** Distributed tracing
+    **Features:**
+    - Request tracing across services
+    - Performance analysis
+    - Service dependency mapping
+    - Error tracking and debugging
+    **Deployment:** Self-hosted (Kubernetes)
+    **Required:** Yes (required for Cluster 4)
+    **Cost:** $0/month (self-hosted)
+  end note
 }
 
 package "CI/CD" #LightGoldenrodYellow {
-  [GitHub Actions\nCI/CD Pipeline\nFree Tier or Paid Tier] as CICD {
-    note right
-      **Technology:** GitHub Actions
-      **Purpose:** CI/CD pipeline
-      **Features:**
-      - Automated builds
-      - Automated tests
-      - Automated deployments
-      - Automated monitoring
-      **Deployment:** GitHub Actions (free tier or paid tier)
-      **Cost:** $0/month (free tier: 2,000 minutes/month) OR paid tier
-    end note
-  }
+  [GitHub Actions\nCI/CD Pipeline\nFree Tier or Paid Tier] as CICD
+  note right of CICD
+    **Technology:** GitHub Actions
+    **Purpose:** CI/CD pipeline
+    **Features:**
+    - Automated builds
+    - Automated tests
+    - Automated deployments
+    - Automated monitoring
+    **Deployment:** GitHub Actions (free tier or paid tier)
+    **Cost:** $0/month (free tier: 2,000 minutes/month) OR paid tier
+  end note
 }
 
 ' Relationships
@@ -356,12 +352,12 @@ Config --> Prometheus : Metrics
 Prometheus --> Grafana : Metrics
 Prometheus --> AlertManager : Alerts
 
-Auth --> Logging : Logs
-Profile --> Logging : Logs
-Leaderboard --> Logging : Logs
-Matchmaking --> Logging : Logs
-GameEngine --> Logging : Logs
-Config --> Logging : Logs
+Auth --> LoggingStack : Logs
+Profile --> LoggingStack : Logs
+Leaderboard --> LoggingStack : Logs
+Matchmaking --> LoggingStack : Logs
+GameEngine --> LoggingStack : Logs
+Config --> LoggingStack : Logs
 
 Auth --> Jaeger : Traces (Required)
 Profile --> Jaeger : Traces (Required)
@@ -384,7 +380,7 @@ Kubernetes --> Config : Orchestration
 Kubernetes --> Kafka : Orchestration
 Kubernetes --> Prometheus : Orchestration
 Kubernetes --> Grafana : Orchestration
-Kubernetes --> Logging : Orchestration
+Kubernetes --> LoggingStack : Orchestration
 Kubernetes --> Jaeger : Orchestration (Required)
 
 @enduml
