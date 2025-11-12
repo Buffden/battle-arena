@@ -12,6 +12,11 @@ on:
       - 'docs/03-DIAGRAMS/**/*.puml'
   workflow_dispatch: # Allow manual triggering
 
+# Prevent concurrent runs on the same branch to avoid duplicate executions
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   generate-diagrams:
     runs-on: ubuntu-latest
@@ -52,17 +57,19 @@ jobs:
           echo "PlantUML and Graphviz are ready"
           
       - name: Generate diagrams
+        # Only generate diagrams on push events (merges) to avoid redundant work on PRs
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p docs/03-DIAGRAMS/exported
           echo "Searching for PlantUML files in docs/03-DIAGRAMS..."
           puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f | wc -l)
           echo "Found $puml_count PlantUML file(s)"
-          
+
           if [ $puml_count -eq 0 ]; then
             echo "Warning: No PlantUML files found in docs/03-DIAGRAMS/"
             exit 0
           fi
-          
+
           find docs/03-DIAGRAMS -name "*.puml" -type f | while read file; do
             relative_path=$(echo "$file" | sed "s|^docs/03-DIAGRAMS/||")
             # Remove .puml extension and get directory structure
@@ -73,10 +80,46 @@ jobs:
               echo "Warning: Failed to generate diagram from $file"
             }
           done
-          
+
           echo "Diagram generation completed"
           
+      - name: Check if validation needed
+        id: check-validation
+        run: |
+          # Smart validation: Skip redundant validation on push if no .puml files changed
+          # This optimizes for cases where a push doesn't modify .puml files
+          # (e.g., merging a PR that only changed other files)
+          #
+          # We still validate when:
+          # - PRs: Always (catches errors before merge)
+          # - workflow_dispatch: Always (manual trigger)
+          # - Push with .puml changes: Always (safety net for direct pushes, force pushes, etc.)
+          # - Push without .puml changes: Skip (already validated in PR)
+          
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # Check if .puml files were actually changed in this push
+            # Compare the commit range to see what changed
+            changed_files=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep -E '\.puml$' || true)
+            
+            if [ -n "$changed_files" ]; then
+              echo "skip_validation=false" >> $GITHUB_OUTPUT
+              echo "✅ Validation needed: .puml files changed in this push"
+              echo "Changed files:"
+              echo "$changed_files" | sed 's/^/  - /'
+            else
+              echo "skip_validation=true" >> $GITHUB_OUTPUT
+              echo "⏭️ Skipping validation: No .puml files changed in this push"
+              echo "   (Validation was already performed on the PR before merge)"
+            fi
+          else
+            # Always validate on PRs and workflow_dispatch
+            echo "skip_validation=false" >> $GITHUB_OUTPUT
+            echo "✅ Validation needed: ${{ github.event_name }} event"
+          fi
+          
       - name: Validate diagrams
+        # Validate on PRs, workflow_dispatch, and pushes with .puml changes
+        if: steps.check-validation.outputs.skip_validation == 'false'
         run: |
           echo "Validating PlantUML diagrams..."
           errors=0
@@ -89,30 +132,54 @@ jobs:
             exit 0
           fi
           
-          # Validate each file and count errors
+          # Validate each file and collect errors
+          failed_files=()
           find docs/03-DIAGRAMS -name "*.puml" -type f | while read -r file; do
             echo "Validating: $file"
-            if ! java -jar plantuml.jar -checkmetadata "$file" 2>&1; then
-              echo "Error: Validation failed for $file" >&2
+            if ! java -jar plantuml.jar -checkmetadata "$file" >/dev/null 2>&1; then
+              echo "❌ Error: Validation failed for $file" >&2
               # Write to a temp file to track errors (since while loop runs in subshell)
               echo "1" >> /tmp/validation_errors.txt
+              echo "$file" >> /tmp/failed_files.txt
+            else
+              echo "✅ Valid: $file"
             fi
           done
           
-          # Count errors
+          # Count errors and display failed files
           if [ -f /tmp/validation_errors.txt ]; then
             errors=$(wc -l < /tmp/validation_errors.txt | tr -d ' ')
-            rm -f /tmp/validation_errors.txt
+            echo ""
+            echo "=== Validation Errors Summary ==="
+            if [ -f /tmp/failed_files.txt ]; then
+              echo "Failed files:"
+              cat /tmp/failed_files.txt | while read file; do
+                echo "  - $file"
+              done
+            fi
+            rm -f /tmp/validation_errors.txt /tmp/failed_files.txt
           fi
           
           if [ $errors -gt 0 ]; then
-            echo "Error: $errors diagram(s) have validation errors"
+            echo ""
+            echo "❌ Error: $errors diagram(s) have validation errors"
+            echo "Please fix the syntax errors in the PlantUML files above."
             exit 1
           fi
           
-          echo "All diagrams validated successfully"
+          echo ""
+          echo "✅ All $puml_count diagram(s) validated successfully"
+          
+      - name: Skip validation notice
+        # Show notice when validation is skipped
+        if: steps.check-validation.outputs.skip_validation == 'true'
+        run: |
+          echo "⏭️ Validation skipped: No .puml files changed in this push"
+          echo "Validation was already performed on the PR before merge."
           
       - name: Check for changes
+        # Only check for changes on push events (when diagrams are generated)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         id: verify-changed-files
         run: |
           if [ -n "$(git status --porcelain docs/03-DIAGRAMS/exported)" ]; then
@@ -125,7 +192,9 @@ jobs:
           fi
           
       - name: Commit and push diagrams
-        if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+        # Only commit and push on push events (merges), not on PRs
+        # This prevents creating commits in PR branches and only updates main/develop
+        if: steps.verify-changed-files.outputs.changed == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -135,45 +204,73 @@ jobs:
           git push origin HEAD:${GITHUB_REF} || echo "Push failed or no changes to push"
           
       - name: Upload diagrams as artifact
-        if: always()
+        # Upload artifacts only when diagrams are generated (push/workflow_dispatch)
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
-          name: uml-diagrams
+          name: uml-diagrams-${{ github.event_name }}-${{ github.sha }}
           path: docs/03-DIAGRAMS/exported/**/*.png
           retention-days: 30
+          if-no-files-found: ignore
           
       - name: Create summary
         if: always()
         run: |
-          echo "## 📊 UML Diagrams Generation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 UML Diagrams Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Count generated diagrams
-          if [ -d "docs/03-DIAGRAMS/exported" ]; then
-            png_count=$(find docs/03-DIAGRAMS/exported -name "*.png" -type f 2>/dev/null | wc -l)
-            echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            if [ $png_count -gt 0 ]; then
-              find docs/03-DIAGRAMS/exported -name "*.png" -type f | while read file; do
-                echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
-              done
+          # Show event type
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "**Event Type:** 🔍 Pull Request Validation" >> $GITHUB_STEP_SUMMARY
+            echo "**Purpose:** Validate PlantUML syntax before merge" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "**Event Type:** 🚀 Push/Merge (Generate & Commit)" >> $GITHUB_STEP_SUMMARY
+            echo "**Purpose:** Generate diagrams and commit to branch" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Event Type:** 🔧 Manual Trigger" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Count generated diagrams (only relevant for push/workflow_dispatch)
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ -d "docs/03-DIAGRAMS/exported" ]; then
+              png_count=$(find docs/03-DIAGRAMS/exported -name "*.png" -type f 2>/dev/null | wc -l)
+              echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              if [ $png_count -gt 0 ]; then
+                echo "✅ **$png_count diagram(s) generated successfully**" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                find docs/03-DIAGRAMS/exported -name "*.png" -type f | head -10 | while read file; do
+                  echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+                done
+                if [ $png_count -gt 10 ]; then
+                  echo "- ... and $((png_count - 10)) more" >> $GITHUB_STEP_SUMMARY
+                fi
+              else
+                echo "⚠️ No diagrams were generated." >> $GITHUB_STEP_SUMMARY
+              fi
             else
-              echo "No diagrams were generated." >> $GITHUB_STEP_SUMMARY
+              echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ Export directory does not exist." >> $GITHUB_STEP_SUMMARY
+              png_count=0
             fi
           else
-            echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+            echo "### Validation Only" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Export directory does not exist." >> $GITHUB_STEP_SUMMARY
+            echo "Diagrams are not generated on pull requests. They will be generated after merge." >> $GITHUB_STEP_SUMMARY
             png_count=0
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Diagram Statistics" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f 2>/dev/null | wc -l)
-          echo "- **Total diagrams:** $png_count" >> $GITHUB_STEP_SUMMARY
-          echo "- **Source files:** $puml_count" >> $GITHUB_STEP_SUMMARY
-          
+          echo "- **Source files (.puml):** $puml_count" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "- **Generated diagrams (.png):** $png_count" >> $GITHUB_STEP_SUMMARY
+          fi
+
           if [ $puml_count -eq 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ **Warning:** No PlantUML source files found in \`docs/03-DIAGRAMS/\`" >> $GITHUB_STEP_SUMMARY
