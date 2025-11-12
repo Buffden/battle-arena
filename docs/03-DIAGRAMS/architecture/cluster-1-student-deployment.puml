@@ -1,0 +1,124 @@
+@startuml Cluster 1 Student Deployment
+skinparam node {
+    backgroundColor #LightBlue
+    BorderColor #000000
+}
+skinparam database {
+    backgroundColor #LightCoral
+    BorderColor #000000
+}
+
+title Battle Arena - Cluster 1: Student/Minimal Deployment\n(<1K users/month, $0-10/month)
+
+node "Single Server/VM" as Server {
+    note right of Server
+        **Infrastructure:**
+        - 2 CPU cores
+        - 4GB RAM
+        - 20-40GB SSD
+        - 1-2TB bandwidth/month
+        **Cost:** $0/month (local) OR $5-10/month (small VM)
+        **Providers:** DigitalOcean, Linode, Vultr, AWS Lightsail, etc.
+    end note
+    
+    node "Docker Compose" as DockerCompose {
+        component [Frontend\nAngular\nPort: 4200] as Frontend
+        component [API Gateway\nNginx\nPort: 80, 443] as Gateway
+        component [Auth Service\nSpring Boot\nPort: 8081] as Auth
+        component [Profile Service\nSpring Boot\nPort: 8082] as Profile
+        component [Leaderboard Service\nSpring Boot\nPort: 8083] as Leaderboard
+        component [Matchmaking Service\nNode.js\nPort: 3002] as Matchmaking
+        component [Game Engine Service\nNode.js\nPort: 3003] as GameEngine
+        component [Configuration Service\nSpring Boot\nPort: 8084] as Config
+        database [MongoDB\nPort: 27017] as MongoDB
+        database [Redis\nPort: 6379] as Redis
+    }
+}
+
+node "External Services" as External {
+    database "MongoDB Atlas\nFree Tier\n512MB" as MongoDBAtlas #LightYellow
+    database "Redis Cloud\nFree Tier\n30MB" as RedisCloud #LightYellow
+    component [GitHub Actions\nFree Tier\n2,000 min/month] as GitHubActions
+    component [Grafana Cloud\nFree Tier\n10k metrics, 50GB logs] as GrafanaCloud #LightYellow
+    
+    note right of MongoDBAtlas
+        **Optional:** Use MongoDB Atlas free tier
+        **Storage:** 512MB
+        **Cost:** $0/month
+        **Alternative:** Self-hosted MongoDB
+    end note
+    
+    note right of RedisCloud
+        **Optional:** Use Redis Cloud free tier
+        **Memory:** 30MB
+        **Cost:** $0/month
+        **Alternative:** Self-hosted Redis
+    end note
+    
+    note right of GitHubActions
+        **CI/CD:** GitHub Actions free tier
+        **Limits:** 2,000 minutes/month
+        **Cost:** $0/month
+    end note
+    
+    note right of GrafanaCloud
+        **Optional:** Use Grafana Cloud free tier
+        **Metrics:** 10k metrics
+        **Logs:** 50GB logs
+        **Cost:** $0/month
+        **Alternative:** Skip monitoring
+    end note
+}
+
+node "Users" as Users {
+    [Web Browser] as Browser
+    [Mobile App] as Mobile
+}
+
+' Relationships
+Users --> Browser : Access
+Users --> Mobile : Access
+Browser --> Server : HTTPS (Port 443)
+Mobile --> Server : HTTPS (Port 443)
+
+Server --> DockerCompose : Runs
+DockerCompose --> Frontend : Container
+DockerCompose --> Gateway : Container
+DockerCompose --> Auth : Container
+DockerCompose --> Profile : Container
+DockerCompose --> Leaderboard : Container
+DockerCompose --> Matchmaking : Container
+DockerCompose --> GameEngine : Container
+DockerCompose --> Config : Container
+DockerCompose --> MongoDB : Container (OR MongoDB Atlas)
+DockerCompose --> Redis : Container (OR Redis Cloud)
+
+MongoDB ..> MongoDBAtlas : Optional (Free Tier)
+Redis ..> RedisCloud : Optional (Free Tier)
+
+GitHubActions --> Server : Deploys
+GrafanaCloud --> Server : Monitors (Optional)
+
+' Service Communication
+Frontend --> Gateway : HTTPS
+Gateway --> Auth : HTTP
+Gateway --> Profile : HTTP
+Gateway --> Leaderboard : HTTP
+Gateway --> Matchmaking : HTTP/WSS
+Gateway --> GameEngine : HTTP/WSS
+Gateway --> Config : HTTP
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Profile --> Redis : Redis Client
+Leaderboard --> MongoDB : MongoDB Driver
+Leaderboard --> Redis : Redis Client
+Matchmaking --> MongoDB : MongoDB Driver
+Matchmaking --> Redis : Redis Client
+GameEngine --> MongoDB : MongoDB Driver
+GameEngine --> Redis : Redis Client
+Config --> MongoDB : MongoDB Driver
+Config --> Redis : Redis Client
+
+@enduml
+

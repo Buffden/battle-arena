@@ -1,0 +1,87 @@
+@startuml Arena Selection Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Arena Selector" as ArenaSelector
+participant "Arena Repository" as ArenaRepository
+participant "Redis" as Redis
+
+title Arena Selection Flow (Voting/Elimination)
+
+== Arena Selection Start ==
+Matchmaking -> ArenaSelector: startArenaSelection(matchId, heroType)
+activate ArenaSelector
+ArenaSelector -> ArenaRepository: findByHeroType(heroType)
+activate ArenaRepository
+ArenaRepository --> ArenaSelector: availableArenas: Arena[]
+deactivate ArenaRepository
+ArenaSelector -> Redis: Store arena selection state\n(arena-selection:{matchId})
+activate Redis
+Redis --> ArenaSelector: Stored
+deactivate Redis
+ArenaSelector --> Matchmaking: ArenaSelectionState
+deactivate ArenaSelector
+
+Matchmaking --> Frontend1: arena-selection-started\n{availableArenas}
+Matchmaking --> Frontend2: arena-selection-started\n{availableArenas}
+
+== Player 1 Eliminates Arena ==
+Player1 -> Frontend1: Click "Eliminate Arena"
+activate Frontend1
+Frontend1 -> Matchmaking: eliminate-arena\n{matchId, arenaId, playerId}
+activate Matchmaking
+Matchmaking -> ArenaSelector: eliminateArena(matchId, arenaId, playerId)
+activate ArenaSelector
+ArenaSelector -> ArenaSelector: Update arena selection state
+ArenaSelector -> Redis: Update arena selection state
+activate Redis
+Redis --> ArenaSelector: Updated
+deactivate Redis
+ArenaSelector -> ArenaSelector: Check if selection complete
+ArenaSelector --> Matchmaking: ArenaSelectionState
+deactivate ArenaSelector
+Matchmaking --> Frontend1: arena-eliminated\n{arenaId, remainingArenas}
+Matchmaking --> Frontend2: arena-eliminated\n{arenaId, remainingArenas}
+deactivate Matchmaking
+deactivate Frontend1
+
+== Player 2 Eliminates Arena ==
+Player2 -> Frontend2: Click "Eliminate Arena"
+activate Frontend2
+Frontend2 -> Matchmaking: eliminate-arena\n{matchId, arenaId, playerId}
+activate Matchmaking
+Matchmaking -> ArenaSelector: eliminateArena(matchId, arenaId, playerId)
+activate ArenaSelector
+ArenaSelector -> ArenaSelector: Update arena selection state
+ArenaSelector -> Redis: Update arena selection state
+activate Redis
+Redis --> ArenaSelector: Updated
+deactivate Redis
+ArenaSelector -> ArenaSelector: Check if selection complete
+alt One Arena Remains
+    ArenaSelector -> ArenaSelector: Auto-select remaining arena
+    ArenaSelector -> Redis: Update selected arena
+    activate Redis
+    Redis --> ArenaSelector: Updated
+    deactivate Redis
+    ArenaSelector --> Matchmaking: ArenaSelectionState (completed)
+    Matchmaking --> Frontend1: arena-selected\n{selectedArena}
+    Matchmaking --> Frontend2: arena-selected\n{selectedArena}
+    Matchmaking -> Matchmaking: Proceed to Weapon Selection
+else Multiple Arenas Remain
+    ArenaSelector --> Matchmaking: ArenaSelectionState (in-progress)
+    Matchmaking --> Frontend1: arena-eliminated\n{arenaId, remainingArenas}
+    Matchmaking --> Frontend2: arena-eliminated\n{arenaId, remainingArenas}
+end
+deactivate ArenaSelector
+deactivate Matchmaking
+deactivate Frontend2
+
+@enduml
+

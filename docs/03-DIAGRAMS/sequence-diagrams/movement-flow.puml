@@ -1,0 +1,82 @@
+@startuml Movement Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player
+participant "Frontend" as Frontend
+participant "Game Engine Service" as GameEngine
+participant "Movement Manager" as MovementManager
+participant "Movement Validator" as MovementValidator
+participant "Scoring System" as ScoringSystem
+participant "Game Room Manager" as GameRoomManager
+participant "Redis" as Redis
+
+title Movement Flow (4 Moves per Game, Repositioning Save Scoring)
+
+== Movement Request ==
+Player -> Frontend: Move Hero (Left/Right)
+activate Frontend
+Frontend -> GameEngine: player-move\n{matchId, playerId, direction}
+activate GameEngine
+GameEngine -> MovementManager: movePlayer(matchId, playerId, direction)
+activate MovementManager
+
+== Movement Validation ==
+MovementManager -> MovementValidator: canMove(matchId, playerId)
+activate MovementValidator
+MovementValidator -> GameRoomManager: getGameState(matchId)
+activate GameRoomManager
+GameRoomManager -> Redis: Get game state
+activate Redis
+Redis --> GameRoomManager: GameState
+deactivate Redis
+GameRoomManager --> MovementValidator: GameState
+deactivate GameRoomManager
+MovementValidator -> MovementValidator: Check remaining moves (4 moves per game)
+MovementValidator -> MovementValidator: Check arena boundaries
+MovementValidator --> MovementManager: canMove: Boolean
+deactivate MovementValidator
+
+alt Movement Valid
+    MovementManager -> MovementManager: Process movement
+    MovementManager -> MovementManager: Decrement move count
+    MovementManager -> GameRoomManager: Update game state
+    activate GameRoomManager
+    GameRoomManager -> Redis: Update game state
+    activate Redis
+    Redis --> GameRoomManager: Updated
+    deactivate Redis
+    GameRoomManager --> MovementManager: GameState updated
+    deactivate GameRoomManager
+    
+    == Repositioning Save Scoring ==
+    alt Enemy Shot Misses Due to Move
+        MovementManager -> ScoringSystem: calculateMovementScore(matchId, playerId, enemyShot)
+        activate ScoringSystem
+        ScoringSystem -> ScoringSystem: Calculate repositioning save score
+        ScoringSystem -> MovementManager: movementScore: Number
+        deactivate ScoringSystem
+        MovementManager -> GameRoomManager: Update player score
+        activate GameRoomManager
+        GameRoomManager -> Redis: Update game state
+        activate Redis
+        Redis --> GameRoomManager: Updated
+        deactivate Redis
+        GameRoomManager --> MovementManager: Score updated
+        deactivate GameRoomManager
+    end
+    
+    MovementManager --> GameEngine: MovementResult
+    GameEngine --> Frontend: movement-success\n{newPosition, movesRemaining, scoreUpdate}
+    GameEngine --> Frontend: game-state-update\n{gameState}
+else Movement Invalid
+    MovementManager --> GameEngine: MovementResult (error)
+    GameEngine --> Frontend: movement-error\n{error: "Cannot move"}
+end
+deactivate MovementManager
+deactivate GameEngine
+deactivate Frontend
+
+@enduml
+

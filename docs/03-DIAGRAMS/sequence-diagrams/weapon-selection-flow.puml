@@ -1,0 +1,125 @@
+@startuml Weapon Selection Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Weapon Selector" as WeaponSelector
+participant "Weapon Repository" as WeaponRepository
+participant "Selection Timer" as Timer
+participant "Redis" as Redis
+
+title Weapon Selection Flow (Alternating Selection, 30s Total Timer)
+
+== Weapon Selection Start ==
+Matchmaking -> WeaponSelector: startWeaponSelection(matchId, heroType)
+activate WeaponSelector
+WeaponSelector -> WeaponRepository: findByHeroType(heroType)
+activate WeaponRepository
+WeaponRepository --> WeaponSelector: availableWeapons: Weapon[]
+deactivate WeaponRepository
+WeaponSelector -> WeaponSelector: Initialize weapon selection state\n(player1Weapons: [], player2Weapons: [])
+WeaponSelector -> Redis: Store weapon selection state\n(weapon-selection:{matchId})
+activate Redis
+Redis --> WeaponSelector: Stored
+deactivate Redis
+WeaponSelector -> Timer: Start 30-second TOTAL timer\n(for all 20 weapons, ~3s per weapon)
+activate Timer
+Timer --> WeaponSelector: Timer started
+deactivate Timer
+WeaponSelector --> Matchmaking: WeaponSelectionState
+deactivate WeaponSelector
+
+Matchmaking --> Frontend1: weapon-selection-started\n{availableWeapons, currentPlayer: player1, totalTimer: 30s, \nplayer1Weapons: 0/10, player2Weapons: 0/10}
+Matchmaking --> Frontend2: weapon-selection-started\n{availableWeapons, currentPlayer: player1, totalTimer: 30s, \nplayer1Weapons: 0/10, player2Weapons: 0/10}
+
+== Player 1 Selects Weapon (Turn 1) ==
+Player1 -> Frontend1: Select Weapon
+activate Frontend1
+Frontend1 -> Matchmaking: select-weapon\n{matchId, weaponId, playerId}
+activate Matchmaking
+Matchmaking -> WeaponSelector: selectWeapon(matchId, weaponId, playerId)
+activate WeaponSelector
+WeaponSelector -> WeaponSelector: Validate selection
+WeaponSelector -> WeaponSelector: Add weapon to player1Weapons\n(player1Weapons.length < 10)
+WeaponSelector -> WeaponSelector: Switch to player2
+WeaponSelector -> Redis: Update weapon selection state\n(player1Weapons updated)
+activate Redis
+Redis --> WeaponSelector: Updated
+deactivate Redis
+WeaponSelector -> WeaponSelector: Check remaining time (30s total timer)
+WeaponSelector -> WeaponSelector: Check if selection complete\n(player1Weapons.length === 10 && player2Weapons.length === 10)
+alt 10 Weapons Each Selected (20 total)
+    WeaponSelector -> WeaponSelector: Mark selection complete
+    WeaponSelector -> Timer: Stop timer
+    activate Timer
+    Timer --> WeaponSelector: Timer stopped
+    deactivate Timer
+    WeaponSelector --> Matchmaking: WeaponSelectionState (completed)
+    Matchmaking --> Frontend1: weapon-selection-complete\n{player1Weapons: 10/10, player2Weapons: 10/10}
+    Matchmaking --> Frontend2: weapon-selection-complete\n{player1Weapons: 10/10, player2Weapons: 10/10}
+    Matchmaking -> Matchmaking: Proceed to Game Start
+else Selection Not Complete
+    WeaponSelector --> Matchmaking: WeaponSelectionState (in-progress)
+    Matchmaking --> Frontend1: weapon-selected\n{weaponId, currentPlayer: player2, \nremainingTime: Xs, player1Weapons: X/10, player2Weapons: Y/10}
+    Matchmaking --> Frontend2: weapon-selected\n{weaponId, currentPlayer: player2, \nremainingTime: Xs, player1Weapons: X/10, player2Weapons: Y/10}
+end
+deactivate WeaponSelector
+deactivate Matchmaking
+deactivate Frontend1
+
+== Player 2 Selects Weapon (Turn 2) ==
+Player2 -> Frontend2: Select Weapon
+activate Frontend2
+Frontend2 -> Matchmaking: select-weapon\n{matchId, weaponId, playerId}
+activate Matchmaking
+Matchmaking -> WeaponSelector: selectWeapon(matchId, weaponId, playerId)
+activate WeaponSelector
+WeaponSelector -> WeaponSelector: Validate selection
+WeaponSelector -> WeaponSelector: Add weapon to player2Weapons\n(player2Weapons.length < 10)
+WeaponSelector -> WeaponSelector: Switch to player1
+WeaponSelector -> Redis: Update weapon selection state\n(player2Weapons updated)
+activate Redis
+Redis --> WeaponSelector: Updated
+deactivate Redis
+WeaponSelector -> WeaponSelector: Check remaining time (30s total timer)
+WeaponSelector -> WeaponSelector: Check if selection complete\n(player1Weapons.length === 10 && player2Weapons.length === 10)
+WeaponSelector --> Matchmaking: WeaponSelectionState (in-progress or completed)
+Matchmaking --> Frontend1: weapon-selected\n{weaponId, currentPlayer: player1, \nremainingTime: Xs, player1Weapons: X/10, player2Weapons: Y/10}
+Matchmaking --> Frontend2: weapon-selected\n{weaponId, currentPlayer: player1, \nremainingTime: Xs, player1Weapons: X/10, player2Weapons: Y/10}
+deactivate WeaponSelector
+deactivate Matchmaking
+deactivate Frontend2
+
+== Selection Timeout (30s Total Expired) ==
+Timer -> WeaponSelector: Timeout (30s total expired)
+activate WeaponSelector
+WeaponSelector -> WeaponSelector: handleSelectionTimeout(matchId)
+WeaponSelector -> WeaponSelector: Check remaining weapons needed\n(10 - player1Weapons.length, 10 - player2Weapons.length)
+WeaponSelector -> WeaponSelector: Select random weapons for both players\n(until 10 weapons each = 20 total)
+WeaponSelector -> Redis: Update weapon selection state\n(all weapons selected)
+activate Redis
+Redis --> WeaponSelector: Updated
+deactivate Redis
+WeaponSelector -> WeaponSelector: Mark selection complete
+WeaponSelector --> Matchmaking: WeaponSelectionState (completed - timeout)
+deactivate WeaponSelector
+Matchmaking --> Frontend1: weapon-selection-timeout\n{player1Weapons: 10/10 (random), player2Weapons: 10/10 (random)}
+Matchmaking --> Frontend2: weapon-selection-timeout\n{player1Weapons: 10/10 (random), player2Weapons: 10/10 (random)}
+Matchmaking -> Matchmaking: Proceed to Game Start
+
+== Selection Complete (20 Weapons Total) ==
+WeaponSelector -> Matchmaking: Selection complete\n(10 weapons per player = 20 total)
+activate Matchmaking
+Matchmaking -> Matchmaking: Lock weapons (cannot be changed)
+Matchmaking --> Frontend1: weapon-selection-complete\n{player1Weapons: 10/10, player2Weapons: 10/10}
+Matchmaking --> Frontend2: weapon-selection-complete\n{player1Weapons: 10/10, player2Weapons: 10/10}
+Matchmaking -> Matchmaking: Proceed to Game Start
+deactivate Matchmaking
+
+@enduml
+

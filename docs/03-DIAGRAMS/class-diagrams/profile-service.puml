@@ -1,0 +1,185 @@
+@startuml Profile Service Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Profile Service - Class Diagram
+
+package "Controller Layer" #LightBlue {
+  class ProfileController {
+    -profileService: ProfileService
+    -jwtTokenManager: JwtTokenManager
+    +getProfile(token: String): ResponseEntity<ProfileResponse>
+    +updateProfile(token: String, request: UpdateProfileRequest): ResponseEntity<ProfileResponse>
+    +getGlobalScore(token: String): ResponseEntity<ScoreResponse>
+    +getRankTier(token: String): ResponseEntity<RankTierResponse>
+    +updateScore(request: ScoreUpdateRequest): ResponseEntity<ScoreUpdateResponse>
+    +getStatistics(token: String): ResponseEntity<StatisticsResponse>
+  }
+}
+
+package "Service Layer" #LightGreen {
+  class ProfileService {
+    -profileRepository: ProfileRepository
+    -scoreCalculator: ScoreCalculator
+    -rankTierCalculator: RankTierCalculator
+    -redisCache: RedisCache
+    +getProfile(userId: String): Profile
+    +updateProfile(userId: String, request: UpdateProfileRequest): Profile
+    +getGlobalScore(userId: String): long
+    +getRankTier(userId: String): String
+    +updateScore(userId: String, matchScore: long): ScoreUpdateResult
+    +getStatistics(userId: String): PlayerStatistics
+  }
+  
+  class ScoreCalculator {
+    -scoringStrategy: ScoringStrategy
+    +calculateNewScore(currentScore: long, matchScore: long): long
+    +calculateMatchScore(matchResult: MatchResult): long
+  }
+  
+  class RankTierCalculator {
+    -rankTierStrategy: RankTierStrategy
+    -configurationManager: ConfigurationManager
+    +calculateRankTier(globalScore: long): String
+    +getRankTierRanges(): Map<String, RankTierRange>
+  }
+}
+
+package "Repository Layer" #LightYellow {
+  interface ProfileRepository {
+    +findByUserId(userId: String): Optional<Profile>
+    +updateGlobalScore(userId: String, newScore: long): void
+    +updateRankTier(userId: String, rankTier: String): void
+    +incrementWins(userId: String): void
+    +incrementLosses(userId: String): void
+    +incrementMatchesPlayed(userId: String): void
+  }
+  
+  class MongoProfileRepository {
+    +findByUserId(userId: String): Optional<Profile>
+    +updateGlobalScore(userId: String, newScore: long): void
+    +updateRankTier(userId: String, rankTier: String): void
+    +incrementWins(userId: String): void
+    +incrementLosses(userId: String): void
+    +incrementMatchesPlayed(userId: String): void
+  }
+}
+
+package "Strategy Pattern" #LightCoral {
+  interface ScoringStrategy {
+    +calculateNewScore(currentScore: long, matchScore: long): long
+  }
+  
+  class DefaultScoringStrategy {
+    +calculateNewScore(currentScore: long, matchScore: long): long
+  }
+  
+  interface RankTierStrategy {
+    +calculateRankTier(globalScore: long, rankTierRanges: Map<String, RankTierRange>): String
+  }
+  
+  class ValorantStyleRankTierStrategy {
+    +calculateRankTier(globalScore: long, rankTierRanges: Map<String, RankTierRange>): String
+  }
+}
+
+package "Proxy Pattern" #LightCyan {
+  class RedisCache {
+    -redisClient: RedisClient
+    +get(key: String): Object
+    +set(key: String, value: Object): void
+    +delete(key: String): void
+  }
+}
+
+package "Entity Layer" #LightGray {
+  class Profile {
+    -_id: ObjectId
+    -userId: ObjectId
+    -displayName: String
+    -avatar: String
+    -globalScore: long
+    -rankTier: String
+    -wins: int
+    -losses: int
+    -matchesPlayed: int
+    -bio: String
+    -achievements: List<String>
+    -region: String
+    -createdAt: Date
+    -updatedAt: Date
+  }
+}
+
+package "DTO Layer" #LightPink {
+  class ProfileResponse {
+    +userId: String
+    +displayName: String
+    +avatar: String
+    +globalScore: long
+    +rankTier: String
+    +wins: int
+    +losses: int
+    +matchesPlayed: int
+  }
+  
+  class UpdateProfileRequest {
+    +displayName: String
+    +avatar: String
+    +bio: String
+  }
+  
+  class ScoreUpdateRequest {
+    +userId: String
+    +matchScore: long
+  }
+  
+  class ScoreUpdateResult {
+    +newScore: long
+    +rankTier: String
+    +rankChange: RankChange
+  }
+}
+
+' Relationships
+ProfileController --> ProfileService : uses
+ProfileController --> JwtTokenManager : uses
+ProfileService --> ProfileRepository : uses
+ProfileService --> ScoreCalculator : uses
+ProfileService --> RankTierCalculator : uses
+ProfileService --> RedisCache : uses
+ProfileRepository <|.. MongoProfileRepository : implements
+ScoreCalculator --> ScoringStrategy : uses
+ScoringStrategy <|.. DefaultScoringStrategy : implements
+RankTierCalculator --> RankTierStrategy : uses
+RankTierStrategy <|.. ValorantStyleRankTierStrategy : implements
+ProfileRepository --> Profile : manages
+RedisCache --> RedisClient : uses
+
+note right of ProfileController
+  **Facade Pattern**
+  Provides simplified interface
+  for profile operations
+end note
+
+note right of ScoreCalculator
+  **Strategy Pattern**
+  Uses ScoringStrategy for
+  flexible score calculation
+end note
+
+note right of RankTierCalculator
+  **Strategy Pattern**
+  Uses RankTierStrategy for
+  flexible rank tier calculation
+end note
+
+note right of RedisCache
+  **Proxy Pattern**
+  Provides caching layer
+  without changing repository
+end note
+
+@enduml
+

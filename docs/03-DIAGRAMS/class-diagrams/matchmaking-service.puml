@@ -1,0 +1,251 @@
+@startuml Matchmaking Service Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Matchmaking Service - Class Diagram
+
+package "Controller Layer" #LightBlue {
+  class MatchmakingController {
+    -matchmakingService: MatchmakingService
+    -heroSelector: HeroSelector
+    -arenaSelector: ArenaSelector
+    -weaponSelector: WeaponSelector
+    +handleJoinQueue(socket: Socket, data: JoinQueueData): void
+    +handleLeaveQueue(socket: Socket): void
+    +handleMatchAccept(socket: Socket, data: MatchAcceptData): void
+    +handleMatchReject(socket: Socket, data: MatchRejectData): void
+    +handleArenaElimination(socket: Socket, data: ArenaEliminationData): void
+    +handleWeaponSelection(socket: Socket, data: WeaponSelectionData): void
+  }
+}
+
+package "Service Layer" #LightGreen {
+  class MatchmakingService {
+    -matchmakingEngine: MatchmakingEngine
+    -queueManager: QueueManager
+    -lobbyManager: LobbyManager
+    -heroSelector: HeroSelector
+    -arenaSelector: ArenaSelector
+    -weaponSelector: WeaponSelector
+    +joinQueue(playerId: String, heroIds: String[], socketId: String): Promise<QueueStatus>
+    +leaveQueue(playerId: String): Promise<void>
+    +findMatch(playerId: String): Promise<Match | null>
+  }
+  
+  class MatchmakingEngine {
+    -queueManager: QueueManager
+    -matchingStrategy: MatchingStrategy
+    -heroSelector: HeroSelector
+    -configurationManager: ConfigurationManager
+    +findMatch(playerId: String): Promise<Match | null>
+  }
+  
+  class QueueManager {
+    -redisClient: RedisClient
+    -configurationManager: ConfigurationManager
+    +addToQueue(playerId: String, heroIds: String[], globalScore: Number, socketId: String): Promise<void>
+    +removeFromQueue(playerId: String): Promise<void>
+    +getPlayersInQueue(heroType: String, scoreRange: ScoreRange): Promise<QueueEntry[]>
+    +expandQueueRange(heroType: String, baseScore: Number): Promise<ScoreRange>
+    +calculateEstimatedWaitTime(heroType: String, playerScore: Number): Promise<Number>
+    +getQueueStatus(playerId: String): Promise<QueueStatus>
+  }
+  
+  class HeroSelector {
+    -selectionStrategy: HeroSelectionStrategy
+    +selectHero(player1Heroes: String[], player2Heroes: String[]): String
+    +getCommonHeroes(player1Heroes: String[], player2Heroes: String[]): String[]
+  }
+  
+  class ArenaSelector {
+    -arenaRepository: ArenaRepository
+    -redisClient: RedisClient
+    -arenaSelectionState: ArenaSelectionState
+    +startArenaSelection(matchId: String, heroType: String): Promise<ArenaSelectionState>
+    +eliminateArena(matchId: String, arenaId: String, playerId: String): Promise<ArenaSelectionState>
+    +getSelectedArena(matchId: String): Promise<String | null>
+  }
+  
+  class WeaponSelector {
+    -weaponRepository: WeaponRepository
+    -redisClient: RedisClient
+    -weaponSelectionState: WeaponSelectionState
+    -selectionTimer: SelectionTimer
+    +startWeaponSelection(matchId: String, heroType: String): Promise<WeaponSelectionState>
+    +selectWeapon(matchId: String, weaponId: String, playerId: String): Promise<WeaponSelectionState>
+    +getSelectedWeapons(matchId: String): Promise<WeaponSelection>
+    +handleSelectionTimeout(matchId: String): Promise<WeaponSelectionState>
+    +checkSelectionComplete(player1Weapons: String[], player2Weapons: String[]): Boolean
+  }
+  
+  class LobbyManager {
+    -redisClient: RedisClient
+    -lobbyFactory: LobbyFactory
+    +createLobby(player1Id: String, player2Id: String, assignedHero: String): Promise<Lobby>
+    +getLobby(matchId: String): Promise<Lobby | null>
+    +acceptMatch(matchId: String, playerId: String): Promise<Lobby>
+    +rejectMatch(matchId: String, playerId: String): Promise<void>
+    +deleteLobby(matchId: String): Promise<void>
+  }
+}
+
+package "Strategy Pattern - Matching" #LightCoral {
+  interface MatchingStrategy {
+    +findMatchingPlayer(playerId: String, queueEntries: QueueEntry[]): Promise<QueueEntry | null>
+  }
+  
+  class ScoreBasedMatchingStrategy {
+    +findMatchingPlayer(playerId: String, queueEntries: QueueEntry[]): Promise<QueueEntry | null>
+  }
+}
+
+package "Strategy Pattern - Hero Selection" #LightSalmon {
+  interface HeroSelectionStrategy {
+    +selectHero(player1Heroes: String[], player2Heroes: String[]): String
+  }
+  
+  class RandomHeroSelectionStrategy {
+    +selectHero(player1Heroes: String[], player2Heroes: String[]): String
+  }
+}
+
+package "State Pattern - Arena Selection" #LightCyan {
+  class ArenaSelectionState {
+    -availableArenas: String[]
+    -eliminatedArenas: String[]
+    -selectedArena: String | null
+    -status: String
+    +eliminateArena(arenaId: String, playerId: String): void
+    +isSelectionComplete(): Boolean
+    +getRemainingArena(): String | null
+  }
+}
+
+package "State Pattern - Weapon Selection" #LightSteelBlue {
+  class WeaponSelectionState {
+    -player1Weapons: String[]
+    -player2Weapons: String[]
+    -currentPlayer: String
+    -selectionTimer: Number
+    -status: String
+    +selectWeapon(weaponId: String, playerId: String): void
+    +switchPlayer(): void
+    +isSelectionComplete(): Boolean
+    +handleTimeout(playerId: String): void
+  }
+}
+
+package "Factory Pattern" #LightYellow {
+  class LobbyFactory {
+    +createLobby(player1Id: String, player2Id: String, assignedHero: String): Lobby
+  }
+}
+
+package "Repository Layer" #LightGray {
+  interface ArenaRepository {
+    +findByHeroType(heroType: String): Promise<Arena[]>
+    +findById(arenaId: String): Promise<Arena | null>
+  }
+  
+  interface WeaponRepository {
+    +findByHeroType(heroType: String): Promise<Weapon[]>
+    +findById(weaponId: String): Promise<Weapon | null>
+  }
+}
+
+package "Entity Layer" #Wheat {
+  class Lobby {
+    -matchId: String
+    -player1Id: String
+    -player2Id: String
+    -assignedHero: String
+    -status: String
+    -createdAt: Date
+    -timeout: Date
+  }
+  
+  class QueueEntry {
+    -playerId: String
+    -heroIds: String[]
+    -globalScore: Number
+    -socketId: String
+    -joinedAt: Date
+  }
+  
+  class Match {
+    -matchId: String
+    -player1Id: String
+    -player2Id: String
+    -assignedHero: String
+    -status: String
+  }
+}
+
+' Relationships
+MatchmakingController --> MatchmakingService : uses
+MatchmakingController --> HeroSelector : uses
+MatchmakingController --> ArenaSelector : uses
+MatchmakingController --> WeaponSelector : uses
+MatchmakingService --> MatchmakingEngine : uses
+MatchmakingService --> QueueManager : uses
+MatchmakingService --> LobbyManager : uses
+MatchmakingService --> HeroSelector : uses
+MatchmakingService --> ArenaSelector : uses
+MatchmakingService --> WeaponSelector : uses
+MatchmakingEngine --> QueueManager : uses
+MatchmakingEngine --> MatchingStrategy : uses
+MatchmakingEngine --> HeroSelector : uses
+QueueManager --> RedisClient : uses
+HeroSelector --> HeroSelectionStrategy : uses
+HeroSelectionStrategy <|.. RandomHeroSelectionStrategy : implements
+ArenaSelector --> ArenaRepository : uses
+ArenaSelector --> RedisClient : uses
+ArenaSelector --> ArenaSelectionState : uses
+WeaponSelector --> WeaponRepository : uses
+WeaponSelector --> RedisClient : uses
+WeaponSelector --> WeaponSelectionState : uses
+WeaponSelector --> SelectionTimer : uses
+LobbyManager --> RedisClient : uses
+LobbyManager --> LobbyFactory : uses
+MatchingStrategy <|.. ScoreBasedMatchingStrategy : implements
+LobbyFactory --> Lobby : creates
+
+note right of MatchmakingController
+  **Facade Pattern**
+  Provides simplified interface
+  for matchmaking operations
+end note
+
+note right of MatchmakingEngine
+  **Strategy Pattern**
+  Uses MatchingStrategy for
+  flexible matching algorithms
+end note
+
+note right of HeroSelector
+  **Strategy Pattern**
+  Uses HeroSelectionStrategy for
+  flexible hero selection
+end note
+
+note right of ArenaSelectionState
+  **State Pattern**
+  Manages arena selection
+  state transitions
+end note
+
+note right of WeaponSelectionState
+  **State Pattern**
+  Manages weapon selection
+  state transitions
+end note
+
+note right of LobbyFactory
+  **Factory Pattern**
+  Encapsulates lobby creation
+  logic
+end note
+
+@enduml
+

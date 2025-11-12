@@ -1,6 +1,0 @@
-.DS_Store 
-
-# Ignore redundant Java package folders accidentally created at the backend-services root
-com.battlearena.auth/
-com.battlearena.leaderboard/
-com.battlearena.profile/ 

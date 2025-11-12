@@ -1,0 +1,173 @@
+@startuml Cluster 2 Small Scale Deployment
+skinparam node {
+    backgroundColor #LightBlue
+    BorderColor #000000
+}
+skinparam database {
+    backgroundColor #LightCoral
+    BorderColor #000000
+}
+
+title Battle Arena - Cluster 2: Small Scale Deployment\n(1K-10K users/day, $10-110/month)
+
+node "Small VMs" as VMs {
+    note right of VMs
+        **Infrastructure:**
+        - 2-4 CPU cores per VM
+        - 4-8GB RAM per VM
+        - 40-80GB SSD per VM
+        - 2-4TB bandwidth/month per VM
+        **Cost:** $10-50/month (small VMs)
+        **Providers:** DigitalOcean, Linode, Vultr, AWS Lightsail, etc.
+        **Deployment:** Single VM OR multiple VMs (optional)
+    end note
+    
+    node "VM 1 (2-4 CPU, 4-8GB RAM)" as VM1 {
+        node "Docker Compose\nOR\nKubernetes" as Orchestration {
+            component [Frontend\nAngular\nReplicas: 1-2] as Frontend
+            component [API Gateway\nNginx\nReplicas: 1-2] as Gateway
+            component [Auth Service\nSpring Boot\nReplicas: 1-2] as Auth
+            component [Profile Service\nSpring Boot\nReplicas: 1-2] as Profile
+            component [Leaderboard Service\nSpring Boot\nReplicas: 1-2] as Leaderboard
+            component [Matchmaking Service\nNode.js\nReplicas: 1-2] as Matchmaking
+            component [Game Engine Service\nNode.js\nReplicas: 1-2] as GameEngine
+            component [Configuration Service\nSpring Boot\nReplicas: 1] as Config
+        }
+    }
+    
+    node "VM 2 (Optional)\n(2-4 CPU, 4-8GB RAM)" as VM2 #LightYellow {
+        database [MongoDB\nSelf-hosted\nOR\nMongoDB Atlas] as MongoDB
+        database [Redis\nSelf-hosted\nOR\nRedis Cloud] as Redis
+        database [Kafka\nSelf-hosted\nOR\nConfluent Cloud\nOptional] as Kafka #LightYellow
+        
+        note right of MongoDB
+            **Optional:** Use MongoDB Atlas instead
+            **Storage:** 512MB-2GB
+            **Cost:** $0/month (free tier) OR $9-25/month (paid tier)
+            **Alternative:** Self-hosted MongoDB
+        end note
+        
+        note right of Redis
+            **Optional:** Use Redis Cloud instead
+            **Memory:** 30MB-100MB
+            **Cost:** $0/month (free tier) OR $10-20/month (paid tier)
+            **Alternative:** Self-hosted Redis
+        end note
+        
+        note right of Kafka
+            **Optional:** Use Kafka for message persistence
+            **Deployment:** Self-hosted (single broker) OR Confluent Cloud free tier
+            **Cost:** $0/month (self-hosted) OR $0/month (Confluent Cloud free tier)
+            **Alternative:** Use Redis Pub/Sub (recommended)
+        end note
+    }
+}
+
+node "External Services" as External {
+    database "MongoDB Atlas\nFree Tier OR Paid Tier\n512MB-2GB" as MongoDBAtlas
+    database "Redis Cloud\nFree Tier OR Paid Tier\n30MB-100MB" as RedisCloud
+    component [GitHub Actions\nFree Tier\n2,000 min/month] as GitHubActions
+    component [Grafana Cloud\nFree Tier\n10k metrics, 50GB logs] as GrafanaCloud
+    
+    note right of MongoDBAtlas
+        **Optional:** Use MongoDB Atlas
+        **Free Tier:** 512MB storage, $0/month
+        **Paid Tier:** 2GB storage, $9-25/month
+        **Alternative:** Self-hosted MongoDB
+    end note
+    
+    note right of RedisCloud
+        **Optional:** Use Redis Cloud
+        **Free Tier:** 30MB memory, $0/month
+        **Paid Tier:** 100MB memory, $10-20/month
+        **Alternative:** Self-hosted Redis
+    end note
+    
+    note right of GitHubActions
+        **CI/CD:** GitHub Actions free tier
+        **Limits:** 2,000 minutes/month
+        **Cost:** $0/month (free tier)
+    end note
+    
+    note right of GrafanaCloud
+        **Monitoring & Logging:** Grafana Cloud free tier
+        **Metrics:** 10k metrics
+        **Logs:** 50GB logs
+        **Cost:** $0/month (free tier)
+    end note
+}
+
+node "Users" as Users {
+    [Web Browser] as Browser
+    [Mobile App] as Mobile
+}
+
+' Relationships
+Users --> Browser : Access
+Users --> Mobile : Access
+Browser --> VM1 : HTTPS (Port 443)
+Mobile --> VM1 : HTTPS (Port 443)
+
+VM1 --> Orchestration : Runs
+Orchestration --> Frontend : Container (1-2 replicas)
+Orchestration --> Gateway : Container (1-2 replicas)
+Orchestration --> Auth : Container (1-2 replicas)
+Orchestration --> Profile : Container (1-2 replicas)
+Orchestration --> Leaderboard : Container (1-2 replicas)
+Orchestration --> Matchmaking : Container (1-2 replicas)
+Orchestration --> GameEngine : Container (1-2 replicas)
+Orchestration --> Config : Container (1 replica)
+
+VM1 ..> VM2 : Optional (if using VM2 for databases)
+Orchestration ..> MongoDB : MongoDB Driver (if self-hosted)
+Orchestration ..> Redis : Redis Client (if self-hosted)
+Orchestration ..> Kafka : Kafka Client (optional, if using Kafka)
+
+MongoDB ..> MongoDBAtlas : Optional (MongoDB Atlas)
+Redis ..> RedisCloud : Optional (Redis Cloud)
+
+GitHubActions --> VM1 : Deploys
+GrafanaCloud --> VM1 : Monitors
+GrafanaCloud --> VM2 : Monitors (if using VM2)
+
+' Service Communication
+Frontend --> Gateway : HTTPS
+Gateway --> Auth : HTTP (Load Balanced)
+Gateway --> Profile : HTTP (Load Balanced)
+Gateway --> Leaderboard : HTTP (Load Balanced)
+Gateway --> Matchmaking : HTTP/WSS (Load Balanced, Sticky Sessions)
+Gateway --> GameEngine : HTTP/WSS (Load Balanced, Sticky Sessions)
+Gateway --> Config : HTTP
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Profile --> Redis : Redis Client
+Leaderboard --> MongoDB : MongoDB Driver
+Leaderboard --> Redis : Redis Client
+Matchmaking --> MongoDB : MongoDB Driver
+Matchmaking --> Redis : Redis Client
+GameEngine --> MongoDB : MongoDB Driver
+GameEngine --> Redis : Redis Client
+Config --> MongoDB : MongoDB Driver
+Config --> Redis : Redis Client
+
+Matchmaking --> Redis : Pub/Sub Publisher (matchmaking:events)\nRecommended
+GameEngine --> Redis : Pub/Sub Publisher (game:events)\nRecommended
+Profile --> Redis : Pub/Sub Publisher (profile:updates)\nRecommended
+Leaderboard --> Redis : Pub/Sub Publisher (leaderboard:updates)\nRecommended
+
+Profile --> Redis : Pub/Sub Subscriber (matchmaking:events)\nRecommended
+Leaderboard --> Redis : Pub/Sub Subscriber (game:events, profile:updates)\nRecommended
+GameEngine --> Redis : Pub/Sub Subscriber (matchmaking:events)\nRecommended
+
+Matchmaking ..> Kafka : Publisher (matchmaking.events)\nOptional
+GameEngine ..> Kafka : Publisher (game.events)\nOptional
+Profile ..> Kafka : Publisher (profile.updates)\nOptional
+Leaderboard ..> Kafka : Publisher (leaderboard.updates)\nOptional
+
+Profile ..> Kafka : Consumer (matchmaking.events)\nOptional
+Leaderboard ..> Kafka : Consumer (game.events, profile.updates)\nOptional
+GameEngine ..> Kafka : Consumer (matchmaking.events)\nOptional
+
+@enduml
+

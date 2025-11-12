@@ -1,0 +1,337 @@
+@startuml Database Schema Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Database Schema - Class Diagram (Repository & DAO Patterns)
+
+package "Repository Pattern" #LightBlue {
+  interface Repository<T, ID> {
+    +save(entity: T): T
+    +findById(id: ID): Optional<T>
+    +findAll(): List<T>
+    +deleteById(id: ID): void
+    +delete(entity: T): void
+    +existsById(id: ID): Boolean
+    +count(): long
+  }
+  
+  class MongoRepository<T, ID> {
+    -mongoDatabase: MongoDatabase
+    -entityModel: EntityModel
+    -queryBuilder: QueryBuilder
+    +save(entity: T): T
+    +findById(id: ID): Optional<T>
+    +findAll(): List<T>
+    +deleteById(id: ID): void
+    +delete(entity: T): void
+    +existsById(id: ID): Boolean
+    +count(): long
+    +findByQuery(query: Query): List<T>
+    +update(entity: T): T
+  }
+}
+
+package "DAO Pattern" #LightGreen {
+  interface DAO<T, ID> {
+    +save(entity: T): T
+    +findById(id: ID): Optional<T>
+    +findAll(): List<T>
+    +deleteById(id: ID): void
+    +saveAll(entities: List<T>): List<T>
+    +deleteAll(entities: List<T>): void
+  }
+  
+  class MongoDAO<T, ID> {
+    -repository: MongoRepository<T, ID>
+    -entityModel: EntityModel
+    +save(entity: T): T
+    +findById(id: ID): Optional<T>
+    +findAll(): List<T>
+    +deleteById(id: ID): void
+    +saveAll(entities: List<T>): List<T>
+    +deleteAll(entities: List<T>): void
+  }
+}
+
+package "Schema Validation" #LightYellow {
+  class SchemaValidator {
+    -validationStrategy: ValidationStrategy
+    -validationRules: ValidationRules
+    +validate(entity: T): ValidationResult
+    +validateField(fieldName: String, value: Object): ValidationResult
+    +validateRelationship(relationshipName: String, value: Object): ValidationResult
+  }
+  
+  interface ValidationStrategy {
+    +validate(entity: T): ValidationResult
+  }
+  
+  class FieldValidationStrategy {
+    +validate(entity: T): ValidationResult
+  }
+  
+  class EntityValidationStrategy {
+    +validate(entity: T): ValidationResult
+  }
+  
+  class RelationshipValidationStrategy {
+    +validate(entity: T): ValidationResult
+  }
+}
+
+package "Database Migration" #LightCoral {
+  class MigrationManager {
+    -migrationTemplate: MigrationTemplate
+    -migrationStrategy: MigrationStrategy
+    +executeMigration(migrationScript: String): void
+    +rollbackMigration(migrationId: String): void
+    +getMigrationHistory(): List<Migration>
+    +isMigrationApplied(migrationId: String): Boolean
+  }
+  
+  abstract class MigrationTemplate {
+    +executeMigration(): void
+    +rollbackMigration(): void
+    #prepareMigration(): void
+    #applyMigration(): void
+    #verifyMigration(): void
+  }
+  
+  class MongoMigrationTemplate {
+    +executeMigration(): void
+    +rollbackMigration(): void
+  }
+}
+
+package "Query Builder" #LightSalmon {
+  class QueryBuilder {
+    -queryStrategy: QueryStrategy
+    +buildQuery(criteria: QueryCriteria): Query
+    +buildAggregationQuery(criteria: AggregationCriteria): AggregationPipeline
+    +buildUpdateQuery(criteria: UpdateCriteria): UpdateQuery
+  }
+  
+  interface QueryStrategy {
+    +buildQuery(criteria: QueryCriteria): Query
+  }
+  
+  class SimpleQueryStrategy {
+    +buildQuery(criteria: QueryCriteria): Query
+  }
+  
+  class ComplexQueryStrategy {
+    +buildQuery(criteria: QueryCriteria): Query
+  }
+  
+  class AggregationQueryStrategy {
+    +buildQuery(criteria: QueryCriteria): AggregationPipeline
+  }
+}
+
+package "Index Management" #LightCyan {
+  class IndexManager {
+    -indexFactory: IndexFactory
+    +createIndex(collectionName: String, indexDefinition: IndexDefinition): void
+    +dropIndex(collectionName: String, indexName: String): void
+    +getIndexes(collectionName: String): List<Index>
+    +optimizeIndexes(collectionName: String): void
+  }
+  
+  class IndexFactory {
+    +createIndex(collectionName: String, indexDefinition: IndexDefinition): Index
+    +createUniqueIndex(collectionName: String, fields: String[]): Index
+    +createCompoundIndex(collectionName: String, fields: Map<String, Number>): Index
+  }
+}
+
+package "Entity Models" #LightGray {
+  class User {
+    -_id: ObjectId
+    -username: String
+    -email: String
+    -passwordHash: String
+    -createdAt: Date
+    -updatedAt: Date
+  }
+  
+  class Profile {
+    -_id: ObjectId
+    -userId: ObjectId
+    -displayName: String
+    -avatar: String
+    -globalScore: long
+    -rankTier: String
+    -wins: int
+    -losses: int
+    -matchesPlayed: int
+    -bio: String
+    -achievements: List<String>
+    -region: String
+    -createdAt: Date
+    -updatedAt: Date
+  }
+  
+  class Match {
+    -_id: ObjectId
+    -matchId: String
+    -player1Id: ObjectId
+    -player2Id: ObjectId
+    -player1Hero: String
+    -player2Hero: String
+    -player1Weapons: List<String>
+    -player2Weapons: List<String>
+    -arenaId: String
+    -player1Score: Number
+    -player2Score: Number
+    -player1HP: Number
+    -player2HP: Number
+    -winnerId: ObjectId
+    -isDraw: Boolean
+    -startTime: Date
+    -endTime: Date
+    -duration: Number
+    -replayData: Object
+    -createdAt: Date
+  }
+  
+  class LeaderboardEntry {
+    -_id: ObjectId
+    -userId: ObjectId
+    -rank: int
+    -globalScore: long
+    -rankTier: String
+    -winRate: double
+    -region: String
+    -heroType: String
+    -weaponUsage: Map<String, Integer>
+    -updatedAt: Date
+  }
+  
+  class Hero {
+    -_id: ObjectId
+    -heroId: String
+    -heroType: String
+    -name: String
+    -size: Object
+    -hitbox: Object
+    -baseHP: Number
+    -speed: Number
+    -weapons: List<String>
+    -animations: Object
+    -characteristics: Object
+    -createdAt: Date
+    -updatedAt: Date
+  }
+  
+  class Weapon {
+    -_id: ObjectId
+    -weaponId: String
+    -heroType: String
+    -name: String
+    -damage: Number
+    -range: Number
+    -trajectory: Object
+    -weight: Number
+    -physics: Object
+    -animations: Object
+    -synergies: List<String>
+    -createdAt: Date
+    -updatedAt: Date
+  }
+  
+  class Arena {
+    -_id: ObjectId
+    -arenaId: String
+    -heroTypes: List<String>
+    -name: String
+    -terrain: Object
+    -gravity: Number
+    -previewImage: String
+    -boundaries: Object
+    -createdAt: Date
+    -updatedAt: Date
+  }
+}
+
+package "External Dependencies" #LightPink {
+  class MongoDatabase {
+    +getCollection(name: String): MongoCollection
+    +createCollection(name: String): void
+  }
+  
+  class RedisClient {
+    +get(key: String): Promise<Object>
+    +set(key: String, value: Object): Promise<void>
+    +delete(key: String): Promise<void>
+    +hget(key: String, field: String): Promise<Object>
+    +hset(key: String, field: String, value: Object): Promise<void>
+  }
+}
+
+' Relationships
+Repository <|.. MongoRepository : implements
+MongoRepository --> MongoDatabase : uses
+MongoRepository --> EntityModel : uses
+MongoRepository --> QueryBuilder : uses
+DAO <|.. MongoDAO : implements
+MongoDAO --> MongoRepository : uses
+MongoDAO --> EntityModel : uses
+SchemaValidator --> ValidationStrategy : uses
+ValidationStrategy <|.. FieldValidationStrategy : implements
+ValidationStrategy <|.. EntityValidationStrategy : implements
+ValidationStrategy <|.. RelationshipValidationStrategy : implements
+MigrationManager --> MigrationTemplate : uses
+MigrationTemplate <|-- MongoMigrationTemplate : extends
+QueryBuilder --> QueryStrategy : uses
+QueryStrategy <|.. SimpleQueryStrategy : implements
+QueryStrategy <|.. ComplexQueryStrategy : implements
+QueryStrategy <|.. AggregationQueryStrategy : implements
+IndexManager --> IndexFactory : uses
+MongoRepository --> User : manages
+MongoRepository --> Profile : manages
+MongoRepository --> Match : manages
+MongoRepository --> LeaderboardEntry : manages
+MongoRepository --> Hero : manages
+MongoRepository --> Weapon : manages
+MongoRepository --> Arena : manages
+
+note right of Repository
+  **Repository Pattern**
+  Abstracts data access
+  Mediates between domain
+  and data mapping layers
+end note
+
+note right of DAO
+  **DAO Pattern**
+  Separates data access
+  logic from business logic
+end note
+
+note right of SchemaValidator
+  **Strategy Pattern**
+  Uses ValidationStrategy for
+  flexible validation algorithms
+end note
+
+note right of MigrationTemplate
+  **Template Method Pattern**
+  Defines algorithm skeleton
+  for database migrations
+end note
+
+note right of QueryBuilder
+  **Builder Pattern + Strategy Pattern**
+  Builds queries using
+  QueryStrategy for flexibility
+end note
+
+note right of IndexFactory
+  **Factory Pattern**
+  Encapsulates index creation
+  logic
+end note
+
+@enduml
+

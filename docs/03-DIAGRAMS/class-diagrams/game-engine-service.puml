@@ -1,0 +1,356 @@
+@startuml Game Engine Service Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam roundcorner 10
+
+title Game Engine Service - Class Diagram
+
+package "Controller Layer" #LightBlue {
+  class GameEngineController {
+    -gameEngine: GameEngine
+    -gameRoomManager: GameRoomManager
+    +handleGameStart(socket: Socket, data: GameStartData): void
+    +handlePlayerAction(socket: Socket, data: PlayerActionData): void
+    +handlePlayerMove(socket: Socket, data: PlayerMoveData): void
+    +handlePlayerFire(socket: Socket, data: PlayerFireData): void
+    +handlePlayerDisconnect(socket: Socket): void
+    +handlePlayerReconnect(socket: Socket, data: ReconnectData): void
+  }
+}
+
+package "Service Layer" #LightGreen {
+  class GameEngine {
+    -gameRoomManager: GameRoomManager
+    -turnManager: TurnManager
+    -movementManager: MovementManager
+    -physicsEngine: PhysicsEngine
+    -scoringSystem: ScoringSystem
+    -healthSystem: HealthSystem
+    -winConditionChecker: WinConditionChecker
+    -weaponSynergySystem: WeaponSynergySystem
+    -matchResultProcessor: MatchResultProcessor
+    +startGame(matchId: String, gameConfig: GameConfig): Promise<GameState>
+    +processPlayerAction(matchId: String, playerId: String, action: GameAction): Promise<GameState>
+    +endGame(matchId: String): Promise<MatchResult>
+  }
+  
+  class GameRoomManager {
+    -redisClient: RedisClient
+    -gameRoomFactory: GameRoomFactory
+    -gameStateCache: GameStateCache
+    +createGameRoom(matchId: String, gameConfig: GameConfig): Promise<GameRoom>
+    +getGameRoom(matchId: String): Promise<GameRoom | null>
+    +getGameState(matchId: String): Promise<GameState | null>
+    +updateGameState(matchId: String, gameState: GameState): Promise<void>
+    +deleteGameRoom(matchId: String): Promise<void>
+  }
+  
+  class TurnManager {
+    -turnState: TurnState
+    -turnTimer: TurnTimer
+    -matchTimer: MatchTimer
+    -configurationManager: ConfigurationManager
+    +startTurn(matchId: String, playerId: String): Promise<TurnState>
+    +endTurn(matchId: String): Promise<TurnState>
+    +getCurrentTurn(matchId: String): Promise<TurnState | null>
+    +isTurnExpired(matchId: String): Promise<Boolean>
+    +handleTurnTimeout(matchId: String): Promise<TurnState>
+    +shouldEndMatch(matchId: String): Promise<Boolean>
+    +getTurnCount(matchId: String, playerId: String): Promise<Number>
+    +checkMatchTimer(matchId: String): Promise<Boolean>
+  }
+  
+  class MovementManager {
+    -movementValidator: MovementValidator
+    -movementCalculator: MovementCalculator
+    -scoringSystem: ScoringSystem
+    +movePlayer(matchId: String, playerId: String, direction: String): Promise<MovementResult>
+    +canMove(matchId: String, playerId: String): Promise<Boolean>
+    +getRemainingMoves(matchId: String, playerId: String): Promise<Number>
+    +calculateMovementScore(matchId: String, playerId: String, enemyShot: ShotData): Promise<Number>
+  }
+  
+  class PhysicsEngine {
+    -matterEngine: Matter.Engine
+    -physicsStrategy: PhysicsStrategy
+    -configurationManager: ConfigurationManager
+    +calculateTrajectory(weaponId: String, angle: Number, power: Number, arenaId: String, startPosition: Position): Promise<ProjectileTrajectory>
+    +calculateImpact(trajectory: ProjectileTrajectory, targetPosition: Position): Promise<ImpactResult>
+    +getArenaGravity(arenaId: String): Promise<Number>
+  }
+  
+  class ScoringSystem {
+    -scoringStrategy: ScoringStrategy
+    -scoreCalculator: ScoreCalculator
+    -configurationManager: ConfigurationManager
+    +calculateAccuracyScore(hitArea: Number, maxHitArea: Number): Number
+    +calculateBackToBackBonus(matchId: String, playerId: String): Promise<Number>
+    +calculateRepositioningSaveScore(matchId: String, playerId: String, enemyShot: ShotData): Promise<Number>
+    +calculateTotalScore(matchId: String, playerId: String, action: GameAction): Promise<Number>
+  }
+  
+  class HealthSystem {
+    -healthCalculator: HealthCalculator
+    -configurationManager: ConfigurationManager
+    +getStartingHP(heroType: String): Promise<Number>
+    +calculateDamage(weaponId: String, accuracy: Number): Promise<Number>
+    +applyDamage(matchId: String, playerId: String, damage: Number): Promise<HealthUpdate>
+    +isPlayerDead(matchId: String, playerId: String): Promise<Boolean>
+  }
+  
+  class WinConditionChecker {
+    -winConditionStrategy: WinConditionStrategy
+    -healthSystem: HealthSystem
+    -scoringSystem: ScoringSystem
+    -turnManager: TurnManager
+    +checkWinCondition(matchId: String): Promise<WinConditionResult>
+    +checkDrawCondition(matchId: String): Promise<Boolean>
+    +determineWinner(matchId: String): Promise<String | null>
+    +checkInstantLoss(matchId: String, playerId: String): Promise<Boolean>
+    +checkMatchEndConditions(matchId: String): Promise<MatchEndReason>
+  }
+  
+  class WeaponSynergySystem {
+    -weaponSynergyStrategy: WeaponSynergyStrategy
+    -configurationManager: ConfigurationManager
+    +checkWeaponSynergy(matchId: String, playerId: String, weaponId: String): Promise<WeaponSynergyResult | null>
+    +applyWeaponSynergy(matchId: String, playerId: String, synergyResult: WeaponSynergyResult): Promise<SynergyEffect>
+  }
+  
+  class MatchResultProcessor {
+    -matchRepository: MatchRepository
+    -profileServiceClient: ProfileServiceClient
+    -leaderboardServiceClient: LeaderboardServiceClient
+    +processMatchResult(matchId: String, matchResult: MatchResult): Promise<void>
+  }
+}
+
+package "Strategy Pattern - Physics" #LightCoral {
+  interface PhysicsStrategy {
+    +calculateTrajectory(weaponId: String, angle: Number, power: Number, arenaId: String, startPosition: Position): ProjectileTrajectory
+  }
+  
+  class MatterJsPhysicsStrategy {
+    +calculateTrajectory(weaponId: String, angle: Number, power: Number, arenaId: String, startPosition: Position): ProjectileTrajectory
+  }
+}
+
+package "Strategy Pattern - Scoring" #LightSalmon {
+  interface ScoringStrategy {
+    +calculateAccuracyScore(hitArea: Number, maxHitArea: Number): Number
+    +calculateBackToBackBonus(matchId: String, playerId: String): Number
+    +calculateRepositioningSaveScore(matchId: String, playerId: String, enemyShot: ShotData): Number
+  }
+  
+  class AccuracyScoringStrategy {
+    +calculateAccuracyScore(hitArea: Number, maxHitArea: Number): Number
+  }
+  
+  class BackToBackScoringStrategy {
+    +calculateBackToBackBonus(matchId: String, playerId: String): Number
+  }
+  
+  class RepositioningSaveScoringStrategy {
+    +calculateRepositioningSaveScore(matchId: String, playerId: String, enemyShot: ShotData): Number
+  }
+}
+
+package "Strategy Pattern - Win Condition" #LightCyan {
+  interface WinConditionStrategy {
+    +checkWinCondition(matchId: String): WinConditionResult
+    +checkDrawCondition(matchId: String): Boolean
+  }
+  
+  class DefaultWinConditionStrategy {
+    +checkWinCondition(matchId: String): WinConditionResult
+    +checkDrawCondition(matchId: String): Boolean
+  }
+}
+
+package "Strategy Pattern - Weapon Synergy" #LightSteelBlue {
+  interface WeaponSynergyStrategy {
+    +checkWeaponSynergy(matchId: String, playerId: String, weaponId: String): WeaponSynergyResult | null
+  }
+  
+  class DefaultWeaponSynergyStrategy {
+    +checkWeaponSynergy(matchId: String, playerId: String, weaponId: String): WeaponSynergyResult | null
+  }
+}
+
+package "State Pattern" #LightYellow {
+  class GameState {
+    -matchId: String
+    -player1Id: String
+    -player2Id: String
+    -player1Hero: String
+    -player2Hero: String
+    -player1Health: Number
+    -player2Health: Number
+    -player1Score: Number
+    -player2Score: Number
+    -player1Moves: Number
+    -player2Moves: Number
+    -currentTurn: String
+    -turnNumber: Number
+    -status: String
+    +update(updates: Partial<GameState>): void
+    +getSnapshot(): GameStateSnapshot
+  }
+  
+  class TurnState {
+    -matchId: String
+    -currentPlayer: String
+    -turnNumber: Number
+    -startTime: Date
+    -endTime: Date
+    -status: String
+    +isExpired(): Boolean
+    +getRemainingTime(): Number
+  }
+}
+
+package "Command Pattern" #Wheat {
+  interface GameAction {
+    +execute(): void
+  }
+  
+  class MoveCommand {
+    -matchId: String
+    -playerId: String
+    -direction: String
+    +execute(): void
+  }
+  
+  class FireCommand {
+    -matchId: String
+    -playerId: String
+    -angle: Number
+    -power: Number
+    -weaponId: String
+    +execute(): void
+  }
+}
+
+package "Factory Pattern" #LightGray {
+  class GameRoomFactory {
+    +createGameRoom(matchId: String, gameConfig: GameConfig): GameRoom
+  }
+}
+
+package "Adapter Pattern" #LightPink {
+  class MatterJsAdapter {
+    -matterEngine: Matter.Engine
+    +calculateTrajectory(weaponId: String, angle: Number, power: Number, arenaId: String, startPosition: Position): ProjectileTrajectory
+  }
+}
+
+package "Decorator Pattern" #MistyRose {
+  interface ScoreCalculator {
+    +calculateScore(action: GameAction): Number
+  }
+  
+  class BaseScoreCalculator {
+    +calculateScore(action: GameAction): Number
+  }
+  
+  class BackToBackScoringDecorator {
+    -calculator: ScoreCalculator
+    +calculateScore(action: GameAction): Number
+  }
+  
+  class RepositioningSaveScoringDecorator {
+    -calculator: ScoreCalculator
+    +calculateScore(action: GameAction): Number
+  }
+}
+
+' Relationships
+GameEngineController --> GameEngine : uses
+GameEngineController --> GameRoomManager : uses
+GameEngine --> GameRoomManager : uses
+GameEngine --> TurnManager : uses
+GameEngine --> MovementManager : uses
+GameEngine --> PhysicsEngine : uses
+GameEngine --> ScoringSystem : uses
+GameEngine --> HealthSystem : uses
+GameEngine --> WinConditionChecker : uses
+GameEngine --> WeaponSynergySystem : uses
+GameEngine --> MatchResultProcessor : uses
+GameRoomManager --> RedisClient : uses
+GameRoomManager --> GameRoomFactory : uses
+GameRoomFactory --> GameRoom : creates
+TurnManager --> TurnState : uses
+TurnManager --> TurnTimer : uses
+MovementManager --> MovementValidator : uses
+MovementManager --> MovementCalculator : uses
+MovementManager --> ScoringSystem : uses
+PhysicsEngine --> Matter.Engine : uses
+PhysicsEngine --> PhysicsStrategy : uses
+PhysicsStrategy <|.. MatterJsPhysicsStrategy : implements
+MatterJsAdapter --> Matter.Engine : adapts
+ScoringSystem --> ScoringStrategy : uses
+ScoringStrategy <|.. AccuracyScoringStrategy : implements
+ScoringStrategy <|.. BackToBackScoringStrategy : implements
+ScoringStrategy <|.. RepositioningSaveScoringStrategy : implements
+HealthSystem --> HealthCalculator : uses
+WinConditionChecker --> WinConditionStrategy : uses
+WinConditionChecker --> HealthSystem : uses
+WinConditionChecker --> ScoringSystem : uses
+WinConditionStrategy <|.. DefaultWinConditionStrategy : implements
+WeaponSynergySystem --> WeaponSynergyStrategy : uses
+WeaponSynergyStrategy <|.. DefaultWeaponSynergyStrategy : implements
+MatchResultProcessor --> MatchRepository : uses
+MatchResultProcessor --> ProfileServiceClient : uses
+MatchResultProcessor --> LeaderboardServiceClient : uses
+GameAction <|.. MoveCommand : implements
+GameAction <|.. FireCommand : implements
+ScoreCalculator <|.. BaseScoreCalculator : implements
+BackToBackScoringDecorator --> ScoreCalculator : decorates
+RepositioningSaveScoringDecorator --> ScoreCalculator : decorates
+
+note right of GameEngineController
+  **Facade Pattern**
+  Provides simplified interface
+  for game engine operations
+end note
+
+note right of PhysicsEngine
+  **Strategy Pattern + Adapter Pattern**
+  Uses PhysicsStrategy for flexible
+  physics calculations
+  MatterJsAdapter adapts Matter.js
+end note
+
+note right of ScoringSystem
+  **Strategy Pattern + Decorator Pattern**
+  Uses ScoringStrategy for flexible
+  scoring algorithms
+  Decorators add score modifiers
+end note
+
+note right of GameState
+  **State Pattern**
+  Manages game state
+  transitions
+end note
+
+note right of TurnState
+  **State Pattern**
+  Manages turn state
+  transitions
+end note
+
+note right of MoveCommand
+  **Command Pattern**
+  Encapsulates movement
+  operations
+end note
+
+note right of FireCommand
+  **Command Pattern**
+  Encapsulates fire
+  operations
+end note
+
+@enduml
+

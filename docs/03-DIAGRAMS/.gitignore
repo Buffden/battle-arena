@@ -1,0 +1,28 @@
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# PlantUML cache
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+
+# Keep source files and exported PNGs
+!*.puml
+!*.mmd
+!*.drawio
+!*.png
+!*.svg
+
+# Keep README
+!README.md
+

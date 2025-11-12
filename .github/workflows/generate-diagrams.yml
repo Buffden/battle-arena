@@ -1,0 +1,181 @@
+name: Generate UML Diagrams
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/03-DIAGRAMS/**/*.puml'
+      - '.github/workflows/generate-diagrams.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/03-DIAGRAMS/**/*.puml'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  generate-diagrams:
+    runs-on: ubuntu-latest
+    name: Generate UML Diagrams from PlantUML
+    permissions:
+      contents: write
+      pull-requests: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          dot -V
+          
+      - name: Download PlantUML
+        run: |
+          PLANTUML_VERSION="1.2023.12"
+          PLANTUML_URL="https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          curl -L -o plantuml.jar "$PLANTUML_URL"
+          
+      - name: Verify PlantUML and Graphviz
+        run: |
+          java -jar plantuml.jar -testdot || echo "Graphviz test completed"
+          echo "PlantUML and Graphviz are ready"
+          
+      - name: Generate diagrams
+        run: |
+          mkdir -p docs/03-DIAGRAMS/exported
+          echo "Searching for PlantUML files in docs/03-DIAGRAMS..."
+          puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f | wc -l)
+          echo "Found $puml_count PlantUML file(s)"
+          
+          if [ $puml_count -eq 0 ]; then
+            echo "Warning: No PlantUML files found in docs/03-DIAGRAMS/"
+            exit 0
+          fi
+          
+          find docs/03-DIAGRAMS -name "*.puml" -type f | while read file; do
+            relative_path=$(echo "$file" | sed "s|^docs/03-DIAGRAMS/||")
+            # Remove .puml extension and get directory structure
+            output_dir="docs/03-DIAGRAMS/exported/$(dirname "$relative_path")"
+            mkdir -p "$output_dir"
+            echo "Processing: $file -> $output_dir"
+            java -jar plantuml.jar -tpng "$file" -o "$(pwd)/$output_dir" || {
+              echo "Warning: Failed to generate diagram from $file"
+            }
+          done
+          
+          echo "Diagram generation completed"
+          
+      - name: Validate diagrams
+        run: |
+          echo "Validating PlantUML diagrams..."
+          errors=0
+          
+          # Check if any .puml files exist
+          puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f 2>/dev/null | wc -l)
+          
+          if [ $puml_count -eq 0 ]; then
+            echo "Warning: No PlantUML files found for validation"
+            exit 0
+          fi
+          
+          # Validate each file and count errors
+          find docs/03-DIAGRAMS -name "*.puml" -type f | while read -r file; do
+            echo "Validating: $file"
+            if ! java -jar plantuml.jar -checkmetadata "$file" 2>&1; then
+              echo "Error: Validation failed for $file" >&2
+              # Write to a temp file to track errors (since while loop runs in subshell)
+              echo "1" >> /tmp/validation_errors.txt
+            fi
+          done
+          
+          # Count errors
+          if [ -f /tmp/validation_errors.txt ]; then
+            errors=$(wc -l < /tmp/validation_errors.txt | tr -d ' ')
+            rm -f /tmp/validation_errors.txt
+          fi
+          
+          if [ $errors -gt 0 ]; then
+            echo "Error: $errors diagram(s) have validation errors"
+            exit 1
+          fi
+          
+          echo "All diagrams validated successfully"
+          
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain docs/03-DIAGRAMS/exported)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Diagrams were generated or updated"
+            git status docs/03-DIAGRAMS/exported
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No diagram changes detected"
+          fi
+          
+      - name: Commit and push diagrams
+        if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add docs/03-DIAGRAMS/exported/**/*.png
+          git commit -m "docs: auto-update UML diagrams [skip ci]" || exit 0
+          git push origin HEAD:${GITHUB_REF} || echo "Push failed or no changes to push"
+          
+      - name: Upload diagrams as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagrams
+          path: docs/03-DIAGRAMS/exported/**/*.png
+          retention-days: 30
+          
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 📊 UML Diagrams Generation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Count generated diagrams
+          if [ -d "docs/03-DIAGRAMS/exported" ]; then
+            png_count=$(find docs/03-DIAGRAMS/exported -name "*.png" -type f 2>/dev/null | wc -l)
+            echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ $png_count -gt 0 ]; then
+              find docs/03-DIAGRAMS/exported -name "*.png" -type f | while read file; do
+                echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+              done
+            else
+              echo "No diagrams were generated." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Export directory does not exist." >> $GITHUB_STEP_SUMMARY
+            png_count=0
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Diagram Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f 2>/dev/null | wc -l)
+          echo "- **Total diagrams:** $png_count" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source files:** $puml_count" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $puml_count -eq 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Warning:** No PlantUML source files found in \`docs/03-DIAGRAMS/\`" >> $GITHUB_STEP_SUMMARY
+          fi
+

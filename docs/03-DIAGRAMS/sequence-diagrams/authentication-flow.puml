@@ -1,0 +1,66 @@
+@startuml Authentication Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Angular\nFrontend" as Frontend
+participant "Auth Service\n(Spring Boot)" as AuthService
+participant "MongoDB" as MongoDB
+participant "JWT Service" as JWT
+
+== User Registration ==
+User -> Frontend: Enter registration details
+activate Frontend
+Frontend -> Frontend: Validate input (client-side)
+Frontend -> AuthService: POST /api/auth/register\n{username, email, password}
+activate AuthService
+AuthService -> AuthService: Validate input (server-side)
+AuthService -> MongoDB: Check if username/email exists
+activate MongoDB
+MongoDB --> AuthService: User not found
+deactivate MongoDB
+AuthService -> AuthService: Hash password (BCrypt)
+AuthService -> MongoDB: Create user
+activate MongoDB
+MongoDB --> AuthService: User created
+deactivate MongoDB
+AuthService -> JWT: Generate JWT token
+activate JWT
+JWT --> AuthService: JWT token
+deactivate JWT
+AuthService --> Frontend: 201 Created\n{token, user}
+deactivate AuthService
+Frontend -> Frontend: Store token securely
+Frontend --> User: Redirect to dashboard
+deactivate Frontend
+
+== User Login ==
+User -> Frontend: Enter credentials
+activate Frontend
+Frontend -> Frontend: Validate input (client-side)
+Frontend -> AuthService: POST /api/auth/login\n{username, password}
+activate AuthService
+AuthService -> AuthService: Validate input (server-side)
+AuthService -> MongoDB: Find user by username
+activate MongoDB
+MongoDB --> AuthService: User data
+deactivate MongoDB
+AuthService -> AuthService: Verify password (BCrypt)
+AuthService -> AuthService: Check account status
+AuthService -> MongoDB: Update last login
+activate MongoDB
+MongoDB --> AuthService: Updated
+deactivate MongoDB
+AuthService -> JWT: Generate JWT token
+activate JWT
+JWT --> AuthService: JWT token
+deactivate JWT
+AuthService --> Frontend: 200 OK\n{token, refreshToken, user}
+deactivate AuthService
+Frontend -> Frontend: Store token securely
+Frontend --> User: Redirect to dashboard
+deactivate Frontend
+
+@enduml
+

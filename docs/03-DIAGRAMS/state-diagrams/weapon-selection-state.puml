@@ -1,0 +1,69 @@
+@startuml Weapon Selection State Diagram
+skinparam state {
+  BackgroundColor LightGreen
+  BorderColor Black
+  ArrowColor Black
+}
+
+title Weapon Selection State Machine (Alternating Selection)
+
+[*] --> InProgress: startWeaponSelection()
+
+state InProgress {
+  [*] --> Player1Turn: Weapon selection started
+  Player1Turn --> Player2Turn: selectWeapon()\n(Player 1 selects)
+  Player2Turn --> Player1Turn: selectWeapon()\n(Player 2 selects)
+  Player1Turn --> CheckingCompletion: Weapon selected
+  Player2Turn --> CheckingCompletion: Weapon selected
+  CheckingCompletion --> Player1Turn: Selection not complete\n(< 10 weapons each)
+  CheckingCompletion --> Player2Turn: Selection not complete\n(< 10 weapons each)
+  CheckingCompletion --> Completed: Selection complete\n(10 weapons each)
+  
+  Player1Turn --> Completed: handleTimeout()\n(30s total expired - random weapons for remaining)
+  Player2Turn --> Completed: handleTimeout()\n(30s total expired - random weapons for remaining)
+}
+
+InProgress --> Completed: 20 weapons selected\n(10 each)
+
+Completed --> [*]: Weapons locked
+
+note right of InProgress
+  **State:** InProgress
+  **Actions:**
+  - Alternating selection (Player1 → Player2 → Player1...)
+  - 30-second TOTAL timer (for all 20 weapons)
+  - ~3 seconds per weapon on average
+  - Real-time updates
+  - State stored in Redis
+end note
+
+note right of Player1Turn
+  **State:** Player1Turn
+  **Timer:** 30s total (shared)
+  **Actions:**
+  - Player 1 selects weapon (1 of 10)
+  - Switch to Player 2 on selection
+  - Continue until 10 weapons selected
+  - Timer counts down continuously
+end note
+
+note right of Player2Turn
+  **State:** Player2Turn
+  **Timer:** 30s total (shared)
+  **Actions:**
+  - Player 2 selects weapon (1 of 10)
+  - Switch to Player 1 on selection
+  - Continue until 10 weapons selected
+  - Timer counts down continuously
+end note
+
+note right of Completed
+  **State:** Completed
+  **Actions:**
+  - 20 weapons selected (10 each)
+  - Weapons locked
+  - Proceed to game start
+end note
+
+@enduml
+

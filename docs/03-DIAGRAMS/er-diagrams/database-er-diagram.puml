@@ -1,0 +1,208 @@
+@startuml Database ER Diagram
+skinparam linetype ortho
+skinparam roundcorner 10
+skinparam shadowing false
+
+title Battle Arena - Database Entity Relationship Diagram
+
+' Entities
+entity "Users" as users {
+  * _id : ObjectId <<PK>>
+  --
+  * username : String <<UK>>
+  * email : String <<UK>>
+  * passwordHash : String
+  * createdAt : Date
+  * updatedAt : Date
+}
+
+entity "Profiles" as profiles {
+  * _id : ObjectId <<PK>>
+  --
+  * userId : ObjectId <<FK>>
+  * displayName : String
+  * avatar : String
+  * globalScore : Number
+  * rankTier : String
+  * wins : Number
+  * losses : Number
+  * matchesPlayed : Number
+  * bio : String
+  * achievements : Array
+  * region : String
+  * createdAt : Date
+  * updatedAt : Date
+}
+
+entity "Matches" as matches {
+  * _id : ObjectId <<PK>>
+  --
+  * matchId : String <<UK>>
+  * player1Id : ObjectId <<FK>>
+  * player2Id : ObjectId <<FK>>
+  * player1Hero : String
+  * player2Hero : String
+  * player1Weapons : Array
+  * player2Weapons : Array
+  * arenaId : String <<FK>>
+  * player1Score : Number
+  * player2Score : Number
+  * player1HP : Number
+  * player2HP : Number
+  * winnerId : ObjectId <<FK>>
+  * isDraw : Boolean
+  * startTime : Date
+  * endTime : Date
+  * duration : Number
+  * replayData : Object
+  * createdAt : Date
+}
+
+entity "Leaderboard" as leaderboard {
+  * _id : ObjectId <<PK>>
+  --
+  * userId : ObjectId <<FK>>
+  * rank : Number
+  * globalScore : Number
+  * rankTier : String
+  * winRate : Number
+  * region : String
+  * heroType : String
+  * weaponUsage : Object
+  * updatedAt : Date
+}
+
+entity "Heroes" as heroes {
+  * _id : ObjectId <<PK>>
+  --
+  * heroId : String <<UK>>
+  * heroType : String
+  * name : String
+  * size : Object
+  * hitbox : Object
+  * baseHP : Number
+  * speed : Number
+  * weapons : Array
+  * animations : Object
+  * characteristics : Object
+  * createdAt : Date
+  * updatedAt : Date
+}
+
+entity "Weapons" as weapons {
+  * _id : ObjectId <<PK>>
+  --
+  * weaponId : String <<UK>>
+  * heroType : String <<FK>>
+  * name : String
+  * damage : Number
+  * range : Number
+  * trajectory : Object
+  * weight : Number
+  * physics : Object
+  * animations : Object
+  * synergies : Array
+  * createdAt : Date
+  * updatedAt : Date
+}
+
+entity "Arenas" as arenas {
+  * _id : ObjectId <<PK>>
+  --
+  * arenaId : String <<UK>>
+  * heroTypes : Array
+  * name : String
+  * terrain : Object
+  * gravity : Number
+  * previewImage : String
+  * boundaries : Object
+  * createdAt : Date
+  * updatedAt : Date
+}
+
+' Relationships
+' User-Profile: One-to-One
+users ||--|| profiles : "has"
+
+' User-Match: One-to-Many
+users ||--o{ matches : "plays (player1)"
+users ||--o{ matches : "plays (player2)"
+users ||--o{ matches : "wins"
+
+' User-Leaderboard: One-to-One
+users ||--|| leaderboard : "ranked in"
+
+' Hero-Weapon: One-to-Many
+heroes ||--o{ weapons : "has"
+
+' Hero-Arena: Many-to-Many (via heroTypes array in Arenas)
+heroes }o--o{ arenas : "compatible with"
+
+' Match-Hero: Many-to-One (via heroType)
+heroes ||--o{ matches : "used in (player1Hero)"
+heroes ||--o{ matches : "used in (player2Hero)"
+
+' Match-Weapon: Many-to-Many (via weapons arrays)
+weapons }o--o{ matches : "used in"
+
+' Match-Arena: Many-to-One
+arenas ||--o{ matches : "played in"
+
+note right of users
+  Primary Key: _id
+  Unique Keys: username, email
+  Indexes: username, email, createdAt
+end note
+
+note right of profiles
+  Primary Key: _id
+  Foreign Key: userId -> Users._id
+  Unique Key: userId
+  Indexes: userId, globalScore, rankTier, region, updatedAt
+end note
+
+note right of matches
+  Primary Key: _id
+  Foreign Keys: 
+  - player1Id -> Users._id
+  - player2Id -> Users._id
+  - winnerId -> Users._id
+  - arenaId -> Arenas.arenaId
+  Unique Key: matchId
+  Indexes: matchId, player1Id, player2Id, 
+  winnerId, player1Hero, player2Hero, 
+  arenaId, startTime, createdAt
+end note
+
+note right of leaderboard
+  Primary Key: _id
+  Foreign Key: userId -> Users._id
+  Unique Key: userId
+  Indexes: userId, rank, globalScore, 
+  rankTier, region, heroType, winRate, updatedAt
+  Compound Indexes:
+  - {region, heroType, globalScore}
+  - {rankTier, globalScore}
+end note
+
+note right of heroes
+  Primary Key: _id
+  Unique Key: heroId
+  Indexes: heroId, heroType, name
+end note
+
+note right of weapons
+  Primary Key: _id
+  Foreign Key: heroType -> Heroes.heroType
+  Unique Key: weaponId
+  Indexes: weaponId, heroType, name
+end note
+
+note right of arenas
+  Primary Key: _id
+  Unique Key: arenaId
+  Indexes: arenaId, heroTypes, name
+end note
+
+@enduml
+

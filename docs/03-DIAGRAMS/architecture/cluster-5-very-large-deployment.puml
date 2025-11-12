@@ -1,0 +1,285 @@
+@startuml Cluster 5 Very Large Scale Deployment
+skinparam node {
+    backgroundColor #LightBlue
+    BorderColor #000000
+}
+skinparam database {
+    backgroundColor #LightCoral
+    BorderColor #000000
+}
+
+title Battle Arena - Cluster 5: Very Large Scale Deployment\n(Multi-Region, 1M+ users/day, $3,200+/month)
+
+node "Kubernetes Cluster\n(Multi-Region)\n10+ Nodes per Region\n8+ CPU, 16+ GB RAM per Node\nAuto-Scaling (HPA/VPA)\n$1,000-4,000/month per Region" as K8sCluster {
+    note right of K8sCluster
+        **Infrastructure:**
+        - 10+ nodes per region
+        - Multiple regions (US, EU, Asia, etc.)
+        - 8+ CPU cores per node
+        - 16+ GB RAM per node
+        - 160GB+ SSD per node
+        - 8TB+ bandwidth/month per node
+        - Global load balancing across regions
+        **Cost:** $1,000-4,000/month per region (managed Kubernetes)
+        **Providers:** GKE, EKS, AKS
+        **Auto-Scaling:** Kubernetes HPA/VPA
+        **Features:**
+        - Container orchestration
+        - Auto-scaling
+        - Load balancing
+        - Service discovery
+        - Rolling updates
+        - Health checks
+        - Resource management
+        - Multi-region deployment
+    end note
+    
+    node "Region 1 (US)\n10+ Nodes\n8+ CPU, 16+ GB RAM per Node" as Region1 {
+        component [Frontend\nAngular\nReplicas: 5-10] as Frontend1
+        component [API Gateway\nKong/Nginx\nReplicas: 5-10] as Gateway1
+        component [Auth Service\nSpring Boot\nReplicas: 5-10] as Auth1
+        component [Profile Service\nSpring Boot\nReplicas: 5-10] as Profile1
+        component [Leaderboard Service\nSpring Boot\nReplicas: 5-10] as Leaderboard1
+        component [Matchmaking Service\nNode.js\nReplicas: 10-20] as Matchmaking1
+        component [Game Engine Service\nNode.js\nReplicas: 10-20] as GameEngine1
+        component [Service Mesh\nIstio/Linkerd\nRequired] as ServiceMesh1
+        component [Kafka Brokers\n10+ Brokers] as Kafka1
+        component [Prometheus\nMetrics] as Prometheus1
+        component [Grafana\nDashboards] as Grafana1
+        component [ELK Stack\nOR\nLoki + Grafana\nLogging] as Logging1
+        component [Jaeger\nTracing\nRequired] as Jaeger1
+    }
+    
+    node "Region 2 (EU)\n10+ Nodes\n8+ CPU, 16+ GB RAM per Node" as Region2 {
+        component [Frontend\nAngular\nReplicas: 5-10] as Frontend2
+        component [API Gateway\nKong/Nginx\nReplicas: 5-10] as Gateway2
+        component [Auth Service\nSpring Boot\nReplicas: 5-10] as Auth2
+        component [Profile Service\nSpring Boot\nReplicas: 5-10] as Profile2
+        component [Leaderboard Service\nSpring Boot\nReplicas: 5-10] as Leaderboard2
+        component [Matchmaking Service\nNode.js\nReplicas: 10-20] as Matchmaking2
+        component [Game Engine Service\nNode.js\nReplicas: 10-20] as GameEngine2
+        component [Service Mesh\nIstio/Linkerd\nRequired] as ServiceMesh2
+        component [Kafka Brokers\n10+ Brokers] as Kafka2
+        component [Prometheus\nMetrics] as Prometheus2
+        component [Grafana\nDashboards] as Grafana2
+        component [ELK Stack\nOR\nLoki + Grafana\nLogging] as Logging2
+        component [Jaeger\nTracing\nRequired] as Jaeger2
+    }
+    
+    node "Region 3 (Asia)\n10+ Nodes\n8+ CPU, 16+ GB RAM per Node" as Region3 {
+        component [Frontend\nAngular\nReplicas: 5-10] as Frontend3
+        component [API Gateway\nKong/Nginx\nReplicas: 5-10] as Gateway3
+        component [Auth Service\nSpring Boot\nReplicas: 5-10] as Auth3
+        component [Profile Service\nSpring Boot\nReplicas: 5-10] as Profile3
+        component [Leaderboard Service\nSpring Boot\nReplicas: 5-10] as Leaderboard3
+        component [Matchmaking Service\nNode.js\nReplicas: 10-20] as Matchmaking3
+        component [Game Engine Service\nNode.js\nReplicas: 10-20] as GameEngine3
+        component [Service Mesh\nIstio/Linkerd\nRequired] as ServiceMesh3
+        component [Kafka Brokers\n10+ Brokers] as Kafka3
+        component [Prometheus\nMetrics] as Prometheus3
+        component [Grafana\nDashboards] as Grafana3
+        component [ELK Stack\nOR\nLoki + Grafana\nLogging] as Logging3
+        component [Jaeger\nTracing\nRequired] as Jaeger3
+    }
+}
+
+database "MongoDB Atlas\n(Multi-Region)\n100GB+ Storage per Region\nAdvanced Sharding\nReplica Set (3+ nodes per region)\n$900-3,000/month (3 regions)" as MongoDB {
+    note right of MongoDB
+        **Technology:** MongoDB Atlas
+        **Storage:** 100GB+ per region (paid tier)
+        **Replication:** Replica set (3+ nodes per region)
+        **Sharding:** Advanced sharding (required)
+        **Shard Key:** User ID, Region, Hero ID
+        **Multi-Region:** Yes (3 regions: US, EU, Asia)
+        **Replication:** Multi-region replication enabled
+        **Backup:** Automated backups (daily)
+        **Monitoring:** MongoDB Atlas monitoring
+        **Security:** Network isolation, encryption at rest
+        **Cost:** $900-3,000/month (3 regions × $300-1,000/region)
+    end note
+}
+
+database "Redis Cloud\n(Multi-Region)\n10GB+ Memory per Region\nAdvanced Sharding\nCluster Mode\n$300-900/month (3 regions)" as Redis {
+    note right of Redis
+        **Technology:** Redis Cloud
+        **Memory:** 10GB+ per region (paid tier)
+        **Mode:** Cluster mode
+        **Replication:** Replica set (3+ nodes per region)
+        **Sharding:** Advanced sharding (required)
+        **Shard Key:** User ID, Region, Hero ID
+        **Multi-Region:** Yes (3 regions: US, EU, Asia)
+        **Replication:** Multi-region replication enabled
+        **Global Data Distribution:** Global data distribution across regions
+        **Persistence:** AOF (Append Only File)
+        **Monitoring:** Redis Cloud monitoring
+        **Security:** Network isolation, encryption at rest
+        **Cost:** $300-900/month (3 regions × $100-300/region)
+    end note
+}
+
+cloud "Users\n1M+ users/day\n(Global)" as Users {
+    note right of Users
+        **Traffic:**
+        - 1,000,000+ users/day
+        - ~30M+ users/month
+        - Peak concurrent users: 100,000+
+        - API requests: 10M+ requests/day
+        - WebSocket connections: 100,000+ concurrent connections
+        - Global distribution across regions
+    end note
+}
+
+cloud "CI/CD\nGitHub Actions\nPaid Tier\n$0-200/month" as CICD {
+    note right of CICD
+        **Technology:** GitHub Actions
+        **Purpose:** CI/CD pipeline
+        **Features:**
+        - Automated builds
+        - Automated tests
+        - Automated deployments
+        - Automated monitoring
+        **Cost:** $0-200/month (paid tier, depending on usage)
+    end note
+}
+
+cloud "Monitoring\nPrometheus + Grafana\nFederated Multi-Region\n$0/month (self-hosted)" as Monitoring {
+    note right of Monitoring
+        **Technology:** Prometheus + Grafana
+        **Purpose:** Monitoring and alerting
+        **Features:**
+        - Metrics collection
+        - Metrics visualization
+        - Alerting on critical issues
+        - Dashboards
+        - Federated Prometheus per region
+        **Multi-Region:** Yes (federated Prometheus per region)
+        **Cost:** $0/month (self-hosted)
+    end note
+}
+
+cloud "Logging\nELK Stack\nOR\nLoki + Grafana\nCentralized or Federated\n$0/month (self-hosted)" as Logging {
+    note right of Logging
+        **Technology:** ELK Stack (Elasticsearch, Logstash, Kibana) OR Loki + Grafana
+        **Purpose:** Centralized log aggregation
+        **Features:**
+        - Centralized log aggregation
+        - Log search and filtering
+        - Log analytics
+        - Log retention policies
+        - Centralized or federated per region
+        **Multi-Region:** Yes (centralized or federated per region)
+        **Cost:** $0/month (self-hosted)
+    end note
+}
+
+cloud "Tracing\nJaeger\nFederated Multi-Region\n$0/month (self-hosted)" as Tracing {
+    note right of Tracing
+        **Technology:** Jaeger
+        **Purpose:** Distributed tracing
+        **Features:**
+        - Request tracing across services
+        - Performance analysis
+        - Service dependency mapping
+        - Error tracking and debugging
+        - Federated Jaeger per region
+        **Multi-Region:** Yes (federated Jaeger per region)
+        **Cost:** $0/month (self-hosted)
+        **Required:** Yes (required for Cluster 5)
+    end note
+}
+
+cloud "Global Load Balancer\n(Multi-Region)\n$200-1,000/month" as GlobalLB {
+    note right of GlobalLB
+        **Technology:** Global Load Balancer
+        **Purpose:** Global load balancing across regions
+        **Features:**
+        - Geographic routing
+        - Latency-based routing
+        - Health checks
+        - Failover
+        - Cost: $200-1,000/month
+    end note
+}
+
+' Relationships
+Users --> GlobalLB : HTTPS (Port 443)
+Users --> GlobalLB : WebSocket (WSS)
+GlobalLB --> Region1 : Route to US Region
+GlobalLB --> Region2 : Route to EU Region
+GlobalLB --> Region3 : Route to Asia Region
+
+Region1 --> MongoDB : MongoDB Connection\n(Multi-Region Replication)
+Region2 --> MongoDB : MongoDB Connection\n(Multi-Region Replication)
+Region3 --> MongoDB : MongoDB Connection\n(Multi-Region Replication)
+
+Region1 --> Redis : Redis Connection\n(Multi-Region Replication)
+Region2 --> Redis : Redis Connection\n(Multi-Region Replication)
+Region3 --> Redis : Redis Connection\n(Multi-Region Replication)
+
+CICD --> Region1 : Deploy\n(kubectl apply)
+CICD --> Region2 : Deploy\n(kubectl apply)
+CICD --> Region3 : Deploy\n(kubectl apply)
+
+Region1 --> Monitoring : Metrics\n(Prometheus)
+Region2 --> Monitoring : Metrics\n(Prometheus)
+Region3 --> Monitoring : Metrics\n(Prometheus)
+
+Region1 --> Logging : Logs\n(ELK Stack or Loki)
+Region2 --> Logging : Logs\n(ELK Stack or Loki)
+Region3 --> Logging : Logs\n(ELK Stack or Loki)
+
+Region1 --> Tracing : Traces\n(Jaeger, Required)
+Region2 --> Tracing : Traces\n(Jaeger, Required)
+Region3 --> Tracing : Traces\n(Jaeger, Required)
+
+' Region 1 Services
+Frontend1 --> Gateway1 : HTTP/HTTPS
+Gateway1 --> ServiceMesh1 : Service Mesh (Required)
+ServiceMesh1 --> Auth1 : Service-to-Service (mTLS)
+ServiceMesh1 --> Profile1 : Service-to-Service (mTLS)
+ServiceMesh1 --> Leaderboard1 : Service-to-Service (mTLS)
+ServiceMesh1 --> Matchmaking1 : Service-to-Service (mTLS)
+ServiceMesh1 --> GameEngine1 : Service-to-Service (mTLS)
+
+Auth1 --> MongoDB : MongoDB Driver
+Profile1 --> MongoDB : MongoDB Driver
+Leaderboard1 --> MongoDB : MongoDB Driver
+Matchmaking1 --> MongoDB : MongoDB Driver
+GameEngine1 --> MongoDB : MongoDB Driver
+
+Auth1 --> Redis : Redis Client
+Profile1 --> Redis : Redis Client
+Leaderboard1 --> Redis : Redis Client
+Matchmaking1 --> Redis : Redis Client
+GameEngine1 --> Redis : Redis Client
+
+Profile1 --> Kafka1 : Publisher (profile.updates)
+Leaderboard1 --> Kafka1 : Publisher (leaderboard.updates)
+Matchmaking1 --> Kafka1 : Publisher (matchmaking.events)
+GameEngine1 --> Kafka1 : Publisher (game.events)
+
+' Region 2 Services
+Frontend2 --> Gateway2 : HTTP/HTTPS
+Gateway2 --> ServiceMesh2 : Service Mesh (Required)
+ServiceMesh2 --> Auth2 : Service-to-Service (mTLS)
+ServiceMesh2 --> Profile2 : Service-to-Service (mTLS)
+ServiceMesh2 --> Leaderboard2 : Service-to-Service (mTLS)
+ServiceMesh2 --> Matchmaking2 : Service-to-Service (mTLS)
+ServiceMesh2 --> GameEngine2 : Service-to-Service (mTLS)
+
+' Region 3 Services
+Frontend3 --> Gateway3 : HTTP/HTTPS
+Gateway3 --> ServiceMesh3 : Service Mesh (Required)
+ServiceMesh3 --> Auth3 : Service-to-Service (mTLS)
+ServiceMesh3 --> Profile3 : Service-to-Service (mTLS)
+ServiceMesh3 --> Leaderboard3 : Service-to-Service (mTLS)
+ServiceMesh3 --> Matchmaking3 : Service-to-Service (mTLS)
+ServiceMesh3 --> GameEngine3 : Service-to-Service (mTLS)
+
+' Cross-Region Communication
+Region1 ..> Region2 : Data Replication
+Region2 ..> Region3 : Data Replication
+Region3 ..> Region1 : Data Replication
+
+@enduml
+

@@ -1,0 +1,236 @@
+@startuml Cluster 1 Student Architecture
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+title Battle Arena - Cluster 1: Student/Minimal Architecture\n(<1K users/month, $0-10/month)
+
+package "Frontend Layer" #LightBlue {
+  [Angular Frontend\nPort: 4200] as Frontend
+  note right of Frontend
+    **Technology:** Angular (TypeScript, TailwindCSS, Phaser 3)
+    **Features:**
+    - User authentication
+    - Hero selection
+    - Matchmaking
+    - Gameplay
+    - Leaderboard
+    **Deployment:** Docker container
+  end note
+}
+
+package "API Gateway" #LightGreen {
+  [Nginx API Gateway\nPort: 80, 443] as Gateway
+  note right of Gateway
+    **Technology:** Nginx
+    **Features:**
+    - Request routing
+    - Load balancing (basic)
+    - SSL termination (Let's Encrypt)
+    - Rate limiting (basic)
+    - Health checks
+    **Deployment:** Docker container
+    **Cost:** $0/month (self-hosted)
+  end note
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service\nSpring Boot\nPort: 8081] as Auth
+  [Profile Service\nSpring Boot\nPort: 8082] as Profile
+  [Leaderboard Service\nSpring Boot\nPort: 8083] as Leaderboard
+  [Matchmaking Service\nNode.js\nPort: 3002] as Matchmaking
+  [Game Engine Service\nNode.js\nPort: 3003] as GameEngine
+  [Configuration Service\nSpring Boot\nPort: 8084] as Config
+  
+  note right of Auth
+    **Features:**
+    - User registration
+    - User login
+    - JWT token generation
+    - Password encryption
+    **Resources:** 0.1 CPU, 256MB RAM
+  end note
+  
+  note right of Profile
+    **Features:**
+    - Profile management
+    - Score tracking
+    - Rank tier calculation
+    - Statistics
+    **Resources:** 0.1 CPU, 256MB RAM
+  end note
+  
+  note right of Leaderboard
+    **Features:**
+    - Leaderboard generation
+    - Ranking calculation
+    - Filtering (region, hero, weapon)
+    - Top players
+    **Resources:** 0.1 CPU, 256MB RAM
+  end note
+  
+  note right of Matchmaking
+    **Features:**
+    - Matchmaking queue
+    - Hero selection
+    - Arena selection
+    - Weapon selection
+    - Match creation
+    **Resources:** 0.2 CPU, 512MB RAM
+  end note
+  
+  note right of GameEngine
+    **Features:**
+    - Game state management
+    - Turn management
+    - Physics engine
+    - Scoring system
+    - Win/draw conditions
+    **Resources:** 0.2 CPU, 512MB RAM
+  end note
+  
+  note right of Config
+    **Features:**
+    - Config file management
+    - Rank tier ranges
+    - Scoring formulas
+    - Game parameters
+    - Penalties
+    **Resources:** 0.1 CPU, 256MB RAM
+  end note
+}
+
+package "Data Layer" #LightCoral {
+  database "MongoDB\nPort: 27017" as MongoDB
+  database "Redis\nPort: 6379" as Redis
+  
+  note right of MongoDB
+    **Technology:** MongoDB 6.0+
+    **Collections:**
+    - Users
+    - Profiles
+    - Matches
+    - Leaderboard
+    - Heroes
+    - Weapons
+    - Arenas
+    - ConfigFiles
+    **Storage:** 512MB (free tier) OR self-hosted
+    **Cost:** $0/month (MongoDB Atlas free tier OR self-hosted)
+    **Resources:** 0.5 CPU, 1GB RAM
+  end note
+  
+  note right of Redis
+    **Technology:** Redis 7.0+
+    **Data Structures:**
+    - Sorted Sets - Matchmaking queue
+    - Hash - Lobby storage, Game state cache
+    - String - Cache data, Configurations
+    - Pub/Sub - Message queuing
+    **Storage:** 30MB (free tier) OR self-hosted
+    **Cost:** $0/month (Redis Cloud free tier OR self-hosted)
+    **Resources:** 0.2 CPU, 512MB RAM
+  end note
+}
+
+package "Message Queue" #LightGray {
+  [Redis Pub/Sub] as RedisPubSub
+  
+  note right of RedisPubSub
+    **Technology:** Redis Pub/Sub
+    **Channels:**
+    - matchmaking:events
+    - game:events
+    - profile:updates
+    - leaderboard:updates
+    **Characteristics:**
+    - No message persistence (acceptable for low traffic)
+    - No message replay (acceptable for low traffic)
+    - Sufficient for <1K users/month
+    - Simple setup, no additional infrastructure
+    **Cost:** $0/month (uses existing Redis instance)
+  end note
+}
+
+package "Orchestration" #LightPink {
+  [Docker Compose] as DockerCompose
+  
+  note right of DockerCompose
+    **Technology:** Docker Compose
+    **Features:**
+    - Simple service orchestration
+    - Single server deployment
+    - Manual scaling
+    - Basic health checks
+    - Environment variables
+    **Deployment:** Single server/VM (2 CPU, 4GB RAM)
+    **Cost:** $0/month (local) OR $5-10/month (small VM)
+  end note
+}
+
+package "CI/CD" #LightCyan {
+  [GitHub Actions\nFree Tier] as GitHubActions
+  
+  note right of GitHubActions
+    **Technology:** GitHub Actions
+    **Features:**
+    - Automated testing
+    - Automated building
+    - Automated deployment
+    **Limits:** 2,000 minutes/month (free tier)
+    **Cost:** $0/month (free tier)
+  end note
+}
+
+' Relationships
+Frontend --> Gateway : HTTPS/WSS
+Gateway --> Auth : HTTP
+Gateway --> Profile : HTTP
+Gateway --> Leaderboard : HTTP
+Gateway --> Matchmaking : HTTP/WSS
+Gateway --> GameEngine : HTTP/WSS
+Gateway --> Config : HTTP
+
+Auth --> MongoDB : MongoDB Driver
+Profile --> MongoDB : MongoDB Driver
+Profile --> Redis : Redis Client
+Leaderboard --> MongoDB : MongoDB Driver
+Leaderboard --> Redis : Redis Client
+Matchmaking --> MongoDB : MongoDB Driver
+Matchmaking --> Redis : Redis Client
+GameEngine --> MongoDB : MongoDB Driver
+GameEngine --> Redis : Redis Client
+Config --> MongoDB : MongoDB Driver
+Config --> Redis : Redis Client
+
+Matchmaking --> RedisPubSub : Publisher (matchmaking:events)
+GameEngine --> RedisPubSub : Publisher (game:events)
+Profile --> RedisPubSub : Publisher (profile:updates)
+Leaderboard --> RedisPubSub : Publisher (leaderboard:updates)
+
+Profile --> RedisPubSub : Subscriber (matchmaking:events)
+Leaderboard --> RedisPubSub : Subscriber (game:events, profile:updates)
+GameEngine --> RedisPubSub : Subscriber (matchmaking:events)
+
+Profile --> Matchmaking : Score/Rank updates (Redis Pub/Sub)
+GameEngine --> Profile : Match results (HTTP)
+GameEngine --> Leaderboard : Match results (HTTP)
+Matchmaking --> Config : Get config files (HTTP)
+GameEngine --> Config : Get config files (HTTP)
+Config --> Redis : Cache config files
+
+DockerCompose --> Frontend : Orchestrates
+DockerCompose --> Gateway : Orchestrates
+DockerCompose --> Auth : Orchestrates
+DockerCompose --> Profile : Orchestrates
+DockerCompose --> Leaderboard : Orchestrates
+DockerCompose --> Matchmaking : Orchestrates
+DockerCompose --> GameEngine : Orchestrates
+DockerCompose --> Config : Orchestrates
+DockerCompose --> MongoDB : Orchestrates
+DockerCompose --> Redis : Orchestrates
+
+GitHubActions --> DockerCompose : Deploys
+
+@enduml
+

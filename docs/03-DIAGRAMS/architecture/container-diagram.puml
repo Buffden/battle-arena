@@ -1,0 +1,358 @@
+@startuml Container Diagram
+!define RECTANGLE class
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam backgroundColor #FFFFFF
+
+title Battle Arena - Multiplayer Artillery Battle Game - Container Diagram
+
+package "Client Applications" #LightBlue {
+  [Angular Web Application] as WebApp
+  note right of WebApp
+    **Technology:** Angular 17+
+    **Port:** 4200
+    **Purpose:** User interface
+    **Deployment:** Static hosting
+    
+    **Features:**
+    - Hero Selection
+    - Arena Selection
+    - Weapon Selection
+    - Game Arena (Phaser 3)
+    - Profile Management
+    - Leaderboard
+  end note
+}
+
+package "API Gateway" #LightGreen {
+  [Kong/Nginx API Gateway] as Gateway
+  note right of Gateway
+    **Technology:** Kong, Apigee, or Nginx-based gateway
+    **Purpose:** API Gateway, load balancing, SSL termination
+    **Features:**
+    - Request routing
+    - Rate limiting
+    - Authentication
+    - API versioning
+    - Request/response transformation
+    - API analytics
+    **Deployment:** Container/VM/Kubernetes
+  end note
+}
+
+package "Container Orchestration" #LightBlue {
+  [Kubernetes Cluster] as K8s #LightYellow
+  [Docker Compose] as DockerCompose
+  [Service Mesh\nIstio/Linkerd] as ServiceMesh #LightYellow
+  
+  note right of K8s
+    **Purpose:** Container orchestration (production, high traffic)
+    **Features:**
+    - Auto-scaling (HPA, VPA)
+    - Service discovery
+    - Health checks
+    - Rolling updates
+    - Resource management
+    **Student Projects:**
+    - Skip Kubernetes, use Docker Compose
+    - Use Kubernetes only for >10K users/day
+  end note
+  
+  note right of DockerCompose
+    **Purpose:** Simple container orchestration (student projects, low traffic)
+    **Features:**
+    - Simple service orchestration
+    - Single server deployment
+    - Manual scaling
+    - Basic health checks
+    - Environment variables
+    **Student Projects:**
+    - Use Docker Compose for <1K users/month
+    - Simpler, free, easier to manage
+    - Cost: $0/month (local) or $5-10/month (small VM)
+  end note
+  
+  note right of ServiceMesh
+    **Purpose:** Service-to-service communication (optional)
+    **Features:**
+    - Circuit breakers
+    - Retry policies
+    - Traffic splitting
+    - mTLS encryption
+    - Observability
+    **Student Projects:**
+    - Skip Service Mesh initially
+    - Add when traffic increases
+  end note
+}
+
+package "Backend Services" #LightYellow {
+  [Auth Service] as AuthService
+  [Profile Service] as ProfileService
+  [Leaderboard Service] as LeaderboardService
+  [Matchmaking Service] as MatchmakingService
+  [Game Engine Service] as GameEngineService
+  [Configuration Service] as ConfigurationService
+  
+  note right of AuthService
+    **Technology:** Spring Boot
+    **Port:** 8081
+    **Database:** MongoDB
+    **Purpose:** Authentication & Authorization
+  end note
+  
+  note right of ProfileService
+    **Technology:** Spring Boot
+    **Port:** 8082
+    **Database:** MongoDB
+    **Purpose:** User profiles & progression
+    **Features:**
+    - Global score tracking
+    - Rank tier calculation
+    - Player statistics
+  end note
+  
+  note right of LeaderboardService
+    **Technology:** Spring Boot
+    **Port:** 8083
+    **Database:** MongoDB
+    **Purpose:** Leaderboard & rankings
+    **Features:**
+    - Filtering (region, hero, win%, weapons)
+    - Rank tier calculation
+    - Statistics aggregation
+  end note
+  
+  note right of MatchmakingService
+    **Technology:** Node.js + Socket.io
+    **Port:** 3002
+    **Cache:** Redis
+    **Database:** MongoDB (Heroes, Weapons, Arenas)
+    **Purpose:** Player matchmaking
+    **Features:**
+    - Hero selection management
+    - Global score/rank-based matching
+    - Arena selection (voting/elimination)
+    - Weapon selection (alternating)
+    - Queue management
+  end note
+  
+  note right of GameEngineService
+    **Technology:** Node.js + Socket.io
+    **Port:** 5002
+    **Database:** MongoDB
+    **Cache:** Redis
+    **Purpose:** Game logic & physics
+    **Features:**
+    - Turn management (15s/turn, 4-5min)
+    - Movement system (4 moves/game)
+    - Physics calculations (Matter.js)
+    - Scoring system
+    - Health system
+    - Weapon synergies
+  end note
+  
+  note right of ConfigurationService
+    **Technology:** Spring Boot
+    **Port:** 8084
+    **Database:** MongoDB (Config Files Metadata)
+    **Purpose:** Configuration file management
+    **Features:**
+    - Rank tier ranges (config files)
+    - Scoring formulas (config files)
+    - Game parameters (config files)
+    - Penalties (config files)
+    - Serve configurations to services
+    - Note: Hero/Weapon/Arena data stored in MongoDB collections
+  end note
+}
+
+package "Data Stores" #LightCoral {
+  database "MongoDB" as MongoDB
+  database "Redis" as Redis
+  database "Apache Kafka" as Kafka #LightYellow
+  
+  note right of MongoDB
+    **Technology:** MongoDB 6.0+
+    **Port:** 27017
+    **Purpose:** Persistent data storage
+    **Collections:**
+    - Users
+    - Profiles
+    - Matches
+    - Leaderboard
+    - Heroes (with configurations)
+    - Weapons (with configurations)
+    - Arenas (with configurations)
+    - ConfigFiles (metadata for config files)
+    **Replication:** Replica set for high availability (production)
+    **Student Projects:**
+    - MongoDB Atlas free tier (512MB storage)
+    - OR self-hosted (Docker, single instance)
+    - Cost: $0/month
+  end note
+  
+  note right of Redis
+    **Technology:** Redis 7.0+
+    **Port:** 6379
+    **Purpose:** Caching & queue management
+    **Data Structures:**
+    - Matchmaking queue (hero-based)
+    - Lobby storage
+    - Arena/Weapon selection
+    - Game state cache
+    - Hero/Weapon/Arena config cache
+    **Message Queue:**
+    - Redis Pub/Sub (student projects, <1K users/month)
+    - OR Kafka (production, >10K users/day)
+    **Student Projects:**
+    - Redis Cloud free tier (30MB)
+    - OR self-hosted (Docker, single instance)
+    - Use Redis Pub/Sub for message queuing
+    - Cost: $0/month
+  end note
+  
+  note right of Kafka
+    **Technology:** Apache Kafka
+    **Port:** 9092
+    **Purpose:** Message queuing, event streaming (production, high traffic)
+    **Topics:**
+    - matchmaking.events
+    - game.events
+    - profile.updates
+    - leaderboard.updates
+    **Characteristics:**
+    - Message persistence
+    - High scalability
+    - Fault tolerance
+    - Consumer groups
+    **Clustering:** Kafka cluster (3+ brokers for production, 1 broker for development)
+    **Student Projects:**
+    - Skip Kafka, use Redis Pub/Sub
+    - OR self-hosted Kafka (single broker, Docker)
+    - Use Kafka only for >10K users/day
+    - Cost: $0/month (self-hosted) or $15-500/month (managed)
+  end note
+}
+
+package "Observability" #LightGreen {
+  [Prometheus] as Prometheus #LightYellow
+  [Grafana] as Grafana #LightYellow
+  [Jaeger] as Jaeger #LightYellow
+  [ELK Stack] as ELK #LightYellow
+  
+  note right of Prometheus
+    **Purpose:** Metrics collection (optional for student projects)
+    **Features:**
+    - Application metrics
+    - Infrastructure metrics
+    - Custom metrics
+    - Service mesh metrics
+    **Student Projects:**
+    - Skip monitoring initially
+    - OR use Grafana Cloud free tier (10k metrics)
+    - Add self-hosted monitoring when needed
+  end note
+  
+  note right of Grafana
+    **Purpose:** Metrics visualization (optional for student projects)
+    **Features:**
+    - Dashboards
+    - Alerting
+    - Service-level indicators (SLIs)
+    - Service-level objectives (SLOs)
+    **Student Projects:**
+    - Skip monitoring initially
+    - OR use Grafana Cloud free tier
+    - Add self-hosted Grafana when needed
+  end note
+  
+  note right of Jaeger
+    **Purpose:** Distributed tracing (optional for student projects)
+    **Features:**
+    - Request tracing
+    - Performance analysis
+    - Service dependency mapping
+    - Error tracking
+    **Student Projects:**
+    - Skip tracing initially (not needed for low traffic)
+    - Add tracing when traffic increases
+  end note
+  
+  note right of ELK
+    **Purpose:** Centralized logging (optional for student projects)
+    **Components:**
+    - Elasticsearch (log storage)
+    - Logstash (log processing)
+    - Kibana (log visualization)
+    **Features:**
+    - Log aggregation
+    - Log search
+    - Log analytics
+    - Log retention
+    **Student Projects:**
+    - Skip logging initially
+    - OR use Grafana Cloud free tier (50GB logs)
+    - Add self-hosted logging when needed
+  end note
+}
+
+' Relationships
+WebApp --> Gateway : HTTPS/WSS
+Gateway --> DockerCompose : Load Balancing (Student Projects)
+Gateway --> K8s : Load Balancing (Production)
+K8s --> ServiceMesh : Service Mesh (Optional, Production)
+DockerCompose --> AuthService : Direct (Student Projects)
+ServiceMesh --> AuthService : mTLS (Optional, Production)
+ServiceMesh --> ProfileService : mTLS (Optional, Production)
+ServiceMesh --> LeaderboardService : mTLS (Optional, Production)
+ServiceMesh --> MatchmakingService : mTLS (Optional, Production)
+ServiceMesh --> GameEngineService : mTLS (Optional, Production)
+ServiceMesh --> ConfigurationService : mTLS (Optional, Production)
+
+AuthService --> MongoDB : MongoDB Driver
+ProfileService --> MongoDB : MongoDB Driver
+LeaderboardService --> MongoDB : MongoDB Driver
+MatchmakingService --> Redis : Redis Client
+MatchmakingService --> MongoDB : MongoDB Driver (Heroes, Weapons, Arenas)
+GameEngineService --> MongoDB : MongoDB Driver
+GameEngineService --> Redis : Redis Client
+ConfigurationService --> MongoDB : MongoDB Driver (ConfigFiles metadata)
+
+MatchmakingService --> Kafka : Producer (matchmaking.events)\nProduction Only
+GameEngineService --> Kafka : Producer (game.events)\nProduction Only
+ProfileService --> Kafka : Producer (profile.updates)\nProduction Only
+LeaderboardService --> Kafka : Producer (leaderboard.updates)\nProduction Only
+
+ProfileService --> Kafka : Consumer (matchmaking.events)\nProduction Only
+LeaderboardService --> Kafka : Consumer (game.events, profile.updates)\nProduction Only
+GameEngineService --> Kafka : Consumer (matchmaking.events)\nProduction Only
+
+MatchmakingService --> Redis : Pub/Sub Publisher (matchmaking:events)\nStudent Projects Only
+GameEngineService --> Redis : Pub/Sub Publisher (game:events)\nStudent Projects Only
+ProfileService --> Redis : Pub/Sub Publisher (profile:updates)\nStudent Projects Only
+LeaderboardService --> Redis : Pub/Sub Publisher (leaderboard:updates)\nStudent Projects Only
+
+ProfileService --> Redis : Pub/Sub Subscriber (matchmaking:events)\nStudent Projects Only
+LeaderboardService --> Redis : Pub/Sub Subscriber (game:events, profile:updates)\nStudent Projects Only
+GameEngineService --> Redis : Pub/Sub Subscriber (matchmaking:events)\nStudent Projects Only
+
+K8s --> Prometheus : Metrics
+ServiceMesh --> Prometheus : Metrics
+Kafka --> Prometheus : Metrics
+MongoDB --> Prometheus : Metrics
+Redis --> Prometheus : Metrics
+
+Prometheus --> Grafana : Dashboards
+K8s --> Jaeger : Traces
+ServiceMesh --> Jaeger : Traces
+K8s --> ELK : Logs
+ServiceMesh --> ELK : Logs
+
+GameEngineService --> ProfileService : Match results (HTTP)
+GameEngineService --> LeaderboardService : Match results (HTTP)
+MatchmakingService --> ConfigurationService : Get config files (HTTP - rank tiers, scoring formulas)
+GameEngineService --> ConfigurationService : Get config files (HTTP - rank tiers, scoring formulas, penalties)
+ConfigurationService --> Redis : Cache config files
+
+@enduml

@@ -1,0 +1,78 @@
+@startuml Post-Match Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+participant "Game Engine Service" as GameEngine
+participant "Match Result Processor" as MatchProcessor
+participant "Match Repository" as MatchRepository
+participant "Profile Service Client" as ProfileClient
+participant "Leaderboard Service Client" as LeaderboardClient
+participant "MongoDB" as MongoDB
+participant "Profile Service" as ProfileService
+participant "Leaderboard Service" as LeaderboardService
+
+title Post-Match Flow (Score and Rank Update)
+
+== Match End ==
+GameEngine -> MatchProcessor: processMatchResult(matchId, matchResult)
+activate MatchProcessor
+
+== Save Match to Database ==
+MatchProcessor -> MatchRepository: save(match: Match)
+activate MatchRepository
+MatchRepository -> MongoDB: Insert match document
+activate MongoDB
+MongoDB --> MatchRepository: Match saved
+deactivate MongoDB
+MatchRepository --> MatchProcessor: Match saved
+deactivate MatchRepository
+
+== Update Player 1 Profile ==
+MatchProcessor -> ProfileClient: updateScore(player1Id, matchScore)
+activate ProfileClient
+ProfileClient -> ProfileService: POST /api/profile/score/update\n{userId, matchScore}
+activate ProfileService
+ProfileService -> ProfileService: Calculate new global score\n(global score += match score, infinite score, no level cap)
+ProfileService -> ProfileService: Calculate new rank tier\n(based on score ranges, like Valorant)
+ProfileService -> ProfileService: Calculate rank change\n(based on match score, formula to be determined)
+ProfileService -> ProfileService: Update wins/losses/matchesPlayed
+ProfileService -> ProfileService: Update profile in database\n(globalScore, rankTier, wins, losses, matchesPlayed)
+ProfileService --> ProfileClient: ScoreUpdateResponse\n{newScore, rankTier, rankChange}
+deactivate ProfileService
+ProfileClient --> MatchProcessor: Score updated
+deactivate ProfileClient
+
+== Update Player 2 Profile ==
+MatchProcessor -> ProfileClient: updateScore(player2Id, matchScore)
+activate ProfileClient
+ProfileClient -> ProfileService: POST /api/profile/score/update\n{userId, matchScore}
+activate ProfileService
+ProfileService -> ProfileService: Calculate new global score\n(global score += match score, infinite score, no level cap)
+ProfileService -> ProfileService: Calculate new rank tier\n(based on score ranges, like Valorant)
+ProfileService -> ProfileService: Calculate rank change\n(based on match score, formula to be determined)
+ProfileService -> ProfileService: Update wins/losses/matchesPlayed
+ProfileService -> ProfileService: Update profile in database\n(globalScore, rankTier, wins, losses, matchesPlayed)
+ProfileService --> ProfileClient: ScoreUpdateResponse\n{newScore, rankTier, rankChange}
+deactivate ProfileService
+ProfileClient --> MatchProcessor: Score updated
+deactivate ProfileClient
+
+== Update Leaderboard ==
+MatchProcessor -> LeaderboardClient: updateLeaderboard(matchResult)
+activate LeaderboardClient
+LeaderboardClient -> LeaderboardService: POST /api/leaderboard/update\n{matchResult}
+activate LeaderboardService
+LeaderboardService -> LeaderboardService: Recalculate rankings\n(based on global score, players with similar ranks can be in top 5)
+LeaderboardService -> LeaderboardService: Update leaderboard entries\n(rank, globalScore, rankTier, winRate, region, heroType, weaponUsage)
+LeaderboardService -> LeaderboardService: Apply filters if needed\n(region, heroType, win%, weapons)
+LeaderboardService --> LeaderboardClient: Leaderboard updated
+deactivate LeaderboardService
+LeaderboardClient --> MatchProcessor: Leaderboard updated
+deactivate LeaderboardClient
+
+MatchProcessor --> GameEngine: Match result processed
+deactivate MatchProcessor
+
+@enduml
+
