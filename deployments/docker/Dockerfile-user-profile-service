@@ -1,9 +1,0 @@
-# Dockerfile for Profile Service
-# TODO: Implement Dockerfile based on service structure
-# This service will be built using Spring Boot
-
-# FROM openjdk:21-jdk-slim
-# WORKDIR /app
-# COPY target/*.jar app.jar
-# EXPOSE 8082
-# ENTRYPOINT ["java", "-jar", "app.jar"]
