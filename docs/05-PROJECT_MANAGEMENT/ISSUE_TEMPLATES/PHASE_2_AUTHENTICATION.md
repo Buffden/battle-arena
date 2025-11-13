@@ -1400,6 +1400,15 @@ As a user, I want my password to be securely hashed so that my account is protec
 - Implement password hashing in registration
 - Implement password verification in login
 
+## Subtasks
+- [ ] Configure BCrypt with 12 rounds (Task-2.2.6)
+- [ ] Create PasswordEncoder bean (Task-2.2.6)
+- [ ] Implement password hashing in registration (Task-2.2.6)
+- [ ] Implement password verification in login (Task-2.2.6)
+- [ ] Add password strength validation (optional) (Task-2.4.1)
+- [ ] Write security tests (Task-2.4.2)
+- [ ] Document password security practices (Task-2.4.3)
+
 ## Labels
 epic:auth, backend:auth, security, priority:high
 
@@ -1407,7 +1416,158 @@ epic:auth, backend:auth, security, priority:high
 Phase 2: Authentication
 ```
 
-*(Note: This is already covered in registration subtasks, but can be a separate story for emphasis)*
+#### Subtask: Task-2.4.1: Add password strength validation (optional)
+```
+Title: Task-2.4.1: Add password strength validation (optional)
+
+Description:
+## Story
+Related to #X (Story-2.4 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Add optional password strength validation to improve security. This is an optional enhancement that can be implemented if time permits.
+
+## Acceptance Criteria
+- [ ] Password strength rules defined (minimum length, complexity)
+- [ ] Validation implemented in registration
+- [ ] Clear error messages for weak passwords
+- [ ] Validation configurable (can be disabled)
+
+## Technical Details
+
+### Password Strength Rules (Optional)
+- Minimum 8 characters (already required)
+- At least one uppercase letter (optional)
+- At least one lowercase letter (optional)
+- At least one number (optional)
+- At least one special character (optional)
+
+### Implementation
+- Create PasswordValidator utility class
+- Add validation in RegisterRequest DTO or AuthService
+- Return clear error messages
+- Make validation configurable via properties
+
+## Related Documentation
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Password security requirements
+
+## Labels
+epic:auth, backend:auth, security, task, priority:low
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.4.2: Write security tests
+```
+Title: Task-2.4.2: Write security tests
+
+Description:
+## Story
+Related to #X (Story-2.4 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Write comprehensive security tests for password hashing and authentication.
+
+## Acceptance Criteria
+- [ ] Test password hashing (BCrypt)
+- [ ] Test password verification
+- [ ] Test that passwords are never stored in plain text
+- [ ] Test password strength validation (if implemented)
+- [ ] Test authentication security
+
+## Technical Details
+
+### Test Cases
+- Password hashing produces different hashes for same password (salt)
+- Password verification works correctly
+- Plain text passwords never appear in logs or responses
+- Password hashing performance is acceptable
+- Invalid password attempts are handled securely
+
+### Test Implementation
+- Create SecurityTest class
+- Use JUnit and Mockito
+- Test PasswordEncoder behavior
+- Test AuthService security
+
+## Related Documentation
+- [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Security testing approach
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Security requirements
+
+## Labels
+epic:auth, backend:auth, security, testing, priority:high
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.4.3: Document password security practices
+```
+Title: Task-2.4.3: Document password security practices
+
+Description:
+## Story
+Related to #X (Story-2.4 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Document password security practices and implementation details for future reference and compliance.
+
+## Acceptance Criteria
+- [ ] Password hashing algorithm documented
+- [ ] BCrypt configuration documented
+- [ ] Security best practices documented
+- [ ] Implementation details documented
+- [ ] Compliance notes added
+
+## Technical Details
+
+### Documentation Sections
+1. **Password Hashing**
+   - Algorithm: BCrypt
+   - Rounds: 12
+   - Salt: Automatic (BCrypt handles)
+
+2. **Security Practices**
+   - Passwords never stored in plain text
+   - Passwords never logged
+   - Passwords never returned in responses
+   - Secure password transmission (HTTPS)
+
+3. **Implementation Details**
+   - PasswordEncoder configuration
+   - Hashing during registration
+   - Verification during login
+
+4. **Compliance**
+   - OWASP guidelines followed
+   - Industry best practices
+
+### Documentation Location
+- Add to Auth Service README
+- Add to Security Architecture document
+- Add to API documentation
+
+## Related Documentation
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Password security (section 2.1)
+
+## Labels
+epic:auth, backend:auth, security, documentation, priority:medium
+
+## Milestone
+Phase 2: Authentication
+```
+
+*(Note: This story is already covered in registration subtasks, but provides emphasis on security)*
 
 ---
 
