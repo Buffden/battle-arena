@@ -1,0 +1,253 @@
+name: Migrate Issues from Event-Management-System
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: 'Source repository (owner/repo)'
+        required: false
+        default: 'Buffden/Event-Management-System'
+      target_repo:
+        description: 'Target repository (owner/repo)'
+        required: false
+        default: 'Buffden/battle-arena'
+      dry_run:
+        description: 'Dry run (only log, do not create issues)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  migrate-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Migrate Issues
+        uses: actions/github-script@v7
+        with:
+          # Use PAT if available for cross-repo access, otherwise use GITHUB_TOKEN
+          # PAT must have 'repo' scope and access to both repositories
+          github-token: ${{ secrets.GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            const sourceRepo = '${{ github.event.inputs.source_repo }}' || 'Buffden/Event-Management-System';
+            const targetRepo = '${{ github.event.inputs.target_repo }}' || 'Buffden/battle-arena';
+            const dryRun = ('${{ github.event.inputs.dry_run }}' || 'false') === 'true';
+            
+            const [sourceOwner, sourceRepoName] = sourceRepo.split('/');
+            const [targetOwner, targetRepoName] = targetRepo.split('/');
+            
+            console.log(`📋 Migrating issues from ${sourceRepo} to ${targetRepo}`);
+            console.log(`🔍 Dry run mode: ${dryRun ? 'ENABLED' : 'DISABLED'}`);
+            console.log('');
+            
+            // Step 1: Fetch all open issues from source repo
+            console.log('📥 Fetching open issues from source repository...');
+            let sourceIssues;
+            try {
+              const response = await github.rest.issues.listForRepo({
+                owner: sourceOwner,
+                repo: sourceRepoName,
+                state: 'open',
+                per_page: 100
+              });
+              sourceIssues = response.data;
+            } catch (error) {
+              if (error.status === 404 || error.status === 403) {
+                console.error(`❌ Cannot access ${sourceRepo}. Error: ${error.message}`);
+                console.error('');
+                console.error('💡 Solution: Create a Personal Access Token (PAT) with "repo" scope');
+                console.error('   1. Go to: https://github.com/settings/tokens');
+                console.error('   2. Create token with "repo" scope');
+                console.error('   3. Add as secret "GITHUB_PAT" in this repository');
+                console.error('   4. The workflow will automatically use PAT if available');
+                core.setFailed(`Cannot access source repository: ${error.message}`);
+                return;
+              }
+              throw error;
+            }
+            
+            console.log(`✅ Found ${sourceIssues.length} open issue(s)`);
+            console.log('');
+            
+            if (sourceIssues.length === 0) {
+              console.log('ℹ️  No open issues to migrate.');
+              return;
+            }
+            
+            // Step 2: Get existing labels in target repo (to check if they exist)
+            console.log('🏷️  Fetching existing labels from target repository...');
+            const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: targetOwner,
+              repo: targetRepoName,
+              per_page: 100
+            });
+            
+            const existingLabelNames = new Set(existingLabels.map(label => label.name));
+            console.log(`✅ Found ${existingLabels.length} existing label(s) in target repo`);
+            console.log('');
+            
+            // Step 3: Get existing milestones in target repo
+            console.log('🎯 Fetching existing milestones from target repository...');
+            const { data: existingMilestones } = await github.rest.issues.listMilestones({
+              owner: targetOwner,
+              repo: targetRepoName,
+              state: 'open',
+              per_page: 100
+            });
+            
+            const milestoneMap = new Map();
+            existingMilestones.forEach(milestone => {
+              milestoneMap.set(milestone.title.toLowerCase(), milestone.number);
+            });
+            console.log(`✅ Found ${existingMilestones.length} existing milestone(s) in target repo`);
+            console.log('');
+            
+            // Step 4: Migrate each issue
+            const results = {
+              success: [],
+              skipped: [],
+              failed: []
+            };
+            
+            for (const issue of sourceIssues) {
+              try {
+                console.log(`\n📝 Processing issue #${issue.number}: "${issue.title}"`);
+                
+                // Prepare issue data
+                const issueData = {
+                  owner: targetOwner,
+                  repo: targetRepoName,
+                  title: issue.title,
+                  body: issue.body || '',
+                  state: 'open'
+                };
+                
+                // Handle labels - only include labels that exist in target repo
+                if (issue.labels && issue.labels.length > 0) {
+                  const validLabels = issue.labels
+                    .map(label => typeof label === 'string' ? label : label.name)
+                    .filter(labelName => existingLabelNames.has(labelName));
+                  
+                  if (validLabels.length > 0) {
+                    issueData.labels = validLabels;
+                    if (validLabels.length < issue.labels.length) {
+                      const skippedLabels = issue.labels
+                        .map(label => typeof label === 'string' ? label : label.name)
+                        .filter(labelName => !existingLabelNames.has(labelName));
+                      console.log(`   ⚠️  Skipping ${skippedLabels.length} label(s) that don't exist in target repo: ${skippedLabels.join(', ')}`);
+                    }
+                  } else {
+                    console.log(`   ⚠️  None of the labels exist in target repo, skipping labels`);
+                  }
+                }
+                
+                // Handle milestone - match by title (case-insensitive)
+                if (issue.milestone) {
+                  const milestoneTitle = issue.milestone.title;
+                  const milestoneNumber = milestoneMap.get(milestoneTitle.toLowerCase());
+                  
+                  if (milestoneNumber) {
+                    issueData.milestone = milestoneNumber;
+                    console.log(`   ✅ Matched milestone: "${milestoneTitle}"`);
+                  } else {
+                    console.log(`   ⚠️  Milestone "${milestoneTitle}" not found in target repo, skipping`);
+                  }
+                }
+                
+                // Handle assignees - only include if they have access to target repo
+                if (issue.assignees && issue.assignees.length > 0) {
+                  const assigneeLogins = issue.assignees.map(assignee => assignee.login);
+                  // Note: GitHub API will automatically skip assignees without access
+                  issueData.assignees = assigneeLogins;
+                  console.log(`   👤 Assignees: ${assigneeLogins.join(', ')}`);
+                }
+                
+                // Create issue in target repo
+                if (dryRun) {
+                  console.log(`   🔍 [DRY RUN] Would create issue with:`);
+                  console.log(`      Title: ${issueData.title}`);
+                  console.log(`      Labels: ${issueData.labels ? issueData.labels.join(', ') : 'none'}`);
+                  console.log(`      Milestone: ${issueData.milestone || 'none'}`);
+                  console.log(`      Assignees: ${issueData.assignees ? issueData.assignees.join(', ') : 'none'}`);
+                  results.skipped.push({
+                    number: issue.number,
+                    title: issue.title,
+                    reason: 'Dry run mode'
+                  });
+                } else {
+                  const { data: newIssue } = await github.rest.issues.create(issueData);
+                  console.log(`   ✅ Created issue #${newIssue.number} in ${targetRepo}`);
+                  results.success.push({
+                    sourceNumber: issue.number,
+                    targetNumber: newIssue.number,
+                    title: issue.title,
+                    url: newIssue.html_url
+                  });
+                }
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+              } catch (error) {
+                console.error(`   ❌ Failed to migrate issue #${issue.number}: ${error.message}`);
+                results.failed.push({
+                  number: issue.number,
+                  title: issue.title,
+                  error: error.message
+                });
+              }
+            }
+            
+            // Step 5: Print final summary
+            console.log('\n' + '='.repeat(60));
+            console.log('📊 Migration Summary');
+            console.log('='.repeat(60));
+            console.log(`✅ Successfully migrated: ${results.success.length} issue(s)`);
+            console.log(`⏭️  Skipped: ${results.skipped.length} issue(s)`);
+            console.log(`❌ Failed: ${results.failed.length} issue(s)`);
+            console.log('');
+            
+            if (results.success.length > 0) {
+              console.log('✅ Successfully migrated issues:');
+              results.success.forEach(result => {
+                console.log(`   • #${result.sourceNumber} → #${result.targetNumber}: "${result.title}"`);
+                console.log(`     ${result.url}`);
+              });
+              console.log('');
+            }
+            
+            if (results.skipped.length > 0) {
+              console.log('⏭️  Skipped issues:');
+              results.skipped.forEach(result => {
+                console.log(`   • #${result.number}: "${result.title}" (${result.reason})`);
+              });
+              console.log('');
+            }
+            
+            if (results.failed.length > 0) {
+              console.log('❌ Failed issues:');
+              results.failed.forEach(result => {
+                console.log(`   • #${result.number}: "${result.title}"`);
+                console.log(`     Error: ${result.error}`);
+              });
+              console.log('');
+            }
+            
+            // Set output for workflow summary
+            core.setOutput('success_count', results.success.length);
+            core.setOutput('skipped_count', results.skipped.length);
+            core.setOutput('failed_count', results.failed.length);
+            
+            if (results.failed.length > 0) {
+              core.setFailed(`Migration completed with ${results.failed.length} failure(s)`);
+            }
+
