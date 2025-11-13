@@ -176,12 +176,12 @@ Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM
 
 ```
 battle-arena/
-├── backend-services/     # 5 microservices (3 Spring Boot, 2 Node.js)
-├── frontend-service/    # Angular application
-├── deployments/          # Docker and Kubernetes configurations
-├── database/             # MongoDB initialization scripts
-├── scripts/              # Utility scripts
-└── docs/                 # Documentation (already exists)
+  - backend-services/     # 5 microservices (3 Spring Boot, 2 Node.js)
+  - frontend-service/     # Angular application
+  - deployments/          # Docker and Kubernetes configurations
+  - database/             # MongoDB initialization scripts
+  - scripts/              # Utility scripts
+  - docs/                 # Documentation (already exists)
 ```
 
 ### Directory Purpose
@@ -238,20 +238,20 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 **For auth-service, profile-service, leaderboard-service:**
 ```
 service-name/
-├── src/main/java/
-│   ├── controller/            # REST controllers
-│   ├── service/               # Business logic
-│   ├── repository/            # Data access layer
-│   ├── model/                 # Entity models
-│   ├── dto/                   # Data transfer objects
-│   ├── security/              # Security configuration
-│   ├── config/                # Configuration classes
-│   └── exception/             # Exception handlers
-├── src/main/resources/
-│   └── application.properties # Configuration
-├── pom.xml                    # Maven dependencies
-├── README.md                  # Service documentation
-└── .gitignore                 # Java/Spring Boot patterns
+  - src/main/java/
+    - controller/            # REST controllers
+    - service/               # Business logic
+    - repository/            # Data access layer
+    - model/                 # Entity models
+    - dto/                   # Data transfer objects
+    - security/              # Security configuration
+    - config/                # Configuration classes
+    - exception/             # Exception handlers
+  - src/main/resources/
+    - application.properties # Configuration
+  - pom.xml                  # Maven dependencies
+  - README.md                # Service documentation
+  - .gitignore               # Java/Spring Boot patterns
 ```
 
 ### Node.js Services Structure
@@ -260,18 +260,18 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 **For matchmaking-service, game-engine:**
 ```
 service-name/
-├── src/
-│   ├── config/                # Configuration files
-│   ├── controllers/           # Request handlers
-│   ├── services/               # Business logic
-│   ├── middleware/             # Express middleware
-│   ├── routes/                 # Route definitions
-│   ├── utils/                  # Utility functions
-│   └── types/                  # Type definitions
-├── server.js                   # Application entry point
-├── package.json                # NPM dependencies
-├── README.md                   # Service documentation
-└── .gitignore                 # Node.js patterns
+  - src/
+    - config/                # Configuration files
+    - controllers/           # Request handlers
+    - services/              # Business logic
+    - middleware/            # Express middleware
+    - routes/                # Route definitions
+    - utils/                 # Utility functions
+    - types/                 # Type definitions
+  - server.js                # Application entry point
+  - package.json             # NPM dependencies
+  - README.md                # Service documentation
+  - .gitignore              # Node.js patterns
 ```
 
 ### Service Responsibilities
@@ -323,26 +323,26 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 
 ```
 frontend-service/
-├── src/
-│   ├── app/
-│   │   ├── auth/              # Authentication module
-│   │   ├── dashboard/          # Dashboard module
-│   │   ├── hero-selection/    # Hero selection module
-│   │   ├── matchmaking/        # Matchmaking module
-│   │   ├── arena-selection/    # Arena selection module
-│   │   ├── weapon-selection/   # Weapon selection module
-│   │   ├── pages/
-│   │   │   └── arena/          # Game arena module
-│   │   ├── profile/           # Profile module
-│   │   ├── leaderboard/       # Leaderboard module
-│   │   ├── shared/            # Shared components
-│   │   ├── services/          # Angular services
-│   │   ├── guards/            # Route guards
-│   │   └── interceptors/      # HTTP interceptors
-│   └── assets/                # Static assets
-├── README.md                  # Frontend documentation
-├── .gitignore                 # Angular/Node.js patterns
-└── package.json               # NPM dependencies (created during Angular init)
+  - src/
+    - app/
+      - auth/              # Authentication module
+      - dashboard/         # Dashboard module
+      - hero-selection/    # Hero selection module
+      - matchmaking/       # Matchmaking module
+      - arena-selection/   # Arena selection module
+      - weapon-selection/  # Weapon selection module
+      - pages/
+        - arena/           # Game arena module
+      - profile/           # Profile module
+      - leaderboard/       # Leaderboard module
+      - shared/            # Shared components
+      - services/          # Angular services
+      - guards/            # Route guards
+      - interceptors/      # HTTP interceptors
+    - assets/              # Static assets
+  - README.md              # Frontend documentation
+  - .gitignore             # Angular/Node.js patterns
+  - package.json           # NPM dependencies (created during Angular init)
 ```
 
 ### Frontend Services Required
@@ -1853,9 +1853,9 @@ Based on [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTIN
 **Test Structure:**
 ```
 src/test/java/
-├── unit/              # Unit tests
-├── integration/       # Integration tests
-└── resources/         # Test resources
+  - unit/              # Unit tests
+  - integration/       # Integration tests
+  - resources/        # Test resources
 ```
 
 ### Node.js Services
@@ -1878,8 +1878,8 @@ src/test/java/
 **Test Structure:**
 ```
 src/
-├── __tests__/         # Test files
-└── __mocks__/         # Mock files
+  - __tests__/         # Test files
+  - __mocks__/         # Mock files
 ```
 
 ### Angular Frontend
@@ -1891,7 +1891,7 @@ src/
 **Test Structure:**
 ```
 src/app/
-├── *.spec.ts         # Component/service tests
+  - *.spec.ts         # Component/service tests
 ```
 
 ## Related Documentation
