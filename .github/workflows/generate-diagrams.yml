@@ -56,30 +56,98 @@ jobs:
           java -jar plantuml.jar -testdot || echo "Graphviz test completed"
           echo "PlantUML and Graphviz are ready"
           
+      - name: Check which diagrams to generate
+        # Determine which .puml files changed and need regeneration
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: changed-diagrams
+        run: |
+          # On push, check what .puml files changed
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # Get changed .puml files in this push
+            changed_puml=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep -E '\.puml$' || true)
+            
+            if [ -n "$changed_puml" ]; then
+              echo "📝 Changed .puml files detected:"
+              echo "$changed_puml" | sed 's/^/  - /'
+              # Save changed files for next step
+              echo "$changed_puml" > /tmp/changed_puml.txt
+              echo "generate_mode=changed" >> $GITHUB_OUTPUT
+            else
+              echo "ℹ️ No .puml files changed in this push"
+              echo "generate_mode=all" >> $GITHUB_OUTPUT
+            fi
+          else
+            # workflow_dispatch: generate all diagrams
+            echo "🔧 Manual trigger: generating all diagrams"
+            echo "generate_mode=all" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Generate diagrams
         # Only generate diagrams on push events (merges) to avoid redundant work on PRs
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p docs/03-DIAGRAMS/exported
-          echo "Searching for PlantUML files in docs/03-DIAGRAMS..."
-          puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f | wc -l)
-          echo "Found $puml_count PlantUML file(s)"
+          
+          # Determine which files to process
+          if [ "${{ steps.changed-diagrams.outputs.generate_mode }}" == "changed" ]; then
+            echo "🎯 Generating only changed diagrams..."
+            files_to_process=$(cat /tmp/changed_puml.txt)
+            puml_count=$(echo "$files_to_process" | grep -c . || echo "0")
+          else
+            echo "🔄 Generating all diagrams..."
+            files_to_process=$(find docs/03-DIAGRAMS -name "*.puml" -type f)
+            puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f | wc -l)
+          fi
+          
+          echo "Found $puml_count PlantUML file(s) to process"
           
           if [ $puml_count -eq 0 ]; then
-            echo "Warning: No PlantUML files found in docs/03-DIAGRAMS/"
+            echo "Warning: No PlantUML files found to process"
             exit 0
           fi
           
-          find docs/03-DIAGRAMS -name "*.puml" -type f | while read file; do
+          # Process each file and track results
+          processed=0
+          failed=0
+          failed_files=""
+          
+          # Use process substitution to avoid subshell issues
+          while IFS= read -r file; do
+            if [ -z "$file" ]; then
+              continue
+            fi
+            
+            # Verify file exists
+            if [ ! -f "$file" ]; then
+              echo "⚠️ Warning: File not found: $file"
+              continue
+            fi
+            
+            # Get relative path from docs/03-DIAGRAMS/
             relative_path=$(echo "$file" | sed "s|^docs/03-DIAGRAMS/||")
-            # Remove .puml extension and get directory structure
+            # Get directory structure (preserve subdirectories: architecture, class-diagrams, er-diagrams, sequence-diagrams, state-diagrams)
             output_dir="docs/03-DIAGRAMS/exported/$(dirname "$relative_path")"
             mkdir -p "$output_dir"
+            
             echo "Processing: $file -> $output_dir"
-            java -jar plantuml.jar -tpng "$file" -o "$(pwd)/$output_dir" || {
-              echo "Warning: Failed to generate diagram from $file"
-            }
-          done
+            if java -jar plantuml.jar -tpng "$file" -o "$(pwd)/$output_dir"; then
+              echo "✅ Generated: $file"
+              processed=$((processed + 1))
+            else
+              echo "❌ Failed: $file"
+              failed=$((failed + 1))
+              failed_files="$failed_files\n  - $file"
+            fi
+          done <<< "$files_to_process"
+          
+          echo ""
+          echo "=== Generation Summary ==="
+          echo "✅ Successfully generated: $processed diagram(s)"
+          if [ $failed -gt 0 ]; then
+            echo "❌ Failed: $failed diagram(s)"
+            echo -e "Failed files:$failed_files"
+            exit 1
+          fi
           
           echo "Diagram generation completed"
           
