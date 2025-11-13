@@ -4,11 +4,11 @@
 
 ---
 
-## Epic-2: Authentication & User Management
+## EPIC-2: Authentication & User Management
 
 ### Issue Template:
 ```
-Title: Epic-2: Authentication & User Management
+Title: EPIC-2: Authentication & User Management
 
 Description:
 ## Overview
@@ -93,15 +93,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.1: Auth Service - Spring Boot Setup
+### STORY-2-1: Auth Service - Spring Boot Setup
 
 #### Issue Template:
 ```
-Title: Story-2.1: Auth Service - Spring Boot Setup
+Title: STORY-2-1: Auth Service - Spring Boot Setup
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Initialize Spring Boot project for Auth Service with all necessary dependencies and configurations following clean architecture principles. Set up the complete project structure with proper package organization, MongoDB connection, Spring Security configuration, and API documentation tools.
@@ -200,16 +200,16 @@ epic:auth, backend:auth, feature, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.1: Create Spring Boot project structure
+#### Subtask: TASK-2-1-1: Create Spring Boot project structure
 ```
-Title: Task-2.1.1: Create Spring Boot project structure
+Title: TASK-2-1-1: Create Spring Boot project structure
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create the Spring Boot project structure for Auth Service following clean architecture.
@@ -265,16 +265,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.2: Add Maven dependencies
+#### Subtask: TASK-2-1-2: Add Maven dependencies
 ```
-Title: Task-2.1.2: Add Maven dependencies
+Title: TASK-2-1-2: Add Maven dependencies
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Add all necessary Maven dependencies to pom.xml.
@@ -305,16 +305,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.3: Configure application.properties
+#### Subtask: TASK-2-1-3: Configure application.properties
 ```
-Title: Task-2.1.3: Configure application.properties
+Title: TASK-2-1-3: Configure application.properties
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Configure application.properties with all necessary settings.
@@ -342,16 +342,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.4: Set up package structure
+#### Subtask: TASK-2-1-4: Set up package structure
 ```
-Title: Task-2.1.4: Set up package structure
+Title: TASK-2-1-4: Set up package structure
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create package structure following clean architecture principles.
@@ -382,16 +382,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.5: Create Application.java main class
+#### Subtask: TASK-2-1-5: Create Application.java main class
 ```
-Title: Task-2.1.5: Create Application.java main class
+Title: TASK-2-1-5: Create Application.java main class
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create the main Spring Boot application class.
@@ -416,16 +416,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.6: Create health check endpoint
+#### Subtask: TASK-2-1-6: Create health check endpoint
 ```
-Title: Task-2.1.6: Create health check endpoint
+Title: TASK-2-1-6: Create health check endpoint
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create a health check endpoint for the Auth Service to verify service availability.
@@ -447,16 +447,16 @@ epic:auth, backend:auth, task, priority:low
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.1.7: Configure API documentation (Swagger/OpenAPI)
+#### Subtask: TASK-2-1-7: Configure API documentation (Swagger/OpenAPI)
 ```
-Title: Task-2.1.7: Configure API documentation (Swagger/OpenAPI)
+Title: TASK-2-1-7: Configure API documentation (Swagger/OpenAPI)
 
 Description:
 ## Story
-Related to #X (Story-2.1 issue number)
+Related to #X (STORY-2-1 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Configure Swagger/OpenAPI for REST API documentation in Auth Service. Set up SpringDoc OpenAPI for automatic API documentation generation and Swagger UI for interactive API exploration. This enables API documentation from the first service implementation.
@@ -526,15 +526,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.2: Implement user registration endpoint
+### STORY-2-2: Implement user registration endpoint
 
 #### Issue Template:
 ```
-Title: Story-2.2: Implement user registration endpoint
+Title: STORY-2-2: Implement user registration endpoint
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## User Story
 As a user, I want to register with username and email so that I can create an account.
@@ -594,16 +594,16 @@ epic:auth, backend:auth, feature, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.1: Create User model/entity
+#### Subtask: TASK-2-2-1: Create User model/entity
 ```
-Title: Task-2.2.1: Create User model/entity
+Title: TASK-2-2-1: Create User model/entity
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create User entity/model for MongoDB following the database schema specification. The User entity represents user accounts in the system and must include proper validation, indexing, and MongoDB annotations.
@@ -691,16 +691,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.2: Create UserRepository interface
+#### Subtask: TASK-2-2-2: Create UserRepository interface
 ```
-Title: Task-2.2.2: Create UserRepository interface
+Title: TASK-2-2-2: Create UserRepository interface
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create Spring Data MongoDB repository interface for User.
@@ -768,16 +768,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.3: Create UserService with registration logic
+#### Subtask: TASK-2-2-3: Create UserService with registration logic
 ```
-Title: Task-2.2.3: Create UserService with registration logic
+Title: TASK-2-2-3: Create UserService with registration logic
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create UserService with user registration business logic.
@@ -838,16 +838,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.4: Create AuthController with /register endpoint
+#### Subtask: TASK-2-2-4: Create AuthController with /register endpoint
 ```
-Title: Task-2.2.4: Create AuthController with /register endpoint
+Title: TASK-2-2-4: Create AuthController with /register endpoint
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create REST controller with user registration endpoint.
@@ -922,16 +922,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.5: Create DTOs for request/response
+#### Subtask: TASK-2-2-5: Create DTOs for request/response
 ```
-Title: Task-2.2.5: Create DTOs for request/response
+Title: TASK-2-2-5: Create DTOs for request/response
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create Data Transfer Objects for registration request and response.
@@ -962,16 +962,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.6: Implement password hashing with BCrypt
+#### Subtask: TASK-2-2-6: Implement password hashing with BCrypt
 ```
-Title: Task-2.2.6: Implement password hashing with BCrypt
+Title: TASK-2-2-6: Implement password hashing with BCrypt
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Implement secure password hashing using BCrypt with 12 rounds.
@@ -1020,16 +1020,16 @@ epic:auth, backend:auth, security, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.7: Write unit tests for UserService
+#### Subtask: TASK-2-2-7: Write unit tests for UserService
 ```
-Title: Task-2.2.7: Write unit tests for UserService
+Title: TASK-2-2-7: Write unit tests for UserService
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Write comprehensive unit tests for UserService registration logic.
@@ -1058,16 +1058,16 @@ epic:auth, backend:auth, testing, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.2.8: Write integration tests for /register endpoint
+#### Subtask: TASK-2-2-8: Write integration tests for /register endpoint
 ```
-Title: Task-2.2.8: Write integration tests for /register endpoint
+Title: TASK-2-2-8: Write integration tests for /register endpoint
 
 Description:
 ## Story
-Related to #X (Story-2.2 issue number)
+Related to #X (STORY-2-2 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Write integration tests for the registration endpoint.
@@ -1096,15 +1096,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.3: Implement user login with JWT token generation
+### STORY-2-3: Implement user login with JWT token generation
 
 #### Issue Template:
 ```
-Title: Story-2.3: Implement user login with JWT token generation
+Title: STORY-2-3: Implement user login with JWT token generation
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## User Story
 As a user, I want to login with my credentials so that I can access the game.
@@ -1131,16 +1131,16 @@ epic:auth, backend:auth, feature, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.1: Create JWT utility class
+#### Subtask: TASK-2-3-1: Create JWT utility class
 ```
-Title: Task-2.3.1: Create JWT utility class
+Title: TASK-2-3-1: Create JWT utility class
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create utility class for JWT token generation and validation.
@@ -1208,16 +1208,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.2: Configure JWT secret and expiration
+#### Subtask: TASK-2-3-2: Configure JWT secret and expiration
 ```
-Title: Task-2.3.2: Configure JWT secret and expiration
+Title: TASK-2-3-2: Configure JWT secret and expiration
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Configure JWT secret key and token expiration time.
@@ -1242,16 +1242,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.3: Implement credential validation in UserService
+#### Subtask: TASK-2-3-3: Implement credential validation in UserService
 ```
-Title: Task-2.3.3: Implement credential validation in UserService
+Title: TASK-2-3-3: Implement credential validation in UserService
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Implement login method in UserService with credential validation.
@@ -1300,16 +1300,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.4: Create login endpoint in AuthController
+#### Subtask: TASK-2-3-4: Create login endpoint in AuthController
 ```
-Title: Task-2.3.4: Create login endpoint in AuthController
+Title: TASK-2-3-4: Create login endpoint in AuthController
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create POST /api/auth/login endpoint.
@@ -1336,16 +1336,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.5: Create LoginRequest and LoginResponse DTOs
+#### Subtask: TASK-2-3-5: Create LoginRequest and LoginResponse DTOs
 ```
-Title: Task-2.3.5: Create LoginRequest and LoginResponse DTOs
+Title: TASK-2-3-5: Create LoginRequest and LoginResponse DTOs
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create DTOs for login request and response.
@@ -1374,16 +1374,16 @@ epic:auth, backend:auth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.3.6: Write unit tests for login
+#### Subtask: TASK-2-3-6: Write unit tests for login
 ```
-Title: Task-2.3.6: Write unit tests for login
+Title: TASK-2-3-6: Write unit tests for login
 
 Description:
 ## Story
-Related to #X (Story-2.3 issue number)
+Related to #X (STORY-2-3 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Write unit tests for login functionality.
@@ -1411,15 +1411,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.4: Implement secure password hashing
+### STORY-2-4: Implement secure password hashing
 
 #### Issue Template:
 ```
-Title: Story-2.4: Implement secure password hashing
+Title: STORY-2-4: Implement secure password hashing
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## User Story
 As a user, I want my password to be securely hashed so that my account is protected.
@@ -1452,16 +1452,16 @@ epic:auth, backend:auth, security, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.4.1: Add password strength validation (optional)
+#### Subtask: TASK-2-4-1: Add password strength validation (optional)
 ```
-Title: Task-2.4.1: Add password strength validation (optional)
+Title: TASK-2-4-1: Add password strength validation (optional)
 
 Description:
 ## Story
-Related to #X (Story-2.4 issue number)
+Related to #X (STORY-2-4 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Add optional password strength validation to improve security. This is an optional enhancement that can be implemented if time permits.
@@ -1497,16 +1497,16 @@ epic:auth, backend:auth, security, task, priority:low
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.4.2: Write security tests
+#### Subtask: TASK-2-4-2: Write security tests
 ```
-Title: Task-2.4.2: Write security tests
+Title: TASK-2-4-2: Write security tests
 
 Description:
 ## Story
-Related to #X (Story-2.4 issue number)
+Related to #X (STORY-2-4 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Write comprehensive security tests for password hashing and authentication.
@@ -1544,16 +1544,16 @@ epic:auth, backend:auth, security, testing, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.4.3: Document password security practices
+#### Subtask: TASK-2-4-3: Document password security practices
 ```
-Title: Task-2.4.3: Document password security practices
+Title: TASK-2-4-3: Document password security practices
 
 Description:
 ## Story
-Related to #X (Story-2.4 issue number)
+Related to #X (STORY-2-4 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Document password security practices and implementation details for future reference and compliance.
@@ -1607,15 +1607,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.5: Implement logout and session management
+### STORY-2-5: Implement logout and session management
 
 #### Issue Template:
 ```
-Title: Story-2.5: Implement logout and session management
+Title: STORY-2-5: Implement logout and session management
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## User Story
 As a user, I want to logout so that I can securely end my session.
@@ -1639,16 +1639,16 @@ epic:auth, backend:auth, feature, priority:medium
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.5.1: Create logout endpoint
+#### Subtask: TASK-2-5-1: Create logout endpoint
 ```
-Title: Task-2.5.1: Create logout endpoint
+Title: TASK-2-5-1: Create logout endpoint
 
 Description:
 ## Story
-Related to #X (Story-2.5 issue number)
+Related to #X (STORY-2-5 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create POST /api/auth/logout endpoint.
@@ -1674,15 +1674,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.6: Create JWT token validation filter/interceptor
+### STORY-2-6: Create JWT token validation filter/interceptor
 
 #### Issue Template:
 ```
-Title: Story-2.6: Create JWT token validation filter/interceptor
+Title: STORY-2-6: Create JWT token validation filter/interceptor
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create middleware to validate JWT tokens on protected endpoints across all services.
@@ -1709,16 +1709,16 @@ epic:auth, backend:auth, security, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.6.1: Create JwtAuthenticationFilter
+#### Subtask: TASK-2-6-1: Create JwtAuthenticationFilter
 ```
-Title: Task-2.6.1: Create JwtAuthenticationFilter
+Title: TASK-2-6-1: Create JwtAuthenticationFilter
 
 Description:
 ## Story
-Related to #X (Story-2.6 issue number)
+Related to #X (STORY-2-6 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create JWT authentication filter for Spring Security.
@@ -1745,16 +1745,16 @@ epic:auth, backend:auth, security, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.6.2: Configure Spring Security
+#### Subtask: TASK-2-6-2: Configure Spring Security
 ```
-Title: Task-2.6.2: Configure Spring Security
+Title: TASK-2-6-2: Configure Spring Security
 
 Description:
 ## Story
-Related to #X (Story-2.6 issue number)
+Related to #X (STORY-2-6 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Configure Spring Security with JWT authentication filter.
@@ -1783,15 +1783,15 @@ Phase 2: Authentication
 
 ---
 
-### Story-2.7: Implement Google OAuth Login
+### STORY-2-7: Implement Google OAuth Login
 
 #### Issue Template:
 ```
-Title: Story-2.7: Implement Google OAuth Login
+Title: STORY-2-7: Implement Google OAuth Login
 
 Description:
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## User Story
 As a user, I want to login with my Google account so that I can quickly access the game without creating a separate password.
@@ -1969,16 +1969,16 @@ epic:auth, backend:auth, feature, oauth, priority:medium
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.7.1: Update User model for OAuth support
+#### Subtask: TASK-2-7-1: Update User model for OAuth support
 ```
-Title: Task-2.7.1: Update User model for OAuth support
+Title: TASK-2-7-1: Update User model for OAuth support
 
 Description:
 ## Story
-Related to #X (Story-2.7 issue number)
+Related to #X (STORY-2-7 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Update User entity to support OAuth providers (Google, future: Facebook, GitHub). Add fields for OAuth provider information, user info from OAuth, and account linking.
@@ -2033,16 +2033,16 @@ epic:auth, backend:auth, database, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.7.2: Create Google OAuth Service
+#### Subtask: TASK-2-7-2: Create Google OAuth Service
 ```
-Title: Task-2.7.2: Create Google OAuth Service
+Title: TASK-2-7-2: Create Google OAuth Service
 
 Description:
 ## Story
-Related to #X (Story-2.7 issue number)
+Related to #X (STORY-2-7 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create GoogleOAuthService to handle Google OAuth token exchange, validation, and user info retrieval.
@@ -2089,16 +2089,16 @@ epic:auth, backend:auth, oauth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.7.3: Implement Google OAuth endpoint
+#### Subtask: TASK-2-7-3: Implement Google OAuth endpoint
 ```
-Title: Task-2.7.3: Implement Google OAuth endpoint
+Title: TASK-2-7-3: Implement Google OAuth endpoint
 
 Description:
 ## Story
-Related to #X (Story-2.7 issue number)
+Related to #X (STORY-2-7 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Create POST /api/auth/google endpoint in AuthController to handle Google OAuth authentication flow.
@@ -2165,16 +2165,16 @@ epic:auth, backend:auth, oauth, task, priority:high
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.7.4: Update UserRepository for OAuth queries
+#### Subtask: TASK-2-7-4: Update UserRepository for OAuth queries
 ```
-Title: Task-2.7.4: Update UserRepository for OAuth queries
+Title: TASK-2-7-4: Update UserRepository for OAuth queries
 
 Description:
 ## Story
-Related to #X (Story-2.7 issue number)
+Related to #X (STORY-2-7 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Add query methods to UserRepository for OAuth user lookups (by googleId, email, provider).
@@ -2214,16 +2214,16 @@ epic:auth, backend:auth, database, task, priority:medium
 Phase 2: Authentication
 ```
 
-#### Subtask: Task-2.7.5: Add Google OAuth configuration
+#### Subtask: TASK-2-7-5: Add Google OAuth configuration
 ```
-Title: Task-2.7.5: Add Google OAuth configuration
+Title: TASK-2-7-5: Add Google OAuth configuration
 
 Description:
 ## Story
-Related to #X (Story-2.7 issue number)
+Related to #X (STORY-2-7 issue number)
 
 ## Epic
-Related to #X (Epic-2 issue number)
+Related to #X (EPIC-2 issue number)
 
 ## Description
 Configure Google OAuth client credentials and settings in application.properties and environment variables.

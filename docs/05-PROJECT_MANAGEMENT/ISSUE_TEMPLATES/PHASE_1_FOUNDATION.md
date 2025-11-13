@@ -4,11 +4,11 @@
 
 ---
 
-## Epic-1: Foundation & Infrastructure Setup
+## EPIC-1: Foundation & Infrastructure Setup
 
 ### Issue Template:
 ```
-Title: Epic-1: Foundation & Infrastructure Setup
+Title: EPIC-1: Foundation & Infrastructure Setup
 
 Description:
 ## Overview
@@ -87,15 +87,15 @@ Phase 1: Foundation
 
 ---
 
-### Story-1.1: Set up project structure and repository
+### STORY-1-1: Set up project structure and repository
 
 #### Issue Template:
 ```
-Title: Story-1.1: Set up project structure and repository
+Title: STORY-1-1: Set up project structure and repository
 
 Description:
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Set up the complete project structure with all microservices, frontend, and infrastructure directories following clean architecture principles with strict separation of concerns. The structure must support 5 backend services (3 Spring Boot services on ports 8081-8083, 2 Node.js services on ports 3002 and 5002), Angular frontend, and deployment configurations.
@@ -149,16 +149,16 @@ epic:foundation, infrastructure, feature, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.1: Create root project structure
+#### Subtask: TASK-1-1-1: Create root project structure
 ```
-Title: Task-1.1.1: Create root project structure
+Title: TASK-1-1-1: Create root project structure
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create the root directory structure for the Battle Arena project following the microservices architecture specification. The structure must support 5 backend services, Angular frontend, Docker/Kubernetes deployments, and database initialization scripts.
@@ -207,16 +207,16 @@ epic:foundation, infrastructure, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.2: Initialize backend-services directory
+#### Subtask: TASK-1-1-2: Initialize backend-services directory
 ```
-Title: Task-1.1.2: Initialize backend-services directory
+Title: TASK-1-1-2: Initialize backend-services directory
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create directory structure for all 5 backend microservices following the architecture specification. Each service must have the appropriate structure based on its technology stack (Spring Boot for Auth/Profile/Leaderboard, Node.js for Matchmaking/Game Engine).
@@ -295,16 +295,16 @@ epic:foundation, backend, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.3: Initialize frontend-service directory
+#### Subtask: TASK-1-1-3: Initialize frontend-service directory
 ```
-Title: Task-1.1.3: Initialize frontend-service directory
+Title: TASK-1-1-3: Initialize frontend-service directory
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create directory structure for Angular frontend service following the component design specification. The frontend must support all game modules: authentication, dashboard, hero selection, matchmaking, arena selection, weapon selection, game arena, profile, and leaderboard.
@@ -379,16 +379,16 @@ epic:foundation, frontend, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.4: Create deployments directory structure
+#### Subtask: TASK-1-1-4: Create deployments directory structure
 ```
-Title: Task-1.1.4: Create deployments directory structure
+Title: TASK-1-1-4: Create deployments directory structure
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create directory structure for deployment configurations (Docker, Kubernetes).
@@ -411,16 +411,16 @@ epic:foundation, infrastructure, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.5: Create database directory for init scripts
+#### Subtask: TASK-1-1-5: Create database directory for init scripts
 ```
-Title: Task-1.1.5: Create database directory for init scripts
+Title: TASK-1-1-5: Create database directory for init scripts
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create directory for database initialization scripts following the database schema specification. The initialization scripts will set up MongoDB collections, indexes, and initial data based on the database design.
@@ -473,16 +473,16 @@ epic:foundation, database, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.6: Create scripts directory
+#### Subtask: TASK-1-1-6: Create scripts directory
 ```
-Title: Task-1.1.6: Create scripts directory
+Title: TASK-1-1-6: Create scripts directory
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create directory for utility scripts (setup, deployment, etc.).
@@ -503,16 +503,16 @@ epic:foundation, infrastructure, task, priority:low
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.7: Configure .gitignore for all services
+#### Subtask: TASK-1-1-7: Configure .gitignore for all services
 ```
-Title: Task-1.1.7: Configure .gitignore for all services
+Title: TASK-1-1-7: Configure .gitignore for all services
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create and configure .gitignore files for all services and root directory.
@@ -539,16 +539,16 @@ epic:foundation, infrastructure, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.8: Create service-specific README files
+#### Subtask: TASK-1-1-8: Create service-specific README files
 ```
-Title: Task-1.1.8: Create service-specific README files
+Title: TASK-1-1-8: Create service-specific README files
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create README.md files for each service with basic information.
@@ -577,16 +577,16 @@ epic:foundation, documentation, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.1.9: Create root README.md
+#### Subtask: TASK-1-1-9: Create root README.md
 ```
-Title: Task-1.1.9: Create root README.md
+Title: TASK-1-1-9: Create root README.md
 
 Description:
 ## Story
-Related to #X (Story-1.1 issue number)
+Related to #X (STORY-1-1 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create comprehensive root README.md file that serves as the main entry point for the project. The README should provide project overview, architecture summary, technology stack, getting started guide, and links to detailed documentation.
@@ -724,15 +724,15 @@ Phase 1: Foundation
 
 ---
 
-### Story-1.2: Set up development environment and tooling
+### STORY-1-2: Set up development environment and tooling
 
 #### Issue Template:
 ```
-Title: Story-1.2: Set up development environment and tooling
+Title: STORY-1-2: Set up development environment and tooling
 
 Description:
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure development environment with Docker Compose for local development following the deployment architecture specification. This setup is recommended for student projects (<1,000 users/month) and provides a simple, free orchestration solution for all services, databases, and infrastructure.
@@ -788,16 +788,16 @@ epic:foundation, infrastructure, feature, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.1: Install and verify Docker and Docker Compose
+#### Subtask: TASK-1-2-1: Install and verify Docker and Docker Compose
 ```
-Title: Task-1.2.1: Install and verify Docker and Docker Compose
+Title: TASK-1-2-1: Install and verify Docker and Docker Compose
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Install Docker and Docker Compose and verify installation.
@@ -821,16 +821,16 @@ epic:foundation, infrastructure, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.2: Create docker-compose.yml for local development
+#### Subtask: TASK-1-2-2: Create docker-compose.yml for local development
 ```
-Title: Task-1.2.2: Create docker-compose.yml for local development
+Title: TASK-1-2-2: Create docker-compose.yml for local development
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create docker-compose.yml file for running all services locally following the deployment architecture. **Critical:** Services communicate internally via Docker network using service names. Only Nginx API Gateway exposes external ports (80/443). Backend services have NO host ports - they're accessed only via Nginx. Database ports (MongoDB/Redis) are exposed only for development convenience and should be removed in production.
@@ -992,16 +992,16 @@ epic:foundation, infrastructure, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.3: Configure MongoDB container
+#### Subtask: TASK-1-2-3: Configure MongoDB container
 ```
-Title: Task-1.2.3: Configure MongoDB container
+Title: TASK-1-2-3: Configure MongoDB container
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure MongoDB container in docker-compose.yml with proper settings.
@@ -1028,16 +1028,16 @@ epic:foundation, database, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.4: Configure Redis container
+#### Subtask: TASK-1-2-4: Configure Redis container
 ```
-Title: Task-1.2.4: Configure Redis container
+Title: TASK-1-2-4: Configure Redis container
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure Redis container in docker-compose.yml with proper settings.
@@ -1062,16 +1062,16 @@ epic:foundation, database, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.5: Create development startup scripts
+#### Subtask: TASK-1-2-5: Create development startup scripts
 ```
-Title: Task-1.2.5: Create development startup scripts
+Title: TASK-1-2-5: Create development startup scripts
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create scripts to help with local development (start, stop, restart services).
@@ -1097,16 +1097,16 @@ epic:foundation, infrastructure, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.6: Create environment variable templates
+#### Subtask: TASK-1-2-6: Create environment variable templates
 ```
-Title: Task-1.2.6: Create environment variable templates
+Title: TASK-1-2-6: Create environment variable templates
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create .env.example files for all services with required environment variables.
@@ -1134,16 +1134,16 @@ epic:foundation, infrastructure, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.7: Test local development environment
+#### Subtask: TASK-1-2-7: Test local development environment
 ```
-Title: Task-1.2.7: Test local development environment
+Title: TASK-1-2-7: Test local development environment
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Test that the local development environment works correctly.
@@ -1170,16 +1170,16 @@ epic:foundation, infrastructure, testing, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.8: Create Nginx API Gateway configuration
+#### Subtask: TASK-1-2-8: Create Nginx API Gateway configuration
 ```
-Title: Task-1.2.8: Create Nginx API Gateway configuration
+Title: TASK-1-2-8: Create Nginx API Gateway configuration
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create Nginx configuration file for API Gateway that routes requests to backend services, handles load balancing, and manages WebSocket connections. The Nginx configuration must support all services and follow the system architecture specification.
@@ -1345,16 +1345,16 @@ epic:foundation, infrastructure, api-gateway, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.2.9: Document local setup process
+#### Subtask: TASK-1-2-9: Document local setup process
 ```
-Title: Task-1.2.9: Document local setup process
+Title: TASK-1-2-9: Document local setup process
 
 Description:
 ## Story
-Related to #X (Story-1.2 issue number)
+Related to #X (STORY-1-2 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create comprehensive documentation for setting up and running the local development environment.
@@ -1418,15 +1418,15 @@ Phase 1: Foundation
 
 ---
 
-### Story-1.3: Set up CI/CD pipeline with GitHub Actions
+### STORY-1-3: Set up CI/CD pipeline with GitHub Actions
 
 #### Issue Template:
 ```
-Title: Story-1.3: Set up CI/CD pipeline with GitHub Actions
+Title: STORY-1-3: Set up CI/CD pipeline with GitHub Actions
 
 Description:
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create comprehensive GitHub Actions workflows for automated testing, building, code quality checks, security scanning, and deployment following the CI/CD requirements. The workflows must enforce code quality standards, run tests with coverage reporting, perform security scanning, and verify builds before merging.
@@ -1508,16 +1508,16 @@ epic:foundation, infrastructure, feature, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.3.1: Create GitHub Actions workflow for backend services
+#### Subtask: TASK-1-3-1: Create GitHub Actions workflow for backend services
 ```
-Title: Task-1.3.1: Create GitHub Actions workflow for backend services
+Title: TASK-1-3-1: Create GitHub Actions workflow for backend services
 
 Description:
 ## Story
-Related to #X (Story-1.3 issue number)
+Related to #X (STORY-1-3 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create GitHub Actions workflow for Spring Boot and Node.js backend services. The workflow must include automated testing (unit and integration), code quality checks (Checkstyle, ESLint), code coverage reporting (80%+ target), security scanning, and build verification.
@@ -1608,16 +1608,16 @@ epic:foundation, infrastructure, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.3.2: Create GitHub Actions workflow for frontend
+#### Subtask: TASK-1-3-2: Create GitHub Actions workflow for frontend
 ```
-Title: Task-1.3.2: Create GitHub Actions workflow for frontend
+Title: TASK-1-3-2: Create GitHub Actions workflow for frontend
 
 Description:
 ## Story
-Related to #X (Story-1.3 issue number)
+Related to #X (STORY-1-3 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create GitHub Actions workflow for Angular frontend. The workflow must include automated testing, code quality checks (ESLint, Prettier), code coverage reporting (80%+ target), and build verification.
@@ -1689,16 +1689,16 @@ epic:foundation, infrastructure, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.3.3: Create security scanning workflow
+#### Subtask: TASK-1-3-3: Create security scanning workflow
 ```
-Title: Task-1.3.3: Create security scanning workflow
+Title: TASK-1-3-3: Create security scanning workflow
 
 Description:
 ## Story
-Related to #X (Story-1.3 issue number)
+Related to #X (STORY-1-3 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create dedicated GitHub Actions workflow for security scanning including dependency vulnerability scanning, SAST (Static Application Security Testing), and license compliance checking.
@@ -1796,15 +1796,15 @@ Phase 1: Foundation
 
 ---
 
-### Story-1.4: Set up development tooling and code quality infrastructure
+### STORY-1-4: Set up development tooling and code quality infrastructure
 
 #### Issue Template:
 ```
-Title: Story-1.4: Set up development tooling and code quality infrastructure
+Title: STORY-1-4: Set up development tooling and code quality infrastructure
 
 Description:
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Set up foundational development tooling, code quality tools, testing frameworks, and automation infrastructure to enforce code quality standards and enable efficient development workflow. This includes linters, formatters, pre-commit hooks, code coverage tools, and development scripts. **Note:** API documentation tools (Swagger/OpenAPI) will be configured in Phase 2 when REST APIs are implemented.
@@ -1900,16 +1900,16 @@ epic:foundation, infrastructure, tooling, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.1: Configure testing frameworks
+#### Subtask: TASK-1-4-1: Configure testing frameworks
 ```
-Title: Task-1.4.1: Configure testing frameworks
+Title: TASK-1-4-1: Configure testing frameworks
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure testing frameworks for all services (JUnit for Java, Jest for Node.js, Jasmine/Karma for Angular) following the testing strategy specification. Set up test directory structures and basic test configuration files.
@@ -2010,16 +2010,16 @@ epic:foundation, testing, tooling, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.2: Configure code quality tools (linters and formatters)
+#### Subtask: TASK-1-4-2: Configure code quality tools (linters and formatters)
 ```
-Title: Task-1.4.2: Configure code quality tools (linters and formatters)
+Title: TASK-1-4-2: Configure code quality tools (linters and formatters)
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure code quality tools (ESLint, Prettier, Checkstyle) for all services to enforce code quality standards and maintain consistent code style across the project.
@@ -2073,16 +2073,16 @@ epic:foundation, code-quality, tooling, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.3: Configure pre-commit hooks
+#### Subtask: TASK-1-4-3: Configure pre-commit hooks
 ```
-Title: Task-1.4.3: Configure pre-commit hooks
+Title: TASK-1-4-3: Configure pre-commit hooks
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure pre-commit hooks using Husky and lint-staged to automatically run linters and formatters before commits, ensuring code quality standards are enforced at the commit level.
@@ -2138,16 +2138,16 @@ epic:foundation, tooling, automation, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.4: Configure code coverage tools
+#### Subtask: TASK-1-4-4: Configure code coverage tools
 ```
-Title: Task-1.4.4: Configure code coverage tools
+Title: TASK-1-4-4: Configure code coverage tools
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure code coverage tools (JaCoCo for Java, Istanbul/NYC for Node.js, Karma for Angular) to track and enforce 80%+ code coverage target as specified in the testing strategy.
@@ -2219,16 +2219,16 @@ epic:foundation, testing, tooling, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.5: Configure editor and IDE settings
+#### Subtask: TASK-1-4-5: Configure editor and IDE settings
 ```
-Title: Task-1.4.5: Configure editor and IDE settings
+Title: TASK-1-4-5: Configure editor and IDE settings
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create editor and IDE configuration files (.editorconfig, IDE-specific settings) to ensure consistent code formatting and development experience across all team members.
@@ -2282,16 +2282,16 @@ epic:foundation, tooling, task, priority:low
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.6: Configure dependency management and security scanning
+#### Subtask: TASK-1-4-6: Configure dependency management and security scanning
 ```
-Title: Task-1.4.6: Configure dependency management and security scanning
+Title: TASK-1-4-6: Configure dependency management and security scanning
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure dependency management tools (Dependabot, npm audit, Maven dependency check) and security vulnerability scanning to ensure dependencies are up-to-date and secure.
@@ -2344,16 +2344,16 @@ epic:foundation, security, tooling, task, priority:high
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.7: Create comprehensive development scripts
+#### Subtask: TASK-1-4-7: Create comprehensive development scripts
 ```
-Title: Task-1.4.7: Create comprehensive development scripts
+Title: TASK-1-4-7: Create comprehensive development scripts
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Create comprehensive development scripts for common tasks (test, lint, format, build, coverage) to streamline development workflow and ensure consistency across all services.
@@ -2415,16 +2415,16 @@ epic:foundation, tooling, scripts, task, priority:medium
 Phase 1: Foundation
 ```
 
-#### Subtask: Task-1.4.8: Configure GitHub branch protection and PR templates
+#### Subtask: TASK-1-4-8: Configure GitHub branch protection and PR templates
 ```
-Title: Task-1.4.8: Configure GitHub branch protection and PR templates
+Title: TASK-1-4-8: Configure GitHub branch protection and PR templates
 
 Description:
 ## Story
-Related to #X (Story-1.4 issue number)
+Related to #X (STORY-1-4 issue number)
 
 ## Epic
-Related to #X (Epic-1 issue number)
+Related to #X (EPIC-1 issue number)
 
 ## Description
 Configure GitHub branch protection rules for main/develop branches and create PR templates to ensure code quality and proper review process.
