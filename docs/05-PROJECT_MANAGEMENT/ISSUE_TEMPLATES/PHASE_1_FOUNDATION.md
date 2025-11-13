@@ -1345,6 +1345,77 @@ epic:foundation, infrastructure, api-gateway, task, priority:high
 Phase 1: Foundation
 ```
 
+#### Subtask: Task-1.2.9: Document local setup process
+```
+Title: Task-1.2.9: Document local setup process
+
+Description:
+## Story
+Related to #X (Story-1.2 issue number)
+
+## Epic
+Related to #X (Epic-1 issue number)
+
+## Description
+Create comprehensive documentation for setting up and running the local development environment.
+
+## Acceptance Criteria
+- [ ] Local setup guide created
+- [ ] Prerequisites documented (Docker, Docker Compose)
+- [ ] Step-by-step setup instructions
+- [ ] Environment variable configuration explained
+- [ ] Troubleshooting section included
+- [ ] Common issues and solutions documented
+
+## Technical Details
+
+### Documentation Location
+Create or update: `docs/01-GETTING_STARTED/README.md` or `docs/01-GETTING_STARTED/LOCAL_SETUP.md`
+
+### Documentation Sections
+1. **Prerequisites**
+   - Docker Desktop/Engine installation
+   - Docker Compose installation
+   - System requirements
+
+2. **Quick Start**
+   - Clone repository
+   - Copy .env.example to .env
+   - Run docker-compose up
+
+3. **Detailed Setup**
+   - Environment variable configuration
+   - Service configuration
+   - Database initialization
+
+4. **Running Services**
+   - Starting services
+   - Stopping services
+   - Viewing logs
+   - Accessing services
+
+5. **Troubleshooting**
+   - Common issues
+   - Port conflicts
+   - Database connection issues
+   - Service startup failures
+
+6. **Development Workflow**
+   - Making changes
+   - Testing changes
+   - Debugging
+
+## Related Documentation
+- [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development environment setup (section 1.1)
+- [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service ports and communication (sections 2.1-2.5)
+
+## Labels
+epic:foundation, documentation, task, priority:medium
+
+## Milestone
+Phase 1: Foundation
+```
+
 ---
 
 ### Story-1.3: Set up CI/CD pipeline with GitHub Actions
