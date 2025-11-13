@@ -74,9 +74,9 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
 
 ## Architecture Diagrams
-- **System Architecture:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png`
-- **Container Diagram:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/architecture/Container%20Diagram.png`
-- **Component Diagram:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/architecture/Component%20Diagram%20-%20Game%20Engine%20Service.png`
+- **System Architecture:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png`
+- **Container Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Container%20Diagram.png`
+- **Component Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Component%20Diagram%20-%20Game%20Engine%20Service.png`
 
 ## Labels
 epic:foundation, infrastructure, priority:high
@@ -364,8 +364,13 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 
 ## Related Documentation
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Frontend structure and services (sections 1.1-1.2)
+- [Frontend Components LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/FRONTEND/FRONTEND_COMPONENTS.md) - Detailed frontend component design, services, and patterns
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Frontend responsibilities and communication patterns
-- **Frontend Components Class Diagram:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png`
+- [Communication Patterns](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/05-COMMUNICATION_PATTERNS.md) - REST and WebSocket communication patterns
+- [Data Flow](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/04-DATA_FLOW.md) - Authentication, matchmaking, and gameplay flows
+
+## Architecture Diagrams
+- **Frontend Components Class Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png`
 
 ## Labels
 epic:foundation, frontend, task, priority:high
@@ -418,18 +423,48 @@ Related to #X (Story-1.1 issue number)
 Related to #X (Epic-1 issue number)
 
 ## Description
-Create directory for database initialization scripts.
+Create directory for database initialization scripts following the database schema specification. The initialization scripts will set up MongoDB collections, indexes, and initial data based on the database design.
 
 ## Acceptance Criteria
 - [ ] database/ directory created
 - [ ] database/init/ directory created
-- [ ] Placeholder init script created
+- [ ] Placeholder init script created (init.js)
+- [ ] Script structure follows database schema design
+- [ ] Collection initialization logic documented
 
 ## Technical Details
+
+### Database Initialization Structure
+Based on [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) and [Database Schema LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/DATABASE_SCHEMA.md):
+
 Create:
-- database/
+```
+database/
   - init/
-    - init.js (placeholder for MongoDB init)
+    - init.js (MongoDB initialization script)
+```
+
+### MongoDB Collections to Initialize
+Based on [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md):
+- **Users** - User accounts (Auth Service)
+- **Profiles** - User profiles (Profile Service)
+- **Leaderboard** - Leaderboard data (Leaderboard Service)
+- **Matches** - Match history (Game Engine Service)
+- **Heroes** - Hero configurations (static data)
+- **Weapons** - Weapon configurations (static data)
+- **Arenas** - Arena configurations (static data)
+
+### Indexes to Create
+- Users: username (unique), email (unique)
+- Profiles: userId (unique), globalScore (descending), rankTier
+- Leaderboard: globalScore (descending), rankTier, region
+- Matches: matchId (unique), player1Id, player2Id, winnerId
+
+## Related Documentation
+- [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - MongoDB collections and indexes (sections 1.1-1.6)
+- [Database Schema LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/DATABASE_SCHEMA.md) - Database schema design and entity models
+- **Database ER Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png`
+- **Database Schema Class Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png`
 
 ## Labels
 epic:foundation, database, task, priority:medium
@@ -744,7 +779,7 @@ Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM
 ## Related Documentation
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development environment setup (section 1.1)
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Data storage requirements (sections 4.1-4.2)
-- **Deployment Diagram:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/architecture/Deployment%20Diagram.png`
+- **Deployment Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Deployment%20Diagram.png`
 
 ## Labels
 epic:foundation, infrastructure, feature, priority:high
@@ -947,7 +982,7 @@ networks:
 ## Related Documentation
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Docker Compose setup (section 1.1)
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service ports and data storage (sections 2.1-2.5, 4.1-4.2)
-- **Cluster 1 Student Deployment:** `https://github.com/{username}/{repo}/blob/{branch}/docs/03-DIAGRAMS/exported/architecture/Cluster%201%20Student%20Deployment.png`
+- **Cluster 1 Student Deployment:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Cluster%201%20Student%20Deployment.png`
 - Networks and volumes
 
 ## Labels
