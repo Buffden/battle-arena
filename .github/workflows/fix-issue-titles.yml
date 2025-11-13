@@ -18,110 +18,87 @@ jobs:
       contents: read
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: |
-          npm init -y
-          npm install @octokit/rest
-
       - name: Fix issue titles
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
-        run: |
-          # Create a script to fix issue titles
-          cat > fix_titles.js << 'EOF'
-          const { Octokit } = require('@octokit/rest');
-          
-          const octokit = new Octokit({
-            auth: process.env.GITHUB_TOKEN
-          });
-          
-          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-          const issueNumber = process.env.ISSUE_NUMBER;
-          
-          // Mapping patterns: old -> new
-          const titleMappings = [
-            // Epic patterns
-            { pattern: /^Epic-(\d+):/i, replacement: 'EPIC-$1:' },
-            // Story patterns (Epic.Story format)
-            { pattern: /^Story-(\d+)\.(\d+):/i, replacement: 'STORY-$1-$2:' },
-            // Task patterns (Epic.Story.Task format)
-            { pattern: /^Task-(\d+)\.(\d+)\.(\d+):/i, replacement: 'TASK-$1-$2-$3:' },
-          ];
-          
-          async function fixIssueTitle(issueNum) {
-            try {
-              const { data: issue } = await octokit.rest.issues.get({
-                owner,
-                repo,
-                issue_number: issueNum
-              });
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = ${{ github.event.issue.number || github.event.inputs.issue_number || 'null' }};
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Title transformation function
+            function fixTitle(title) {
+              let newTitle = title;
               
-              let newTitle = issue.title;
-              let changed = false;
+              // Epic: Epic-1 -> EPIC-1
+              newTitle = newTitle.replace(/^Epic-(\d+):/i, 'EPIC-$1:');
               
-              // Apply all mappings
-              for (const mapping of titleMappings) {
-                const newTitleTest = newTitle.replace(mapping.pattern, mapping.replacement);
-                if (newTitleTest !== newTitle) {
-                  newTitle = newTitleTest;
-                  changed = true;
-                }
-              }
+              // Story: Story-1.1 -> STORY-1-1
+              newTitle = newTitle.replace(/^Story-(\d+)\.(\d+):/i, 'STORY-$1-$2:');
               
-              if (changed) {
-                console.log(`Updating issue #${issueNum}: "${issue.title}" -> "${newTitle}"`);
-                await octokit.rest.issues.update({
+              // Task: Task-1.1.1 -> TASK-1-1-1
+              newTitle = newTitle.replace(/^Task-(\d+)\.(\d+)\.(\d+):/i, 'TASK-$1-$2-$3:');
+              
+              return newTitle;
+            }
+            
+            async function fixIssueTitle(issueNum) {
+              try {
+                const { data: issue } = await github.rest.issues.get({
                   owner,
                   repo,
-                  issue_number: issueNum,
-                  title: newTitle
+                  issue_number: issueNum
                 });
-                console.log(`✓ Fixed issue #${issueNum}`);
-              } else {
-                console.log(`Issue #${issueNum} title is already correct: "${issue.title}"`);
+                
+                if (issue.pull_request) {
+                  console.log(`Issue #${issueNum} is a PR, skipping`);
+                  return;
+                }
+                
+                const newTitle = fixTitle(issue.title);
+                
+                if (newTitle !== issue.title) {
+                  console.log(`Updating issue #${issueNum}: "${issue.title}" -> "${newTitle}"`);
+                  await github.rest.issues.update({
+                    owner,
+                    repo,
+                    issue_number: issueNum,
+                    title: newTitle
+                  });
+                  console.log(`✓ Fixed issue #${issueNum}`);
+                } else {
+                  console.log(`Issue #${issueNum} title is already correct: "${issue.title}"`);
+                }
+              } catch (error) {
+                console.error(`Error processing issue #${issueNum}:`, error.message);
               }
-            } catch (error) {
-              console.error(`Error processing issue #${issueNum}:`, error.message);
             }
-          }
-          
-          async function fixAllOpenIssues() {
-            try {
-              const { data: issues } = await octokit.rest.issues.listForRepo({
-                owner,
-                repo,
-                state: 'open',
-                per_page: 100
-              });
-              
-              console.log(`Found ${issues.length} open issues`);
-              
-              for (const issue of issues) {
-                if (issue.pull_request) continue; // Skip PRs
-                await fixIssueTitle(issue.number);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
+            
+            async function fixAllOpenIssues() {
+              try {
+                const { data: issues } = await github.rest.issues.listForRepo({
+                  owner,
+                  repo,
+                  state: 'open',
+                  per_page: 100
+                });
+                
+                console.log(`Found ${issues.length} open issues`);
+                
+                for (const issue of issues) {
+                  if (issue.pull_request) continue; // Skip PRs
+                  await fixIssueTitle(issue.number);
+                  await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
+                }
+              } catch (error) {
+                console.error('Error listing issues:', error.message);
               }
-            } catch (error) {
-              console.error('Error listing issues:', error.message);
             }
-          }
-          
-          if (issueNumber) {
-            fixIssueTitle(parseInt(issueNumber));
-          } else {
-            fixAllOpenIssues();
-          }
-          EOF
-          
-          node fix_titles.js
+            
+            if (issueNumber && issueNumber !== 'null') {
+              await fixIssueTitle(parseInt(issueNumber));
+            } else {
+              await fixAllOpenIssues();
+            }
 
