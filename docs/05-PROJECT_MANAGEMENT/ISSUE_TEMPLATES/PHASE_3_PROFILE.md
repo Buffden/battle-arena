@@ -908,6 +908,15 @@ As a user, I want to update my profile so that I can customize my display name a
 - Add input validation
 - Handle avatar upload (if file upload)
 
+## Subtasks
+- [ ] Create UpdateProfileRequest DTO (Task-3.3.1)
+- [ ] Implement update logic in ProfileService (Task-3.3.2)
+- [ ] Create PUT endpoint in ProfileController (Task-3.3.3)
+- [ ] Add input validation (Task-3.3.4)
+- [ ] Handle avatar upload (if file upload) (Task-3.3.5)
+- [ ] Write tests for update endpoint (Task-3.3.6)
+- [ ] Update API documentation (Task-3.3.7)
+
 ## Labels
 epic:profile, backend:profile, feature, priority:high
 
@@ -1054,9 +1063,72 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.5: Write tests for update endpoint
+#### Subtask: Task-3.3.5: Handle avatar upload (if file upload)
 ```
-Title: Task-3.3.5: Write tests for update endpoint
+Title: Task-3.3.5: Handle avatar upload (if file upload)
+
+Description:
+## Story
+Related to #X (Story-3.3 issue number)
+
+## Epic
+Related to #X (Epic-3 issue number)
+
+## Description
+Implement avatar file upload functionality if file upload is chosen over URL-based avatars. This is optional and depends on the chosen implementation approach.
+
+## Acceptance Criteria
+- [ ] File upload endpoint created (if implementing file upload)
+- [ ] File validation (type, size)
+- [ ] File storage configured (local or cloud storage)
+- [ ] Avatar URL returned after upload
+- [ ] File upload security implemented
+
+## Technical Details
+
+### Implementation Options
+
+**Option 1: URL-based (Simpler)**
+- User provides avatar URL
+- No file upload needed
+- Validate URL format
+- Store URL in profile
+
+**Option 2: File Upload (More Complex)**
+- Accept image file (JPEG, PNG)
+- Validate file type and size
+- Store file (local filesystem or cloud storage like S3)
+- Generate and store file URL
+- Return URL to client
+
+### File Upload Implementation (if chosen)
+- Create FileUploadService
+- Configure file storage location
+- Implement file validation
+- Implement file upload endpoint
+- Handle file deletion on update
+
+### Security Considerations
+- Validate file type (only images)
+- Limit file size (e.g., 5MB max)
+- Sanitize file names
+- Store files outside web root (if local)
+- Use cloud storage for production (recommended)
+
+## Related Documentation
+- [Profile Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md) - Profile update flow
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - File upload security
+
+## Labels
+epic:profile, backend:profile, feature, task, priority:medium
+
+## Milestone
+Phase 3: Profile Management
+```
+
+#### Subtask: Task-3.3.6: Write tests for update endpoint
+```
+Title: Task-3.3.6: Write tests for update endpoint
 
 Description:
 ## Story
@@ -1084,6 +1156,52 @@ Create:
 
 ## Labels
 epic:profile, backend:profile, testing, priority:high
+
+## Milestone
+Phase 3: Profile Management
+```
+
+#### Subtask: Task-3.3.7: Update API documentation
+```
+Title: Task-3.3.7: Update API documentation
+
+Description:
+## Story
+Related to #X (Story-3.3 issue number)
+
+## Epic
+Related to #X (Epic-3 issue number)
+
+## Description
+Update API documentation (Swagger/OpenAPI) with the update profile endpoint details.
+
+## Acceptance Criteria
+- [ ] PUT /api/profile/me endpoint documented
+- [ ] Request body schema documented
+- [ ] Response schema documented
+- [ ] Error responses documented
+- [ ] Authentication requirements documented
+
+## Technical Details
+
+### API Documentation Updates
+- Add PUT /api/profile/me endpoint
+- Document UpdateProfileRequest schema
+- Document ProfileResponse schema
+- Document error responses (400, 401, 404, 500)
+- Add example requests and responses
+
+### Swagger/OpenAPI Annotations
+- @Operation annotation for endpoint
+- @ApiResponse for success and error cases
+- @Schema for request/response models
+
+## Related Documentation
+- [Profile Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md) - API design
+- SpringDoc OpenAPI documentation
+
+## Labels
+epic:profile, backend:profile, documentation, task, priority:medium
 
 ## Milestone
 Phase 3: Profile Management
