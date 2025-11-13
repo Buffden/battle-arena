@@ -24,23 +24,27 @@
 
 ### 1.1 Responsibilities
 - User registration and authentication
+- OAuth authentication (Google OAuth 2.0)
 - JWT token generation and validation
 - Password hashing and security
 - Session management
+- Account linking for OAuth users
 
 ### 1.2 Key Components
 - **AuthController** - REST API endpoint handler (Facade Pattern)
 - **AuthService** - Business logic for authentication (Strategy Pattern)
+- **GoogleOAuthService** - Google OAuth token exchange and validation (Strategy Pattern)
 - **UserRepository** - Data access layer (Repository Pattern)
 - **JwtTokenManager** - JWT token management (Singleton Pattern)
 - **PasswordEncoder** - Password hashing (Strategy Pattern)
+- **GoogleOAuthConfig** - OAuth configuration management
 
 ### 1.3 Design Patterns Applied
 - **Facade Pattern** - AuthController provides simplified interface
-- **Strategy Pattern** - Authentication strategies, password encoding strategies
+- **Strategy Pattern** - Authentication strategies (local, OAuth), password encoding strategies
 - **Repository Pattern** - UserRepository abstracts data access
 - **Singleton Pattern** - JwtTokenManager single instance
-- **Factory Pattern** - User entity creation (optional)
+- **Factory Pattern** - User entity creation, OAuth provider factory (optional)
 
 ---
 
@@ -59,7 +63,8 @@ AuthService
     ├── depends on → UserRepository
     ├── depends on → PasswordEncoder
     ├── depends on → JwtTokenManager
-    └── depends on → AuthenticationStrategy
+    ├── depends on → AuthenticationStrategy
+    └── depends on → GoogleOAuthService
 
 UserRepository
     └── implements → MongoRepository<User, String>

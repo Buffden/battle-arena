@@ -168,6 +168,13 @@ kubectl create secret generic jwt-secret \
   --from-literal=secret=your-jwt-secret-key-change-in-production \
   --namespace=battle-arena
 
+# Google OAuth Secret (Optional - for Story-2.7)
+kubectl create secret generic google-oauth-secret \
+  --from-literal=client-id=your-google-client-id \
+  --from-literal=client-secret=your-google-client-secret \
+  --from-literal=redirect-uri=https://your-domain.com/auth/google/callback \
+  --namespace=battle-arena
+
 # Grafana Secret (for monitoring)
 kubectl create secret generic grafana-secret \
   --from-literal=admin-password=your-grafana-admin-password \

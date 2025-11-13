@@ -348,7 +348,7 @@ frontend-service/
 ### Frontend Services Required
 Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) section 1.2:
 
-- **AuthService**: Login, registration, JWT token management
+- **AuthService**: Login, registration, Google OAuth login, JWT token management
 - **GameService**: WebSocket connection, game state synchronization, turn management
 - **HeroSelectionService**: Multiple hero selection management
 - **MatchmakingService**: Queue joining/leaving, match notifications

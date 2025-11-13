@@ -77,7 +77,7 @@ We need to build a scalable, maintainable system that can handle real-time multi
 
 #### Decision
 We will use a **microservices architecture** with the following services:
-- **Auth Service:** Spring Boot (Java) - User authentication and authorization
+- **Auth Service:** Spring Boot (Java) - User authentication and authorization (JWT, Google OAuth)
 - **Profile Service:** Spring Boot (Java) - User profile, global score, and rank tier tracking
 - **Leaderboard Service:** Spring Boot (Java) - Leaderboard and rankings with filtering
 - **Matchmaking Service:** Node.js (Express, Socket.io) - Hero selection, matchmaking, arena selection, weapon selection
@@ -120,6 +120,7 @@ We will use **JWT (JSON Web Tokens)** for authentication with the following spec
 - **Storage:** HTTP-only cookies (preferred) or secure localStorage
 - **Validation:** Token validation at API gateway and service level
 - **Revocation:** Token blacklisting support (optional)
+- **OAuth Support:** Google OAuth 2.0 for third-party authentication (optional, Story-2.7)
 
 #### Consequences
 **Positive:**

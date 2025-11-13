@@ -50,12 +50,14 @@ frontend-service/
 - **Purpose:** Handles authentication and JWT token management
 - **Responsibilities:**
   - User login and registration
+  - Google OAuth login
   - JWT token storage and retrieval
   - Token refresh
   - Logout functionality
 - **Methods:**
   - `login(username, password)`
   - `register(userData)`
+  - `loginWithGoogle(authorizationCode)`
   - `logout()`
   - `getToken()`
   - `isAuthenticated()`

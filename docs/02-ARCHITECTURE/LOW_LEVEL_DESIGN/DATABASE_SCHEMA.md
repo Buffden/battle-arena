@@ -111,14 +111,31 @@ EntityModel
 - `_id` - ObjectId (primary key)
 - `username` - String (unique, required)
 - `email` - String (unique, required)
-- `passwordHash` - String (required)
+- `passwordHash` - String (nullable for OAuth users)
+- `googleId` - String (unique, nullable, sparse index)
+- `provider` - String (enum: "local", "google")
+- `providerId` - String (OAuth provider user ID)
+- `firstName` - String (from OAuth providers)
+- `lastName` - String (from OAuth providers)
+- `pictureUrl` - String (profile picture from OAuth providers)
 - `createdAt` - Date (required)
 - `updatedAt` - Date (required)
+- `lastLoginAt` - Date (optional)
 
 **Indexes:**
 - `username` - Unique index
 - `email` - Unique index
+- `googleId` - Unique sparse index (for OAuth users)
+- `provider` - Ascending index
 - `createdAt` - Ascending index
+- Compound index: `{email: 1, provider: 1}` (for OAuth lookups)
+
+**OAuth Support:**
+- `passwordHash` is nullable for OAuth users (Google login)
+- `googleId` stores Google user ID for OAuth authentication
+- `provider` indicates authentication method ("local" or "google")
+- `providerId` stores provider-specific user ID
+- `firstName`, `lastName`, `pictureUrl` store user info from OAuth providers
 
 **Dependencies:**
 - MongoDB (persistence)
