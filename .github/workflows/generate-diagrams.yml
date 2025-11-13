@@ -64,12 +64,12 @@ jobs:
           echo "Searching for PlantUML files in docs/03-DIAGRAMS..."
           puml_count=$(find docs/03-DIAGRAMS -name "*.puml" -type f | wc -l)
           echo "Found $puml_count PlantUML file(s)"
-
+          
           if [ $puml_count -eq 0 ]; then
             echo "Warning: No PlantUML files found in docs/03-DIAGRAMS/"
             exit 0
           fi
-
+          
           find docs/03-DIAGRAMS -name "*.puml" -type f | while read file; do
             relative_path=$(echo "$file" | sed "s|^docs/03-DIAGRAMS/||")
             # Remove .puml extension and get directory structure
@@ -80,7 +80,7 @@ jobs:
               echo "Warning: Failed to generate diagram from $file"
             }
           done
-
+          
           echo "Diagram generation completed"
           
       - name: Check if validation needed
@@ -233,20 +233,20 @@ jobs:
 
           # Count generated diagrams (only relevant for push/workflow_dispatch)
           if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            if [ -d "docs/03-DIAGRAMS/exported" ]; then
-              png_count=$(find docs/03-DIAGRAMS/exported -name "*.png" -type f 2>/dev/null | wc -l)
-              echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              if [ $png_count -gt 0 ]; then
+          if [ -d "docs/03-DIAGRAMS/exported" ]; then
+            png_count=$(find docs/03-DIAGRAMS/exported -name "*.png" -type f 2>/dev/null | wc -l)
+            echo "### Generated Diagrams" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ $png_count -gt 0 ]; then
                 echo "✅ **$png_count diagram(s) generated successfully**" >> $GITHUB_STEP_SUMMARY
                 echo "" >> $GITHUB_STEP_SUMMARY
                 find docs/03-DIAGRAMS/exported -name "*.png" -type f | head -10 | while read file; do
-                  echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
-                done
+                echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+              done
                 if [ $png_count -gt 10 ]; then
                   echo "- ... and $((png_count - 10)) more" >> $GITHUB_STEP_SUMMARY
                 fi
-              else
+            else
                 echo "⚠️ No diagrams were generated." >> $GITHUB_STEP_SUMMARY
               fi
             else
@@ -261,7 +261,7 @@ jobs:
             echo "Diagrams are not generated on pull requests. They will be generated after merge." >> $GITHUB_STEP_SUMMARY
             png_count=0
           fi
-
+          
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Diagram Statistics" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -270,7 +270,7 @@ jobs:
           if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "- **Generated diagrams (.png):** $png_count" >> $GITHUB_STEP_SUMMARY
           fi
-
+          
           if [ $puml_count -eq 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ **Warning:** No PlantUML source files found in \`docs/03-DIAGRAMS/\`" >> $GITHUB_STEP_SUMMARY
