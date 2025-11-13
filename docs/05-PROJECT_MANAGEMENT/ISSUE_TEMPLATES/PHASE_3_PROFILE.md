@@ -4,11 +4,11 @@
 
 ---
 
-## Epic-3: Profile Service
+## EPIC-3: Profile Service
 
 ### Issue Template:
 ```
-Title: Epic-3: Profile Service
+Title: EPIC-3: Profile Service
 
 Description:
 ## Overview
@@ -91,15 +91,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.1: Profile Service - Spring Boot Setup
+### STORY-3-1: Profile Service - Spring Boot Setup
 
 #### Issue Template:
 ```
-Title: Story-3.1: Profile Service - Spring Boot Setup
+Title: STORY-3-1: Profile Service - Spring Boot Setup
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Initialize Spring Boot project for Profile Service with MongoDB and Redis integration following clean architecture principles. Set up the complete project structure with proper package organization, MongoDB connection, Redis caching, JWT validation, and API documentation tools.
@@ -201,16 +201,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.1: Create Spring Boot project structure
+#### Subtask: TASK-3-1-1: Create Spring Boot project structure
 ```
-Title: Task-3.1.1: Create Spring Boot project structure
+Title: TASK-3-1-1: Create Spring Boot project structure
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create the Spring Boot project structure for Profile Service following clean architecture.
@@ -241,16 +241,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.2: Add Maven dependencies
+#### Subtask: TASK-3-1-2: Add Maven dependencies
 ```
-Title: Task-3.1.2: Add Maven dependencies
+Title: TASK-3-1-2: Add Maven dependencies
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Add all necessary Maven dependencies to pom.xml.
@@ -277,16 +277,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.3: Configure MongoDB connection
+#### Subtask: TASK-3-1-3: Configure MongoDB connection
 ```
-Title: Task-3.1.3: Configure MongoDB connection
+Title: TASK-3-1-3: Configure MongoDB connection
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Configure MongoDB connection in application.properties.
@@ -310,16 +310,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.4: Set up package structure
+#### Subtask: TASK-3-1-4: Set up package structure
 ```
-Title: Task-3.1.4: Set up package structure
+Title: TASK-3-1-4: Set up package structure
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create package structure following clean architecture principles.
@@ -346,16 +346,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.5: Create Application.java
+#### Subtask: TASK-3-1-5: Create Application.java
 ```
-Title: Task-3.1.5: Create Application.java
+Title: TASK-3-1-5: Create Application.java
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create the main Spring Boot application class.
@@ -379,16 +379,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.6: Configure application.properties
+#### Subtask: TASK-3-1-6: Configure application.properties
 ```
-Title: Task-3.1.6: Configure application.properties
+Title: TASK-3-1-6: Configure application.properties
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Configure application.properties with all necessary settings.
@@ -413,16 +413,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.1.7: Create health check endpoint
+#### Subtask: TASK-3-1-7: Create health check endpoint
 ```
-Title: Task-3.1.7: Create health check endpoint
+Title: TASK-3-1-7: Create health check endpoint
 
 Description:
 ## Story
-Related to #X (Story-3.1 issue number)
+Related to #X (STORY-3-1 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create a basic health check endpoint to verify service is running.
@@ -446,15 +446,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.2: Implement view profile endpoint
+### STORY-3-2: Implement view profile endpoint
 
 #### Issue Template:
 ```
-Title: Story-3.2: Implement view profile endpoint
+Title: STORY-3-2: Implement view profile endpoint
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## User Story
 As a user, I want to view my profile so that I can see my statistics.
@@ -520,16 +520,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.1: Create Profile model/entity
+#### Subtask: TASK-3-2-1: Create Profile model/entity
 ```
-Title: Task-3.2.1: Create Profile model/entity
+Title: TASK-3-2-1: Create Profile model/entity
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create Profile entity/model for MongoDB with all required fields.
@@ -599,16 +599,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.2: Create ProfileRepository
+#### Subtask: TASK-3-2-2: Create ProfileRepository
 ```
-Title: Task-3.2.2: Create ProfileRepository
+Title: TASK-3-2-2: Create ProfileRepository
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create Spring Data MongoDB repository interface for Profile.
@@ -671,16 +671,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.3: Create ProfileService
+#### Subtask: TASK-3-2-3: Create ProfileService
 ```
-Title: Task-3.2.3: Create ProfileService
+Title: TASK-3-2-3: Create ProfileService
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create ProfileService with business logic for profile operations.
@@ -707,16 +707,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.4: Create ProfileController
+#### Subtask: TASK-3-2-4: Create ProfileController
 ```
-Title: Task-3.2.4: Create ProfileController
+Title: TASK-3-2-4: Create ProfileController
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create REST controller with GET /api/profile/me endpoint.
@@ -743,16 +743,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.5: Implement JWT authentication
+#### Subtask: TASK-3-2-5: Implement JWT authentication
 ```
-Title: Task-3.2.5: Implement JWT authentication
+Title: TASK-3-2-5: Implement JWT authentication
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement JWT token validation for protected endpoints.
@@ -777,16 +777,16 @@ epic:profile, backend:profile, security, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.6: Create ProfileResponse DTO
+#### Subtask: TASK-3-2-6: Create ProfileResponse DTO
 ```
-Title: Task-3.2.6: Create ProfileResponse DTO
+Title: TASK-3-2-6: Create ProfileResponse DTO
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create Data Transfer Object for profile response.
@@ -818,16 +818,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.7: Write unit tests for ProfileService
+#### Subtask: TASK-3-2-7: Write unit tests for ProfileService
 ```
-Title: Task-3.2.7: Write unit tests for ProfileService
+Title: TASK-3-2-7: Write unit tests for ProfileService
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write comprehensive unit tests for ProfileService.
@@ -854,16 +854,16 @@ epic:profile, backend:profile, testing, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.2.8: Write integration tests for endpoint
+#### Subtask: TASK-3-2-8: Write integration tests for endpoint
 ```
-Title: Task-3.2.8: Write integration tests for endpoint
+Title: TASK-3-2-8: Write integration tests for endpoint
 
 Description:
 ## Story
-Related to #X (Story-3.2 issue number)
+Related to #X (STORY-3-2 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write integration tests for GET /api/profile/me endpoint.
@@ -891,15 +891,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.3: Implement update profile endpoint
+### STORY-3-3: Implement update profile endpoint
 
 #### Issue Template:
 ```
-Title: Story-3.3: Implement update profile endpoint
+Title: STORY-3-3: Implement update profile endpoint
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## User Story
 As a user, I want to update my profile so that I can customize my display name and avatar.
@@ -942,16 +942,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.1: Create UpdateProfileRequest DTO
+#### Subtask: TASK-3-3-1: Create UpdateProfileRequest DTO
 ```
-Title: Task-3.3.1: Create UpdateProfileRequest DTO
+Title: TASK-3-3-1: Create UpdateProfileRequest DTO
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create Data Transfer Object for profile update request.
@@ -975,16 +975,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.2: Implement update logic in ProfileService
+#### Subtask: TASK-3-3-2: Implement update logic in ProfileService
 ```
-Title: Task-3.3.2: Implement update logic in ProfileService
+Title: TASK-3-3-2: Implement update logic in ProfileService
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement updateProfile method in ProfileService.
@@ -1012,16 +1012,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.3: Create PUT endpoint in ProfileController
+#### Subtask: TASK-3-3-3: Create PUT endpoint in ProfileController
 ```
-Title: Task-3.3.3: Create PUT endpoint in ProfileController
+Title: TASK-3-3-3: Create PUT endpoint in ProfileController
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create PUT /api/profile/me endpoint in ProfileController.
@@ -1048,16 +1048,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.4: Add input validation
+#### Subtask: TASK-3-3-4: Add input validation
 ```
-Title: Task-3.3.4: Add input validation
+Title: TASK-3-3-4: Add input validation
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Add input validation for update profile request.
@@ -1081,16 +1081,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.5: Handle avatar upload (if file upload)
+#### Subtask: TASK-3-3-5: Handle avatar upload (if file upload)
 ```
-Title: Task-3.3.5: Handle avatar upload (if file upload)
+Title: TASK-3-3-5: Handle avatar upload (if file upload)
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement avatar file upload functionality if file upload is chosen over URL-based avatars. This is optional and depends on the chosen implementation approach.
@@ -1144,16 +1144,16 @@ epic:profile, backend:profile, feature, task, priority:medium
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.6: Write tests for update endpoint
+#### Subtask: TASK-3-3-6: Write tests for update endpoint
 ```
-Title: Task-3.3.6: Write tests for update endpoint
+Title: TASK-3-3-6: Write tests for update endpoint
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write unit and integration tests for update profile endpoint.
@@ -1179,16 +1179,16 @@ epic:profile, backend:profile, testing, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.3.7: Update API documentation
+#### Subtask: TASK-3-3-7: Update API documentation
 ```
-Title: Task-3.3.7: Update API documentation
+Title: TASK-3-3-7: Update API documentation
 
 Description:
 ## Story
-Related to #X (Story-3.3 issue number)
+Related to #X (STORY-3-3 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Update API documentation (Swagger/OpenAPI) with the update profile endpoint details.
@@ -1227,15 +1227,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.4: Implement global score tracking system
+### STORY-3-4: Implement global score tracking system
 
 #### Issue Template:
 ```
-Title: Story-3.4: Implement global score tracking system
+Title: STORY-3-4: Implement global score tracking system
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## User Story
 As a user, I want to see my XP and level so that I can track my progression.
@@ -1260,16 +1260,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.1: Add globalScore field to Profile model
+#### Subtask: TASK-3-4-1: Add globalScore field to Profile model
 ```
-Title: Task-3.4.1: Add globalScore field to Profile model
+Title: TASK-3-4-1: Add globalScore field to Profile model
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Add globalScore field to Profile entity.
@@ -1293,16 +1293,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.2: Create score update method
+#### Subtask: TASK-3-4-2: Create score update method
 ```
-Title: Task-3.4.2: Create score update method
+Title: TASK-3-4-2: Create score update method
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create method to update global score in ProfileService.
@@ -1328,16 +1328,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.3: Implement score calculation logic
+#### Subtask: TASK-3-4-3: Implement score calculation logic
 ```
-Title: Task-3.4.3: Implement score calculation logic
+Title: TASK-3-4-3: Implement score calculation logic
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement logic to calculate score updates from match results.
@@ -1363,16 +1363,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.4: Create score update endpoint (or internal service call)
+#### Subtask: TASK-3-4-4: Create score update endpoint (or internal service call)
 ```
-Title: Task-3.4.4: Create score update endpoint (or internal service call)
+Title: TASK-3-4-4: Create score update endpoint (or internal service call)
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create endpoint or internal service method to update score after matches.
@@ -1397,16 +1397,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.5: Add score to profile response
+#### Subtask: TASK-3-4-5: Add score to profile response
 ```
-Title: Task-3.4.5: Add score to profile response
+Title: TASK-3-4-5: Add score to profile response
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Include globalScore in ProfileResponse DTO.
@@ -1429,16 +1429,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.4.6: Write tests for score tracking
+#### Subtask: TASK-3-4-6: Write tests for score tracking
 ```
-Title: Task-3.4.6: Write tests for score tracking
+Title: TASK-3-4-6: Write tests for score tracking
 
 Description:
 ## Story
-Related to #X (Story-3.4 issue number)
+Related to #X (STORY-3-4 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write tests for global score tracking functionality.
@@ -1466,15 +1466,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.5: Implement rank tier calculation (Valorant-style)
+### STORY-3-5: Implement rank tier calculation (Valorant-style)
 
 #### Issue Template:
 ```
-Title: Story-3.5: Implement rank tier calculation (Valorant-style)
+Title: STORY-3-5: Implement rank tier calculation (Valorant-style)
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Calculate and display rank tiers based on global score ranges (like Valorant ranking system).
@@ -1501,16 +1501,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.1: Define rank tier structure
+#### Subtask: TASK-3-5-1: Define rank tier structure
 ```
-Title: Task-3.5.1: Define rank tier structure
+Title: TASK-3-5-1: Define rank tier structure
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Define rank tier structure with tiers and score ranges.
@@ -1540,16 +1540,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.2: Create RankTier enum/class
+#### Subtask: TASK-3-5-2: Create RankTier enum/class
 ```
-Title: Task-3.5.2: Create RankTier enum/class
+Title: TASK-3-5-2: Create RankTier enum/class
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create RankTier enum or class to represent rank tiers.
@@ -1576,16 +1576,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.3: Implement rank calculation logic
+#### Subtask: TASK-3-5-3: Implement rank calculation logic
 ```
-Title: Task-3.5.3: Implement rank calculation logic
+Title: TASK-3-5-3: Implement rank calculation logic
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement logic to calculate rank tier from global score.
@@ -1610,16 +1610,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.4: Add rankTier field to Profile
+#### Subtask: TASK-3-5-4: Add rankTier field to Profile
 ```
-Title: Task-3.5.4: Add rankTier field to Profile
+Title: TASK-3-5-4: Add rankTier field to Profile
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Add rankTier field to Profile model.
@@ -1643,16 +1643,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.5: Create rank update method
+#### Subtask: TASK-3-5-5: Create rank update method
 ```
-Title: Task-3.5.5: Create rank update method
+Title: TASK-3-5-5: Create rank update method
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create method to update rank tier when score changes.
@@ -1680,16 +1680,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.6: Add rank to profile response
+#### Subtask: TASK-3-5-6: Add rank to profile response
 ```
-Title: Task-3.5.6: Add rank to profile response
+Title: TASK-3-5-6: Add rank to profile response
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Include rankTier in ProfileResponse DTO.
@@ -1712,16 +1712,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.5.7: Write tests for rank calculation
+#### Subtask: TASK-3-5-7: Write tests for rank calculation
 ```
-Title: Task-3.5.7: Write tests for rank calculation
+Title: TASK-3-5-7: Write tests for rank calculation
 
 Description:
 ## Story
-Related to #X (Story-3.5 issue number)
+Related to #X (STORY-3-5 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write tests for rank tier calculation logic.
@@ -1748,15 +1748,15 @@ Phase 3: Profile Management
 
 ---
 
-### Story-3.6: Implement win/loss statistics tracking
+### STORY-3-6: Implement win/loss statistics tracking
 
 #### Issue Template:
 ```
-Title: Story-3.6: Implement win/loss statistics tracking
+Title: STORY-3-6: Implement win/loss statistics tracking
 
 Description:
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## User Story
 As a user, I want to see my win/loss statistics so that I can track my performance.
@@ -1783,16 +1783,16 @@ epic:profile, backend:profile, feature, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.1: Add statistics fields to Profile
+#### Subtask: TASK-3-6-1: Add statistics fields to Profile
 ```
-Title: Task-3.6.1: Add statistics fields to Profile
+Title: TASK-3-6-1: Add statistics fields to Profile
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Add statistics fields (wins, losses, matchesPlayed) to Profile model.
@@ -1817,16 +1817,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.2: Create update statistics method
+#### Subtask: TASK-3-6-2: Create update statistics method
 ```
-Title: Task-3.6.2: Create update statistics method
+Title: TASK-3-6-2: Create update statistics method
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Create method to update statistics after match completion.
@@ -1852,16 +1852,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.3: Implement win/loss tracking
+#### Subtask: TASK-3-6-3: Implement win/loss tracking
 ```
-Title: Task-3.6.3: Implement win/loss tracking
+Title: TASK-3-6-3: Implement win/loss tracking
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement logic to track wins and losses from match results.
@@ -1886,16 +1886,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.4: Calculate win percentage
+#### Subtask: TASK-3-6-4: Calculate win percentage
 ```
-Title: Task-3.6.4: Calculate win percentage
+Title: TASK-3-6-4: Calculate win percentage
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Implement logic to calculate win percentage.
@@ -1920,16 +1920,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.5: Add statistics to profile response
+#### Subtask: TASK-3-6-5: Add statistics to profile response
 ```
-Title: Task-3.6.5: Add statistics to profile response
+Title: TASK-3-6-5: Add statistics to profile response
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Include statistics in ProfileResponse DTO.
@@ -1955,16 +1955,16 @@ epic:profile, backend:profile, task, priority:high
 Phase 3: Profile Management
 ```
 
-#### Subtask: Task-3.6.6: Write tests for statistics tracking
+#### Subtask: TASK-3-6-6: Write tests for statistics tracking
 ```
-Title: Task-3.6.6: Write tests for statistics tracking
+Title: TASK-3-6-6: Write tests for statistics tracking
 
 Description:
 ## Story
-Related to #X (Story-3.6 issue number)
+Related to #X (STORY-3-6 issue number)
 
 ## Epic
-Related to #X (Epic-3 issue number)
+Related to #X (EPIC-3 issue number)
 
 ## Description
 Write tests for win/loss statistics tracking.
