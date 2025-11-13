@@ -151,8 +151,15 @@ package "Entity Models" #LightGray {
     -username: String
     -email: String
     -passwordHash: String
+    -googleId: String
+    -provider: String
+    -providerId: String
+    -firstName: String
+    -lastName: String
+    -pictureUrl: String
     -createdAt: Date
     -updatedAt: Date
+    -lastLoginAt: Date
   }
   
   class Profile {

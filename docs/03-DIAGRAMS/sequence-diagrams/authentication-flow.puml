@@ -62,5 +62,52 @@ Frontend -> Frontend: Store token securely
 Frontend --> User: Redirect to dashboard
 deactivate Frontend
 
+== Google OAuth Login ==
+User -> Frontend: Click "Sign in with Google"
+activate Frontend
+Frontend -> Frontend: Redirect to Google OAuth
+Frontend -> Google: OAuth consent screen
+activate Google
+Google --> Frontend: Authorization code
+deactivate Google
+Frontend -> AuthService: POST /api/auth/google\n{code}
+activate AuthService
+AuthService -> AuthService: GoogleOAuthService
+activate AuthService
+AuthService -> Google: Exchange code for access token
+activate Google
+Google --> AuthService: Access token
+deactivate Google
+AuthService -> Google: Validate token & get user info
+activate Google
+Google --> AuthService: User info (email, name, picture, googleId)
+deactivate Google
+deactivate AuthService
+AuthService -> MongoDB: Find user by googleId or email
+activate MongoDB
+MongoDB --> AuthService: User found or null
+deactivate MongoDB
+alt User exists
+    AuthService -> MongoDB: Update last login
+    activate MongoDB
+    MongoDB --> AuthService: Updated
+    deactivate MongoDB
+else User does not exist
+    AuthService -> AuthService: Create user with Google info
+    AuthService -> MongoDB: Save new user
+    activate MongoDB
+    MongoDB --> AuthService: User created
+    deactivate MongoDB
+end
+AuthService -> JWT: Generate JWT token
+activate JWT
+JWT --> AuthService: JWT token
+deactivate JWT
+AuthService --> Frontend: 200 OK\n{token, refreshToken, user}
+deactivate AuthService
+Frontend -> Frontend: Store token securely
+Frontend --> User: Redirect to dashboard
+deactivate Frontend
+
 @enduml
 

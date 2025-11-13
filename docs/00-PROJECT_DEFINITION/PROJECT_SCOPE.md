@@ -28,6 +28,7 @@
 #### 1.1.1 User Management
 - ✅ User registration with username and email
 - ✅ User authentication with JWT tokens
+- ✅ Google OAuth login (optional, Story-2.7)
 - ✅ Password hashing and security
 - ✅ User profile management
 - ✅ User session management
@@ -143,7 +144,7 @@
 - ❌ Database sharding
 - ❌ Multi-region deployment
 - ❌ CDN integration
-- ❌ Advanced security features (2FA, OAuth)
+- ❌ Advanced security features (2FA, additional OAuth providers beyond Google)
 
 #### 1.2.3 Platform Features
 - ❌ Mobile apps (iOS, Android)
@@ -436,7 +437,7 @@
 - ❌ Advanced analytics
 - ❌ Admin panel
 - ❌ Mobile applications
-- ❌ Advanced security features
+- ❌ Advanced security features (2FA, additional OAuth providers beyond Google)
 - ❌ Advanced monitoring
 - ❌ Advanced deployment (Kubernetes)
 - ❌ Multi-region deployment

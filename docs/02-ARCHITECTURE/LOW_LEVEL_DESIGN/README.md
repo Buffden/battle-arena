@@ -62,7 +62,7 @@ This Low-Level Design (LLD) document provides **design-focused** class specifica
 This LLD document is organized into the following sections:
 
 ### Services (Backend)
-1. **[Auth Service](./SERVICES/AUTH_SERVICE.md)** - Authentication and authorization
+1. **[Auth Service](./SERVICES/AUTH_SERVICE.md)** - Authentication, authorization, and OAuth (Google)
 2. **[Profile Service](./SERVICES/PROFILE_SERVICE.md)** - User profile and global score/rank tracking
 3. **[Leaderboard Service](./SERVICES/LEADERBOARD_SERVICE.md)** - Leaderboard and ranking management
 4. **[Matchmaking Service](./SERVICES/MATCHMAKING_SERVICE.md)** - Player matching, hero selection, arena selection, weapon selection

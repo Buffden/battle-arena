@@ -40,9 +40,11 @@ package "Backend Services" #LightYellow {
   note right of Auth
     **Responsibilities:**
     - User authentication
+    - Google OAuth authentication
     - JWT token generation
     - Password hashing
     - Session management
+    - Account linking for OAuth users
   end note
   
   note right of Profile

@@ -237,7 +237,8 @@ Imagine you're playing a classic 2D artillery battle game like Pocket Tank, but 
 
 **User Accounts:**
 - Create an account with username and email
-- Secure login that keeps accounts safe
+- Secure login that keeps accounts safe (JWT authentication)
+- Google OAuth login option (quick sign-in with Google account)
 - Profile page showing statistics and achievements
 - Track your progress and see your ranking
 - Global player progression (not per-hero)

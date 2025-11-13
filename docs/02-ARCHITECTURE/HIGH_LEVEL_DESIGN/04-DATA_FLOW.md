@@ -56,6 +56,27 @@ Frontend Request → API Gateway → Auth Service
                             Service Response
 ```
 
+### 1.4 Google OAuth Login Flow
+```
+User → Frontend → Google OAuth → Frontend
+                ↓
+            Authorization Code
+                ↓
+            Frontend → Auth Service
+                ↓
+            Exchange Code for Token
+                ↓
+            Validate Token & Get User Info
+                ↓
+            Find or Create User
+                ↓
+            Generate JWT Token
+                ↓
+            JWT Token → Frontend Storage
+                ↓
+            User Logged In
+```
+
 ---
 
 ## 2. Hero Selection Flow

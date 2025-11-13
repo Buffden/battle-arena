@@ -40,6 +40,25 @@
 - **Token Refresh** → Refresh token mechanism (future enhancement)
 - **Token Revocation** → Token blacklisting support (future enhancement)
 
+### 1.4 OAuth Authentication (Google)
+- **OAuth 2.0** for third-party authentication (Google)
+- **Authorization Code Flow** - Secure OAuth flow with authorization code exchange
+- **Token Exchange** - Server-side exchange of authorization code for access token
+- **Token Validation** - Validate Google access tokens server-side (never trust client)
+- **User Info Retrieval** - Retrieve user information from Google API
+- **Account Linking** - Link OAuth accounts to existing users by email
+- **OAuth Credentials** - Secure storage of OAuth client ID and secret (environment variables)
+- **CSRF Protection** - CSRF protection for OAuth callback endpoints
+- **Provider Support** - Extensible design for future OAuth providers (Facebook, GitHub, etc.)
+
+**OAuth Security Requirements:**
+- **Server-Side Validation** - All OAuth token validation must occur server-side
+- **Secure Credentials** - OAuth client ID and secret stored in environment variables
+- **HTTPS Only** - OAuth redirect URIs must use HTTPS in production
+- **State Parameter** - Use state parameter for CSRF protection (future enhancement)
+- **Token Expiration** - Respect Google access token expiration
+- **Error Handling** - Secure error handling without exposing OAuth credentials
+
 ---
 
 ## 2. Data Protection

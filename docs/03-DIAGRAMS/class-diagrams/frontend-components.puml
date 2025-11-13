@@ -12,6 +12,7 @@ package "Services Layer" #LightBlue {
     -tokenKey: String
     -userSubject: BehaviorSubject<User | null>
     +login(username: String, password: String): Observable<AuthResponse>
+    +loginWithGoogle(authorizationCode: String): Observable<AuthResponse>
     +register(userData: RegisterRequest): Observable<AuthResponse>
     +logout(): void
     +getToken(): String | null

@@ -159,6 +159,11 @@ MONGODB_URI=mongodb://mongodb:27017/battlearena
 JWT_SECRET=your-jwt-secret-key-change-in-production
 JWT_EXPIRATION=86400000
 BCRYPT_ROUNDS=10
+
+# Google OAuth (Optional - for Story-2.7)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:4200/auth/google/callback
 ```
 
 #### **application.yml:**
@@ -182,6 +187,14 @@ jwt:
 
 bcrypt:
   rounds: ${BCRYPT_ROUNDS:10}
+
+# Google OAuth (Optional - for Story-2.7)
+google:
+  oauth:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:4200/auth/google/callback}
+    scope: openid email profile
 ```
 
 ### **4. Profile Service Configuration**
@@ -576,6 +589,11 @@ REDIS_PASSWORD=
 # JWT
 JWT_SECRET=your-jwt-secret-key-change-in-production
 JWT_EXPIRATION=86400000
+
+# Google OAuth (Optional - for Story-2.7)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:4200/auth/google/callback
 
 # Services
 AUTH_SERVICE_PORT=8081

@@ -17,6 +17,7 @@ Implement complete authentication and user management system using Spring Boot w
 ## Goals
 - User registration with username and email validation
 - User login with credential verification
+- Google OAuth login support (optional, Story-2.7)
 - JWT token generation (HS512 algorithm, 24-hour expiration)
 - Secure password hashing (BCrypt with 12 rounds)
 - JWT token validation middleware for protected endpoints
@@ -70,14 +71,18 @@ Based on [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECU
 ## Related Documentation
 - [Auth Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - Complete service design, components, and patterns
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Auth Service overview (section 2.1)
-- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - JWT authentication and password security (sections 1.1-1.3, 2.1)
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - JWT authentication, OAuth authentication, and password security (sections 1.1-1.4, 2.1)
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure (section 2.1)
-- [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Users collection schema
+- [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Users collection schema with OAuth support (section 1.1)
+- [Data Flow](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/04-DATA_FLOW.md) - Authentication flows including Google OAuth (sections 1.1-1.4)
+- [Communication Patterns](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/05-COMMUNICATION_PATTERNS.md) - REST API endpoints including OAuth (section 1.3)
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
 
 ## Architecture Diagrams
 - **Auth Service Class Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service.png`
-- **Authentication Flow Sequence Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png`
+- **Authentication Flow Sequence Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png` (includes Google OAuth flow)
+- **Database ER Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png` (includes OAuth fields)
+- **Database Schema Class Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png` (includes OAuth fields)
 
 ## Labels
 epic:auth, backend:auth, priority:high
@@ -605,10 +610,11 @@ Create User entity/model for MongoDB following the database schema specification
 
 ## Acceptance Criteria
 - [ ] User class created with all required fields
-- [ ] Fields: id, username, email, password, createdAt, updatedAt
+- [ ] Fields: id, username, email, passwordHash (nullable for OAuth), OAuth fields (googleId, provider, providerId, firstName, lastName, pictureUrl), createdAt, updatedAt, lastLoginAt
 - [ ] MongoDB annotations (@Document, @Id, @Indexed) properly configured
-- [ ] Validation annotations (@NotBlank, @Email, @Size)
-- [ ] Username and email indexed for performance
+- [ ] Validation annotations (@NotBlank, @Email, @Size) - passwordHash nullable for OAuth users
+- [ ] Username, email, and googleId indexed for performance
+- [ ] OAuth support fields included (for Google OAuth login - Story-2.7)
 - [ ] Getters and setters (or Lombok @Data)
 - [ ] Timestamp fields for audit trail
 
@@ -635,24 +641,42 @@ public class User {
     @Email(message = "Email must be valid")
     private String email;
     
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    private String password; // Hashed with BCrypt
+    // Password (nullable for OAuth users)
+    private String passwordHash; // Hashed with BCrypt, nullable for OAuth users
+    
+    // OAuth fields (for Google OAuth login - Story-2.7)
+    @Indexed(unique = true, sparse = true)
+    private String googleId; // Google user ID (unique, nullable)
+    
+    private String provider; // "local" or "google" (enum: AuthProvider)
+    private String providerId; // OAuth provider user ID
+    
+    // OAuth user info
+    private String firstName; // From Google profile
+    private String lastName; // From Google profile
+    private String pictureUrl; // Profile picture URL from Google
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime lastLoginAt;
 }
 ```
 
 ### Database Indexes
 - **username** - Unique index for fast lookups and duplicate prevention
 - **email** - Unique index for fast lookups and duplicate prevention
+- **googleId** - Unique sparse index (for OAuth users)
+- **provider** - Ascending index (for OAuth queries)
 - **id** - Primary key (MongoDB ObjectId)
+- **Compound index:** `{email: 1, provider: 1}` (for OAuth lookups)
 
 ### Validation Rules
 - Username: 3-20 characters, alphanumeric (optional)
 - Email: Valid email format
-- Password: Minimum 8 characters (will be hashed before storage)
+- PasswordHash: Required for local users, nullable for OAuth users
+- Provider: Must be "local" or "google"
+- If provider is "local": passwordHash is required
+- If provider is "google": passwordHash is null, googleId is required
 
 ## Related Documentation
 - [Auth Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - User entity design (section 3.6)
@@ -703,23 +727,35 @@ public interface UserRepository extends MongoRepository<User, String> {
     // Find user by email (for duplicate check)
     Optional<User> findByEmail(String email);
     
+    // Find user by Google ID (for OAuth login - Story-2.7)
+    Optional<User> findByGoogleId(String googleId);
+    
+    // Find user by email and provider (for OAuth account linking - Story-2.7)
+    Optional<User> findByEmailAndProvider(String email, String provider);
+    
     // Check if username exists (for registration validation)
     boolean existsByUsername(String username);
     
     // Check if email exists (for registration validation)
     boolean existsByEmail(String email);
+    
+    // Check if Google ID exists (for OAuth validation - Story-2.7)
+    boolean existsByGoogleId(String googleId);
 }
 ```
 
 **Spring Data MongoDB Features:**
 - Automatic query method generation from method names
 - `findByUsername` - generates query: `{ username: ?0 }`
+- `findByGoogleId` - generates query: `{ googleId: ?0 }` (uses sparse index)
+- `findByEmailAndProvider` - generates query: `{ email: ?0, provider: ?1 }` (uses compound index)
 - `existsByUsername` - generates query: `{ username: ?0 }` with exists check
 - Uses MongoDB indexes for performance
 
 **Usage in Service:**
 - Registration: Check duplicates before saving
 - Login: Find user by username for credential verification
+- OAuth Login (Story-2.7): Find user by googleId or email+provider for account linking
 
 ## Related Documentation
 - [Auth Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - UserRepository design (section 3.3, 5.3)
@@ -1740,6 +1776,498 @@ Create:
 
 ## Labels
 epic:auth, backend:auth, security, task, priority:high
+
+## Milestone
+Phase 2: Authentication
+```
+
+---
+
+### Story-2.7: Implement Google OAuth Login
+
+#### Issue Template:
+```
+Title: Story-2.7: Implement Google OAuth Login
+
+Description:
+## Epic
+Related to #X (Epic-2 issue number)
+
+## User Story
+As a user, I want to login with my Google account so that I can quickly access the game without creating a separate password.
+
+## Acceptance Criteria
+- [ ] Google OAuth 2.0 client configured in Auth Service
+- [ ] User model updated to support OAuth providers (googleId, provider, etc.)
+- [ ] POST /api/auth/google endpoint created
+- [ ] Google OAuth token validation
+- [ ] User creation/authentication via Google account
+- [ ] JWT token generation after Google authentication
+- [ ] Frontend Google login button integration
+- [ ] Unit tests with 80%+ coverage
+- [ ] Integration tests for Google OAuth flow
+
+## Technical Details
+
+### Implementation Flow
+**Google OAuth Flow:**
+1. User clicks "Sign in with Google" on frontend
+2. Frontend redirects to Google OAuth consent screen
+3. User authorizes application
+4. Google redirects back with authorization code
+5. Frontend sends authorization code to POST /api/auth/google
+6. Auth Service exchanges code for Google access token
+7. Auth Service validates token with Google
+8. Auth Service retrieves user info from Google (email, name, picture)
+9. Auth Service checks if user exists by googleId or email
+10. If new user: Create user with Google info, generate JWT
+11. If existing user: Update last login, generate JWT
+12. Auth Service returns JWT token to frontend
+13. Frontend stores token and redirects to dashboard
+
+### Components to Create/Update
+
+#### 1. User Model Updates
+Update `User.java` to support OAuth:
+```java
+@Document(collection = "users")
+public class User {
+    @Id
+    private String id;
+    
+    private String username;
+    private String email;
+    private String passwordHash; // Hashed with BCrypt, null for OAuth users
+    
+    // OAuth fields
+    private String googleId; // Google user ID
+    private String provider; // "local", "google"
+    private String providerId; // OAuth provider user ID
+    
+    // User info from OAuth
+    private String firstName;
+    private String lastName;
+    private String pictureUrl; // Profile picture from Google
+    
+    private LocalDateTime createdAt;
+    private LocalDateTime lastLogin;
+    
+    // ... existing fields
+}
+```
+
+#### 2. Google OAuth Service
+Create `GoogleOAuthService.java`:
+- Exchange authorization code for access token
+- Validate Google access token
+- Retrieve user info from Google API
+- Handle OAuth errors
+
+#### 3. OAuth Controller Endpoint
+Add to `AuthController.java`:
+```java
+@PostMapping("/google")
+public ResponseEntity<LoginResponse> googleLogin(@RequestBody GoogleAuthRequest request) {
+    // Exchange code for token
+    // Validate with Google
+    // Create/update user
+    // Generate JWT
+    // Return response
+}
+```
+
+#### 4. DTOs
+- `GoogleAuthRequest.java` - Authorization code from frontend
+- `GoogleUserInfo.java` - User info from Google API
+
+### Required Dependencies (pom.xml)
+```xml
+<!-- Google OAuth Client -->
+<dependency>
+    <groupId>com.google.api-client</groupId>
+    <artifactId>google-api-client</artifactId>
+    <version>2.2.0</version>
+</dependency>
+
+<!-- Google OAuth2 -->
+<dependency>
+    <groupId>com.google.auth</groupId>
+    <artifactId>google-auth-library-oauth2-http</artifactId>
+    <version>1.19.0</version>
+</dependency>
+
+<!-- HTTP Client for Google API calls -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+```
+
+### Application Properties Configuration
+Add to `application.properties`:
+```properties
+# Google OAuth Configuration
+google.oauth.client-id=${GOOGLE_CLIENT_ID:}
+google.oauth.client-secret=${GOOGLE_CLIENT_SECRET:}
+google.oauth.redirect-uri=${GOOGLE_REDIRECT_URI:http://localhost:4200/auth/google/callback}
+google.oauth.scope=openid email profile
+```
+
+### Google Cloud Console Setup
+1. Create project in Google Cloud Console
+2. Enable Google+ API
+3. Create OAuth 2.0 credentials
+4. Configure authorized redirect URIs:
+   - `http://localhost:4200/auth/google/callback` (development)
+   - `https://yourdomain.com/auth/google/callback` (production)
+5. Copy Client ID and Client Secret to environment variables
+
+### Frontend Integration
+Frontend needs to:
+1. Add Google Sign-In button
+2. Handle Google OAuth redirect
+3. Send authorization code to `/api/auth/google`
+4. Store JWT token on success
+
+### Design Patterns
+- **Strategy Pattern** - OAuth authentication strategy (Google, future: Facebook, GitHub)
+- **Factory Pattern** - OAuth provider factory (GoogleOAuthService, etc.)
+- **Repository Pattern** - UserRepository with OAuth query methods
+
+### Security Considerations
+- Validate Google tokens server-side (never trust client)
+- Store Google user ID for account linking
+- Handle email conflicts (if email exists with different provider)
+- Secure OAuth credentials (environment variables)
+- CSRF protection for OAuth callback
+
+### Error Handling
+- Invalid authorization code
+- Google API errors
+- Network timeouts
+- Email already exists with different provider
+- Account linking scenarios
+
+## Related Documentation
+- [Auth Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - Service design and authentication patterns (includes OAuth components)
+- [Security Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - OAuth authentication and security requirements (section 1.4)
+- [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Users collection schema with OAuth support (section 1.1)
+- [Database Schema LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/DATABASE_SCHEMA.md) - User entity model with OAuth fields
+- [Data Flow](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/04-DATA_FLOW.md) - Google OAuth login flow (section 1.4)
+- [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Auth Service with OAuth responsibilities (section 2.1)
+- [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Frontend AuthService with Google OAuth (section 1.2)
+- [Communication Patterns](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/05-COMMUNICATION_PATTERNS.md) - Google OAuth endpoint (section 1.3)
+
+## Architecture Diagrams
+- **Authentication Flow Sequence Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png`
+- **Database ER Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png`
+
+## Labels
+epic:auth, backend:auth, feature, oauth, priority:medium
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.7.1: Update User model for OAuth support
+```
+Title: Task-2.7.1: Update User model for OAuth support
+
+Description:
+## Story
+Related to #X (Story-2.7 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Update User entity to support OAuth providers (Google, future: Facebook, GitHub). Add fields for OAuth provider information, user info from OAuth, and account linking.
+
+## Acceptance Criteria
+- [ ] User model updated with OAuth fields (googleId, provider, providerId)
+- [ ] User model updated with OAuth user info (firstName, lastName, pictureUrl)
+- [ ] Password field made optional (null for OAuth users)
+- [ ] MongoDB indexes updated for OAuth queries
+- [ ] Migration script created (if needed)
+
+## Technical Details
+
+### User Model Fields
+```java
+// OAuth Provider Fields
+private String googleId; // Google user ID (unique)
+private String provider; // "local", "google" (enum: AuthProvider)
+private String providerId; // OAuth provider user ID
+
+// OAuth User Info
+private String firstName; // From Google profile
+private String lastName; // From Google profile
+private String pictureUrl; // Profile picture URL from Google
+
+// Password (nullable for OAuth users)
+private String passwordHash; // Hashed with BCrypt, null for OAuth users
+```
+
+### MongoDB Indexes
+```java
+@Indexed(unique = true, sparse = true)
+private String googleId; // Unique Google ID
+
+@Indexed
+private String provider; // Index for provider queries
+
+@Indexed
+private String email; // Index for email lookups (OAuth + local)
+```
+
+### Validation Rules
+- If provider is "local": passwordHash is required
+- If provider is "google": passwordHash is null, googleId is required
+- Email must be unique across all providers
+- Username can be auto-generated from email for OAuth users
+
+## Labels
+epic:auth, backend:auth, database, task, priority:high
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.7.2: Create Google OAuth Service
+```
+Title: Task-2.7.2: Create Google OAuth Service
+
+Description:
+## Story
+Related to #X (Story-2.7 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Create GoogleOAuthService to handle Google OAuth token exchange, validation, and user info retrieval.
+
+## Acceptance Criteria
+- [ ] GoogleOAuthService class created
+- [ ] Exchange authorization code for access token
+- [ ] Validate Google access token
+- [ ] Retrieve user info from Google API
+- [ ] Handle OAuth errors and exceptions
+- [ ] Unit tests with 80%+ coverage
+
+## Technical Details
+
+### GoogleOAuthService Methods
+```java
+public interface GoogleOAuthService {
+    // Exchange authorization code for access token
+    String exchangeCodeForToken(String authorizationCode);
+    
+    // Validate Google access token
+    boolean validateToken(String accessToken);
+    
+    // Get user info from Google
+    GoogleUserInfo getUserInfo(String accessToken);
+}
+```
+
+### Implementation Details
+- Use Google API Client library
+- Make HTTP calls to Google OAuth endpoints
+- Handle rate limiting and errors
+- Cache token validation results (optional)
+
+### Google API Endpoints
+- Token Exchange: `https://oauth2.googleapis.com/token`
+- Token Info: `https://www.googleapis.com/oauth2/v1/tokeninfo`
+- User Info: `https://www.googleapis.com/oauth2/v2/userinfo`
+
+## Labels
+epic:auth, backend:auth, oauth, task, priority:high
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.7.3: Implement Google OAuth endpoint
+```
+Title: Task-2.7.3: Implement Google OAuth endpoint
+
+Description:
+## Story
+Related to #X (Story-2.7 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Create POST /api/auth/google endpoint in AuthController to handle Google OAuth authentication flow.
+
+## Acceptance Criteria
+- [ ] POST /api/auth/google endpoint created
+- [ ] Accepts GoogleAuthRequest (authorization code)
+- [ ] Exchanges code for token via GoogleOAuthService
+- [ ] Validates token and retrieves user info
+- [ ] Creates or updates user in database
+- [ ] Generates JWT token
+- [ ] Returns LoginResponse with JWT token
+- [ ] Error handling for OAuth failures
+- [ ] Unit tests with 80%+ coverage
+
+## Technical Details
+
+### Endpoint Signature
+```java
+@PostMapping("/google")
+@Operation(summary = "Authenticate with Google", description = "Authenticates user via Google OAuth")
+public ResponseEntity<LoginResponse> googleLogin(@RequestBody GoogleAuthRequest request) {
+    // 1. Exchange code for token
+    // 2. Validate token
+    // 3. Get user info
+    // 4. Find or create user
+    // 5. Generate JWT
+    // 6. Return response
+}
+```
+
+### Request/Response DTOs
+```java
+// GoogleAuthRequest
+public class GoogleAuthRequest {
+    @NotBlank
+    private String code; // Authorization code from Google
+    private String redirectUri; // Optional, defaults to configured URI
+}
+
+// LoginResponse (reuse from Story-2.3)
+public class LoginResponse {
+    private String token;
+    private String refreshToken; // Optional
+    private UserDto user;
+}
+```
+
+### Business Logic Flow
+1. Validate authorization code
+2. Exchange code for access token (GoogleOAuthService)
+3. Validate access token (GoogleOAuthService)
+4. Retrieve user info from Google (GoogleOAuthService)
+5. Check if user exists by googleId or email
+6. If new user: Create user with Google info
+7. If existing user: Update last login
+8. Generate JWT token (JwtTokenManager)
+9. Return LoginResponse
+
+## Labels
+epic:auth, backend:auth, oauth, task, priority:high
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.7.4: Update UserRepository for OAuth queries
+```
+Title: Task-2.7.4: Update UserRepository for OAuth queries
+
+Description:
+## Story
+Related to #X (Story-2.7 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Add query methods to UserRepository for OAuth user lookups (by googleId, email, provider).
+
+## Acceptance Criteria
+- [ ] findByGoogleId() method added
+- [ ] findByEmailAndProvider() method added
+- [ ] findByProvider() method added (optional, for future use)
+- [ ] Query methods properly indexed
+- [ ] Unit tests for repository methods
+
+## Technical Details
+
+### Repository Methods
+```java
+public interface UserRepository extends MongoRepository<User, String> {
+    // Find user by Google ID
+    Optional<User> findByGoogleId(String googleId);
+    
+    // Find user by email and provider
+    Optional<User> findByEmailAndProvider(String email, String provider);
+    
+    // Find users by provider (for future analytics)
+    List<User> findByProvider(String provider);
+}
+```
+
+### MongoDB Indexes
+Ensure indexes exist for:
+- `googleId` (unique, sparse)
+- `email` + `provider` (compound index for lookups)
+
+## Labels
+epic:auth, backend:auth, database, task, priority:medium
+
+## Milestone
+Phase 2: Authentication
+```
+
+#### Subtask: Task-2.7.5: Add Google OAuth configuration
+```
+Title: Task-2.7.5: Add Google OAuth configuration
+
+Description:
+## Story
+Related to #X (Story-2.7 issue number)
+
+## Epic
+Related to #X (Epic-2 issue number)
+
+## Description
+Configure Google OAuth client credentials and settings in application.properties and environment variables.
+
+## Acceptance Criteria
+- [ ] Google OAuth properties added to application.properties
+- [ ] Environment variables documented
+- [ ] Google Cloud Console setup documented
+- [ ] Configuration validation on startup
+- [ ] Configuration class created (GoogleOAuthConfig)
+
+## Technical Details
+
+### Application Properties
+```properties
+# Google OAuth Configuration
+google.oauth.client-id=${GOOGLE_CLIENT_ID:}
+google.oauth.client-secret=${GOOGLE_CLIENT_SECRET:}
+google.oauth.redirect-uri=${GOOGLE_REDIRECT_URI:http://localhost:4200/auth/google/callback}
+google.oauth.scope=openid email profile
+google.oauth.token-endpoint=https://oauth2.googleapis.com/token
+google.oauth.userinfo-endpoint=https://www.googleapis.com/oauth2/v2/userinfo
+```
+
+### Configuration Class
+```java
+@Configuration
+@ConfigurationProperties(prefix = "google.oauth")
+public class GoogleOAuthConfig {
+    private String clientId;
+    private String clientSecret;
+    private String redirectUri;
+    private String scope;
+    // ... getters and setters
+}
+```
+
+### Environment Variables
+- `GOOGLE_CLIENT_ID` - Google OAuth Client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth Client Secret
+- `GOOGLE_REDIRECT_URI` - OAuth redirect URI (optional, defaults to localhost)
+
+## Labels
+epic:auth, backend:auth, configuration, task, priority:medium
 
 ## Milestone
 Phase 2: Authentication

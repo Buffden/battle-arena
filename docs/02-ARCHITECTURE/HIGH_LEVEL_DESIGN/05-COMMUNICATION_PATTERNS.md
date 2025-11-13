@@ -35,7 +35,7 @@
 - **Content-Type** - application/json
 
 ### 1.3 REST API Examples
-- **Authentication:** `POST /api/auth/login`, `POST /api/auth/register`
+- **Authentication:** `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/google`
 - **Profile:** `GET /api/profile/me`, `PUT /api/profile/me`, `GET /api/profile/me/score`, `GET /api/profile/me/rank-tier`
 - **Leaderboard:** `GET /api/leaderboard/top`, `GET /api/leaderboard/filtered`, `GET /api/leaderboard/player/{playerId}/rank`
 - **Heroes:** `GET /api/heroes`, `GET /api/heroes/{heroId}`
