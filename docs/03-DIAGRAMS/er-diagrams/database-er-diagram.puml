@@ -11,9 +11,16 @@ entity "Users" as users {
   --
   * username : String <<UK>>
   * email : String <<UK>>
-  * passwordHash : String
+  * passwordHash : String <<nullable>>
+  * googleId : String <<UK, nullable>>
+  * provider : String
+  * providerId : String
+  * firstName : String
+  * lastName : String
+  * pictureUrl : String
   * createdAt : Date
   * updatedAt : Date
+  * lastLoginAt : Date
 }
 
 entity "Profiles" as profiles {
@@ -150,8 +157,11 @@ arenas ||--o{ matches : "played in"
 
 note right of users
   Primary Key: _id
-  Unique Keys: username, email
-  Indexes: username, email, createdAt
+  Unique Keys: username, email, googleId (sparse)
+  Indexes: username, email, googleId, provider, createdAt
+  OAuth Support: googleId, provider, providerId
+  OAuth Info: firstName, lastName, pictureUrl
+  passwordHash: nullable for OAuth users
 end note
 
 note right of profiles

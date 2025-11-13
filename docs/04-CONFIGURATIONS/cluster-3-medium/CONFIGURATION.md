@@ -78,6 +78,9 @@ stringData:
   MONGODB_URI: "mongodb+srv://username:password@cluster.mongodb.net/battlearena"
   JWT_SECRET: "your-jwt-secret-key"
   JWT_EXPIRATION: "86400000"
+  GOOGLE_CLIENT_ID: "your-google-client-id"
+  GOOGLE_CLIENT_SECRET: "your-google-client-secret"
+  GOOGLE_REDIRECT_URI: "https://your-domain.com/auth/google/callback"
 ```
 
 #### **Environment Variables:**
@@ -89,6 +92,11 @@ JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRATION=86400000
 LOGGING_LEVEL_ROOT=INFO
 LOGGING_LEVEL_COM_BATTLEARENA=DEBUG
+
+# Google OAuth (Optional - for Story-2.7)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=https://your-domain.com/auth/google/callback
 ```
 
 ---
@@ -482,6 +490,11 @@ stringData:
 ```bash
 JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRATION=86400000
+
+# Google OAuth (Optional - for Story-2.7)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=https://your-domain.com/auth/google/callback
 ```
 
 ---

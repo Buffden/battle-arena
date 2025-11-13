@@ -16,11 +16,13 @@ Implement complete profile management system for user profiles, global score tra
 
 ## Goals
 - User profile management (view, update, avatar)
+- Profile creation for OAuth users (Google OAuth integration)
 - Global score tracking (infinite, no level cap, updated after matches)
 - Rank tier calculation (Valorant-style based on score ranges)
 - Win/loss statistics tracking and display
 - Player progression tracking and rank changes
 - Redis caching for performance optimization
+- Avatar management with Google profile picture support
 
 ## Success Criteria
 - [ ] Users can view their profile with all statistics
@@ -72,6 +74,8 @@ Based on [Profile Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/P
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Profile Service overview (section 2.2)
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure (section 2.1)
 - [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Profiles collection schema
+- [Auth Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - OAuth user data (firstName, lastName, pictureUrl) for profile creation
+- [Database Design - Users Collection](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - OAuth user fields (section 1.1) for profile integration
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
 
 ## Architecture Diagrams
@@ -474,8 +478,15 @@ Based on [Profile Service LLD](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/P
 4. ProfileController delegates to ProfileService.getProfileByUserId()
 5. ProfileService checks Redis cache first (if implemented)
 6. ProfileService retrieves profile from ProfileRepository (MongoDB)
-7. ProfileService calculates win percentage and formats statistics
-8. ProfileController returns ProfileResponse with all profile data
+7. **If profile doesn't exist (e.g., OAuth user):** ProfileService creates default profile (optional: fetch OAuth user data from Auth Service for default avatar/displayName)
+8. ProfileService calculates win percentage and formats statistics
+9. ProfileController returns ProfileResponse with all profile data
+
+**Note for OAuth Users:**
+- OAuth users (Google login) may not have a profile created yet
+- Profile Service should handle profile creation for OAuth users on first access
+- Default avatar can be set from Google pictureUrl (stored in Users collection)
+- Display name can default to firstName + lastName from OAuth user data
 
 ### Components to Create
 - **Profile Model** - MongoDB entity with all profile fields
@@ -897,6 +908,7 @@ As a user, I want to update my profile so that I can customize my display name a
 - [ ] PUT /api/profile/me endpoint
 - [ ] Update display name
 - [ ] Update avatar (URL or file upload)
+- [ ] Support for Google OAuth profile pictures (pictureUrl from Users collection)
 - [ ] Validation on input
 - [ ] Profile updated in MongoDB
 - [ ] Unit tests with 80%+ coverage
@@ -907,6 +919,12 @@ As a user, I want to update my profile so that I can customize my display name a
 - Create PUT endpoint in ProfileController
 - Add input validation
 - Handle avatar upload (if file upload)
+- Support Google OAuth profile pictures (integrate with Auth Service to get pictureUrl from Users collection)
+
+**OAuth Integration:**
+- Users logged in via Google OAuth can use their Google profile picture as avatar
+- Profile Service can fetch OAuth user data (pictureUrl) from Auth Service if needed
+- Avatar field can store either custom URL or reference to Google pictureUrl
 
 ## Subtasks
 - [ ] Create UpdateProfileRequest DTO (Task-3.3.1)

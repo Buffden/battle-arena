@@ -301,7 +301,7 @@ There is a need for a scalable multiplayer game platform that can:
 - **Orchestration:** Docker Compose (development), Kubernetes (production - future)
 
 ### 6.5 Security
-- **Authentication:** JWT (JSON Web Tokens)
+- **Authentication:** JWT (JSON Web Tokens), OAuth 2.0 (Google)
 - **Password Hashing:** BCrypt (12 rounds)
 - **Encryption:** HTTPS/WSS
 - **Security Headers:** CORS, CSP, XSS Protection

@@ -82,6 +82,9 @@ stringData:
   MONGODB_URI: "mongodb+srv://username:password@cluster.mongodb.net/battlearena"
   JWT_SECRET: "your-jwt-secret-key"
   JWT_EXPIRATION: "86400000"
+  GOOGLE_CLIENT_ID: "your-google-client-id"
+  GOOGLE_CLIENT_SECRET: "your-google-client-secret"
+  GOOGLE_REDIRECT_URI: "https://your-domain.com/auth/google/callback"
 ```
 
 ---

@@ -27,7 +27,7 @@ Battle Arena is a real-time multiplayer 2D artillery battle game system (inspire
 
 ## 2. Key Features
 
-- **User Authentication & Authorization** - Secure user registration and login
+- **User Authentication & Authorization** - Secure user registration, login, and Google OAuth login
 - **Hero Selection System** - Multiple hero types (tanks, archers, catapults, witches) with unique characteristics
 - **Multiple Hero Selection** - Players can select multiple heroes before matchmaking to increase match chances
 - **Real-time Matchmaking** - Global score/rank-based matching algorithm with multiple hero support

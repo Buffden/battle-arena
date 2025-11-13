@@ -131,9 +131,11 @@ The system follows a **microservices architecture** with the following services:
 - **Port:** 8081
 - **Responsibilities:**
   - User registration and authentication
+  - OAuth authentication (Google OAuth 2.0)
   - JWT token generation and validation
   - Password hashing and security
   - Session management
+  - Account linking for OAuth users
 - **Database:** MongoDB (Users collection)
 - **Communication:** REST API (HTTP/HTTPS)
 

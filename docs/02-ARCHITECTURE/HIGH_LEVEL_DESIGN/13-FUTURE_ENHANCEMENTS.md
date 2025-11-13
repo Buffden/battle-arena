@@ -138,7 +138,8 @@
 - **Cache monitoring** - Cache monitoring and optimization
 
 ### 3.4 Security Enhancements
-- **Advanced authentication** - Advanced authentication mechanisms
+- **Additional OAuth providers** - Facebook, GitHub, Apple OAuth (Google OAuth already implemented in Story-2.7)
+- **Advanced authentication** - Two-factor authentication (2FA), biometric authentication
 - **Token refresh** - Token refresh and rotation
 - **API rate limiting** - Advanced API rate limiting
 - **Security monitoring** - Advanced security monitoring and alerting

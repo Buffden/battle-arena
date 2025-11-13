@@ -7,6 +7,7 @@ package "Controller Layer" #LightBlue {
     -authService: AuthService
     +register(request: UserRegistrationRequest): ResponseEntity<UserRegistrationResponse>
     +login(request: AuthRequest): ResponseEntity<AuthResponse>
+    +googleLogin(request: GoogleAuthRequest): ResponseEntity<AuthResponse>
     +validateToken(token: String): ResponseEntity<TokenValidationResponse>
     +refreshToken(request: RefreshTokenRequest): ResponseEntity<AuthResponse>
   }
@@ -27,8 +28,10 @@ package "Service Layer" #LightGreen {
     -jwtService: JwtService
     -passwordService: PasswordService
     -accountSecurityService: AccountSecurityService
+    -googleOAuthService: GoogleOAuthService
     +registerUser(request: UserRegistrationRequest): UserRegistrationResponse
     +authenticateUser(request: AuthRequest): AuthResponse
+    +authenticateWithGoogle(request: GoogleAuthRequest): AuthResponse
     +validateToken(token: String): TokenValidationResponse
     +refreshToken(refreshToken: String): AuthResponse
     +lockAccount(username: String): void
@@ -36,12 +39,35 @@ package "Service Layer" #LightGreen {
     -validateRegistrationRequest(request: UserRegistrationRequest): void
     -validateAuthRequest(request: AuthRequest): void
   }
+  
+  interface GoogleOAuthService {
+    +exchangeCodeForToken(authorizationCode: String): String
+    +validateToken(accessToken: String): Boolean
+    +getUserInfo(accessToken: String): GoogleUserInfo
+  }
+  
+  class GoogleOAuthServiceImpl {
+    -googleOAuthConfig: GoogleOAuthConfig
+    -webClient: WebClient
+    +exchangeCodeForToken(authorizationCode: String): String
+    +validateToken(accessToken: String): Boolean
+    +getUserInfo(accessToken: String): GoogleUserInfo
+  }
+  
+  class GoogleOAuthConfig {
+    -clientId: String
+    -clientSecret: String
+    -redirectUri: String
+    -scope: String
+  }
 }
 
 package "Repository Layer" #LightYellow {
   interface UserRepository {
     +findByUsername(username: String): Optional<User>
     +findByEmail(email: String): Optional<User>
+    +findByGoogleId(googleId: String): Optional<User>
+    +findByEmailAndProvider(email: String, provider: String): Optional<User>
     +save(user: User): User
     +existsByUsername(username: String): Boolean
     +existsByEmail(email: String): Boolean
@@ -94,6 +120,12 @@ package "Model Layer" #LightGray {
     -username: String
     -email: String
     -passwordHash: String
+    -googleId: String
+    -provider: AuthProvider
+    -providerId: String
+    -firstName: String
+    -lastName: String
+    -pictureUrl: String
     -role: UserRole
     -isActive: Boolean
     -createdAt: Date
@@ -105,12 +137,19 @@ package "Model Layer" #LightGray {
     +getUsername(): String
     +getEmail(): String
     +getPasswordHash(): String
+    +getGoogleId(): String
+    +getProvider(): AuthProvider
     +getRole(): UserRole
     +isActive(): Boolean
     +incrementFailedLoginAttempts(): void
     +resetFailedLoginAttempts(): void
     +lockAccount(duration: Long): void
-    +unlockAccount(): void∑
+    +unlockAccount(): void
+  }
+  
+  enum AuthProvider {
+    LOCAL
+    GOOGLE
   }
   
   enum UserRole {
@@ -139,6 +178,20 @@ package "DTO Layer" #LightSteelBlue {
     -password: String
   }
   
+  class GoogleAuthRequest {
+    -code: String
+    -redirectUri: String
+  }
+  
+  class GoogleUserInfo {
+    -id: String
+    -email: String
+    -name: String
+    -givenName: String
+    -familyName: String
+    -picture: String
+  }
+  
   class AuthResponse {
     -token: String
     -refreshToken: String
@@ -159,17 +212,23 @@ AuthServiceImpl --> UserRepository
 AuthServiceImpl --> JwtService
 AuthServiceImpl --> PasswordService
 AuthServiceImpl --> AccountSecurityService
+AuthServiceImpl --> GoogleOAuthService
+GoogleOAuthService <|.. GoogleOAuthServiceImpl
+GoogleOAuthServiceImpl --> GoogleOAuthConfig
 UserRepository <|.. UserRepositoryImpl
 UserRepositoryImpl --> User
 JwtService --> User
 PasswordService --> User
 AccountSecurityService --> User
 User --> UserRole
+User --> AuthProvider
 AuthController --> UserRegistrationRequest
 AuthController --> UserRegistrationResponse
 AuthController --> AuthRequest
+AuthController --> GoogleAuthRequest
 AuthController --> AuthResponse
 AuthController --> TokenValidationResponse
+GoogleOAuthService --> GoogleUserInfo
 
 note right of AuthService
   **Design Principles:**

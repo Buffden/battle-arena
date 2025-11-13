@@ -27,16 +27,33 @@
   "_id": "ObjectId",
   "username": "string",
   "email": "string",
-  "passwordHash": "string",
+  "passwordHash": "string (nullable for OAuth users)",
+  "googleId": "string (nullable, unique)",
+  "provider": "string (enum: 'local', 'google')",
+  "providerId": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "pictureUrl": "string",
   "createdAt": "Date",
-  "updatedAt": "Date"
+  "updatedAt": "Date",
+  "lastLoginAt": "Date"
 }
 ```
 
 **Indexes:**
 - `username` - Unique index
 - `email` - Unique index
+- `googleId` - Unique sparse index (for OAuth users)
+- `provider` - Ascending index
 - `createdAt` - Ascending index
+- Compound index: `{email: 1, provider: 1}` (for OAuth lookups)
+
+**OAuth Support:**
+- `passwordHash` is nullable for OAuth users (Google login)
+- `googleId` stores Google user ID for OAuth authentication
+- `provider` indicates authentication method ("local" or "google")
+- `providerId` stores provider-specific user ID
+- `firstName`, `lastName`, `pictureUrl` store user info from OAuth providers
 
 ### 1.2 Profiles Collection
 ```json

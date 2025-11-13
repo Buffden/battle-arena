@@ -83,6 +83,11 @@ KAFKA_GROUP_ID=battle-arena-group
 JWT_SECRET=your-jwt-secret-key-change-in-production
 JWT_EXPIRATION=86400000
 
+# Google OAuth (Optional - for Story-2.7)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=https://your-domain.com/auth/google/callback
+
 # Services
 AUTH_SERVICE_PORT=8081
 PROFILE_SERVICE_PORT=8082

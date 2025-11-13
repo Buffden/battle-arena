@@ -102,6 +102,7 @@ MatchmakingComponent
 **Role:** Authentication service  
 **Responsibilities:**
 - Handle user authentication
+- Handle Google OAuth authentication
 - Manage JWT token storage
 - Provide authentication state
 - Handle login and registration
@@ -410,6 +411,9 @@ export class AuthService {
     
     // Register user
     register(userData: RegisterRequest): Observable<AuthResponse>;
+    
+    // Login with Google OAuth
+    loginWithGoogle(authorizationCode: string): Observable<AuthResponse>;
     
     // Logout user
     logout(): void;
