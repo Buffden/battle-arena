@@ -26,15 +26,17 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install @octokit/rest
+
       - name: Fix issue titles
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
         run: |
-          # Install dependencies if needed
-          npm install -g @octokit/rest 2>/dev/null || true
-          
           # Create a script to fix issue titles
           cat > fix_titles.js << 'EOF'
           const { Octokit } = require('@octokit/rest');
