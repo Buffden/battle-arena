@@ -143,20 +143,35 @@ Battle Arena follows a **microservices architecture**, which means each part of 
 
 ```
 battle-arena/
-├── backend-services/
-│   ├── auth-service/          # Spring Boot - Authentication
-│   ├── profile-service/        # Spring Boot - User profiles
-│   ├── leaderboard-service/    # Spring Boot - Rankings
-│   ├── matchmaking-service/    # Node.js - Matchmaking logic
-│   └── game-engine/            # Node.js - Game physics & logic
-├── frontend-service/           # Angular - The game UI
-├── docs/                       # Comprehensive documentation
-│   ├── 00-PROJECT_DEFINITION/  # What I'm building
-│   ├── 02-ARCHITECTURE/        # How it all fits together
-│   ├── 03-DIAGRAMS/            # Visual architecture
-│   └── 05-PROJECT_MANAGEMENT/  # Development phases
-└── deployments/                # Docker & deployment configs
+├── backend-services/          # 5 microservices (3 Spring Boot, 2 Node.js)
+│   ├── auth-service/          # Spring Boot - Authentication (Port 8081)
+│   ├── profile-service/        # Spring Boot - User profiles (Port 8082)
+│   ├── leaderboard-service/    # Spring Boot - Rankings (Port 8083)
+│   ├── matchmaking-service/    # Node.js - Matchmaking logic (Port 3002)
+│   └── game-engine/            # Node.js - Game physics & logic (Port 5002)
+├── frontend-service/           # Angular - The game UI (Port 4200)
+├── deployments/                # Docker & Kubernetes configurations
+│   ├── docker/                 # Docker Compose for local development
+│   ├── kubernetes/             # Kubernetes manifests for production
+│   └── nginx/                  # Nginx API Gateway configuration
+├── database/                   # MongoDB initialization scripts
+│   └── init/                   # Database initialization scripts
+├── scripts/                     # Utility scripts (setup, deployment, etc.)
+└── docs/                       # Comprehensive documentation
+    ├── 00-PROJECT_DEFINITION/  # What I'm building
+    ├── 02-ARCHITECTURE/        # How it all fits together
+    ├── 03-DIAGRAMS/            # Visual architecture
+    └── 05-PROJECT_MANAGEMENT/  # Development phases
 ```
+
+### Directory Purposes
+
+- **backend-services/**: Contains all 5 microservices following clean architecture principles
+- **frontend-service/**: Angular application with modular structure (auth, dashboard, hero-selection, matchmaking, arena-selection, weapon-selection, arena, profile, leaderboard)
+- **deployments/**: Docker Compose for local development, Kubernetes manifests for production
+- **database/**: MongoDB initialization scripts for collections (Users, Profiles, Matches, Leaderboard, Heroes, Weapons, Arenas)
+- **scripts/**: Setup, deployment, and utility scripts
+- **docs/**: Comprehensive project documentation
 
 ---
 
