@@ -59,3 +59,18 @@ temp/
 # Backup files
 *.bak
 *.backup
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Database data directories
+database/data/
+database/redis/
+*.db
+*.sqlite
+*.sqlite3
+
+# Container volumes
+volumes/
+data/
