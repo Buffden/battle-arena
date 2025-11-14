@@ -85,7 +85,9 @@ docs/
 │   └── DESIGN_PROCESS_EXPLANATION.md
 │
 ├── 01-GETTING_STARTED/          # You are here
-│   └── README.md
+│   ├── README.md
+│   ├── DOCKER_INSTALLATION.md
+│   └── DOCKER_COMPOSE_SETUP.md
 │
 ├── 02-ARCHITECTURE/             # ✅ Architecture Documentation
 │   ├── README.md                # ✅ Architecture Index

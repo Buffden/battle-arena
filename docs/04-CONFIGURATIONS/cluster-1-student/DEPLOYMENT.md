@@ -87,115 +87,27 @@ Cloud VM (2 CPU, 4GB RAM)
 ## 📦 Docker Compose Configuration
 
 ### **docker-compose.yml:**
+
+**Note:** See the actual implementation in the root `docker-compose.yml` file for the current configuration. The example below shows a simplified structure.
+
+Key changes from the actual implementation:
+- Image versions: `mongo:6.0` (not `:latest`), `redis:7-alpine` (not `:latest`)
+- Nginx config path: `./deployments/nginx/nginx.conf` (not `./nginx/nginx.conf`)
+- Network: `battle-arena-network` for service communication
+- Services use service names for communication (e.g., `mongodb:27017`, not `localhost:27017`)
+
 ```yaml
-version: '3.8'
-
 services:
-  # Frontend
-  frontend:
-    build: ./frontend-service
-    ports:
-      - "4200:4200"
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - nginx
-
   # API Gateway
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - auth-service
-      - profile-service
-      - leaderboard-service
-      - matchmaking-service
-      - game-engine-service
-      - configuration-service
-
-  # Auth Service
-  auth-service:
-    build: ./backend-services/auth-service
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - JWT_SECRET=your-jwt-secret
-    depends_on:
-      - mongodb
-
-  # Profile Service
-  profile-service:
-    build: ./backend-services/user-profile-service
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - mongodb
-      - redis
-
-  # Leaderboard Service
-  leaderboard-service:
-    build: ./backend-services/leaderboard-service
-    ports:
-      - "8083:8083"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - mongodb
-      - redis
-
-  # Matchmaking Service
-  matchmaking-service:
-    build: ./backend-services/matchmaking-service
-    ports:
-      - "3002:3002"
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - mongodb
-      - redis
-
-  # Game Engine Service
-  game-engine-service:
-    build: ./backend-services/game-engine-service
-    ports:
-      - "3003:3003"
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - mongodb
-      - redis
-
-  # Configuration Service
-  configuration-service:
-    build: ./backend-services/configuration-service
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - battle-arena-network
     depends_on:
       - mongodb
       - redis
@@ -209,6 +121,8 @@ services:
       - mongodb-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=battlearena
+    networks:
+      - battle-arena-network
 
   # Redis
   redis:
@@ -217,10 +131,19 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - battle-arena-network
+
+  # Backend services (commented out, enabled as implemented)
+  # auth-service, profile-service, leaderboard-service, etc.
 
 volumes:
   mongodb-data:
   redis-data:
+
+networks:
+  battle-arena-network:
+    driver: bridge
 ```
 
 ---
