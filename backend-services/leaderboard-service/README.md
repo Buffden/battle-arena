@@ -1,20 +1,29 @@
 # Leaderboard Service
 
-Spring Boot service for rankings and leaderboards.
+Spring Boot service for rankings and leaderboards with filtering capabilities.
+
+## Description
+
+The Leaderboard Service generates and maintains global leaderboards with advanced filtering options including region, hero type, winning percentage, and weapon usage.
+
+## Technology Stack
+
+- **Framework:** Spring Boot 3.x
+- **Language:** Java 17
+- **Database:** MongoDB (Leaderboard collection)
 
 ## Port
-8083
 
-## Tech Stack
-- Spring Boot 3.x
-- Java 17
-- MongoDB
+**8083**
 
-## What It Does
+## Responsibilities
+
 - Top players ranking
-- Leaderboard with filtering (region, hero type, win percentage, weapons)
-- Player rankings display
+- Leaderboard generation with filtering (region, hero type, winning percentage, weapons)
+- Rank tier calculation (score ranges determine rank tiers like Valorant)
+- Ranking algorithms (global score determines rankings, players with similar ranks can be in top 5)
+- Statistics aggregation
 
 ## Status
-🚧 Just set up - ready for implementation
 
+🚧 **Ready for Implementation**
