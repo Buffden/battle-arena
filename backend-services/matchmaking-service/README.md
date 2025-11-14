@@ -1,23 +1,35 @@
 # Matchmaking Service
 
-Node.js service for handling matchmaking, hero selection, and player queues.
+Node.js service for hero selection, matchmaking, and pre-match setup (arena/weapon selection).
+
+## Description
+
+The Matchmaking Service handles the complete matchmaking flow including hero selection, skill-based player matching, arena voting, and weapon selection before starting a game.
+
+## Technology Stack
+
+- **Runtime:** Node.js 18+
+- **Framework:** Express
+- **Real-time:** Socket.io (WebSocket)
+- **Cache:** Redis (Matchmaking queue, Lobby storage, Configuration cache)
 
 ## Port
-3002
 
-## Tech Stack
-- Node.js
-- Express
-- Socket.io (WebSocket)
-- Redis (Queue and Lobby storage)
+**3002**
 
-## What It Does
-- Hero selection management
+## Responsibilities
+
+- Hero selection management (multiple hero selection, hero matching, hero assignment)
 - Player queue management
-- Matchmaking algorithm (skill-based)
-- Arena/weapon selection
-- Finding opponents for players
+- Global score/rank-based matchmaking algorithm
+- Queue expansion (after 5 minutes, widen XP/score/rank range)
+- Arena selection management (voting/elimination system)
+- Weapon selection management (alternating selection, 30-second timer)
+- Lobby creation and management
+- Match acceptance handling
+- Estimated wait time calculation
+- Reconnection handling
 
 ## Status
-🚧 Just set up - ready for implementation
 
+🚧 **Ready for Implementation**

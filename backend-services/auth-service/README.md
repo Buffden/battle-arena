@@ -2,23 +2,31 @@
 
 Spring Boot service for user authentication and authorization.
 
+## Description
+
+The Auth Service handles all user authentication and authorization operations for Battle Arena, including local authentication, Google OAuth, and JWT token management.
+
+## Technology Stack
+
+- **Framework:** Spring Boot 3.x
+- **Language:** Java 17
+- **Database:** MongoDB (Users collection)
+- **Authentication:** JWT tokens, Google OAuth 2.0
+- **Password Hashing:** BCrypt
+
 ## Port
-8081
 
-## Tech Stack
-- Spring Boot 3.x
-- Java 17
-- MongoDB
-- JWT tokens
-- BCrypt password hashing
+**8081**
 
-## What It Does
-- User registration
-- User login
+## Responsibilities
+
+- User registration and authentication
+- OAuth authentication (Google OAuth 2.0)
 - JWT token generation and validation
-- Google OAuth login
-- Password hashing
+- Password hashing and security
+- Session management
+- Account linking for OAuth users
 
 ## Status
-🚧 Just set up - ready for implementation
 
+🚧 **Ready for Implementation**
