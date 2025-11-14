@@ -30,6 +30,84 @@
 - **Cost:** $0/month (local) or $5-10/month (small cloud VM)
 - **Student Recommendation:** Use Docker Compose for <1,000 users/month (simpler, free, easier to manage)
 
+**Implementation Details:**
+
+The Docker Compose configuration is located in the root `docker-compose.yml` file. Key implementation details:
+
+**Configuration File**: `docker-compose.yml` in project root
+
+**Network**: 
+- Network name: `battle-arena-network`
+- Driver: `bridge`
+- Purpose: Enables inter-service communication using Docker DNS service names
+
+**Services**:
+
+1. **Nginx API Gateway** (Container: `battle-arena-nginx`)
+   - Image: `nginx:latest`
+   - External Ports: `80:80` (HTTP), `443:443` commented for future SSL
+   - Internal Access: Only service with external ports exposed
+   - Configuration: Mounted from `./deployments/nginx/nginx.conf` (read-only)
+   - Health Check: `nginx -t` every 30s
+   - Dependencies: Waits for MongoDB and Redis to be healthy
+
+2. **MongoDB** (Container: `battle-arena-mongodb`)
+   - Image: `mongo:6.0` (version pinned)
+   - External Port: `27017:27017` (development only, remove in production)
+   - Internal Access: Services connect via `mongodb:27017`
+   - Database: `battlearena` (set via MONGO_INITDB_DATABASE)
+   - Volumes:
+     - `mongodb_data:/data/db` (persistent data)
+     - `./database/init:/docker-entrypoint-initdb.d:ro` (init scripts)
+   - Health Check: `mongosh --eval "db.adminCommand('ping')"` every 10s
+   - Start Period: 40s grace period before health checks begin
+
+3. **Redis** (Container: `battle-arena-redis`)
+   - Image: `redis:7-alpine` (lightweight, version pinned)
+   - External Port: `6379:6379` (development only, remove in production)
+   - Internal Access: Services connect via `redis:6379`
+   - Persistence: AOF enabled (`--appendonly yes`)
+   - Volume: `redis_data:/data` (persistent data)
+   - Health Check: `redis-cli ping` every 10s
+
+4. **Backend Services** (Commented out, ready for implementation)
+   - Auth Service (Spring Boot, port 8081)
+   - Profile Service (Spring Boot, port 8082)
+   - Leaderboard Service (Spring Boot, port 8083)
+   - Matchmaking Service (Node.js, port 3002, WebSocket)
+   - Game Engine (Node.js, port 5002, WebSocket)
+   - Frontend Service (Angular, port 4200)
+   - All backend services have NO host ports - accessed only via Nginx
+
+**Volumes**: 
+- `mongodb_data`: Named volume for MongoDB persistent storage
+- `redis_data`: Named volume for Redis persistent storage
+- Both use `local` driver and persist data across container restarts
+
+**Health Checks**: 
+- Implemented for all services (Nginx, MongoDB, Redis)
+- Proper intervals (10s for DBs, 30s for Nginx), timeouts (5s), and retries (3-5)
+- MongoDB has 40s start period to allow initialization
+
+**Dependencies**: 
+- Health-based dependencies using `condition: service_healthy`
+- Ensures services start in correct order (databases first, then Nginx)
+
+**Restart Policies**: 
+- All services use `restart: unless-stopped`
+- Ensures services automatically restart on failure
+
+**Service Discovery**: 
+- Services communicate using Docker DNS service names
+- Examples: `mongodb:27017`, `redis:6379`, `auth-service:8081`
+- Never use `localhost` or `127.0.0.1` - always use service names
+
+**Port Exposure Rules**:
+- **Nginx**: ONLY service with external ports (80, 443)
+- **Backend Services**: NO host ports exposed - internal only
+- **Databases**: Ports exposed ONLY for development convenience (debugging, direct access)
+  - In production: Remove port mappings, use internal network only
+
 ### 1.2 Hot Reload
 - **Hot reload** for development services
 - **Code changes** - Automatic code reload on changes
@@ -93,6 +171,19 @@
 - **Sticky sessions** - Session affinity for WebSocket connections (basic)
 - **Cost:** $0/month (self-hosted, free)
 - **Student Recommendation:** Use Nginx (simpler, free, sufficient for student projects)
+
+**Current Implementation:**
+- **Configuration File**: `deployments/nginx/nginx.conf`
+- **Mount Location**: `/etc/nginx/nginx.conf` (read-only) in container
+- **Current Status**: Placeholder configuration with health check endpoint
+- **Health Endpoint**: `/health` returns "healthy" status
+- **Future Implementation**: Full service routing will be added in TASK-1-2-8
+  - `/api/auth/*` → auth-service (port 8081)
+  - `/api/profile/*` → profile-service (port 8082)
+  - `/api/leaderboard/*` → leaderboard-service (port 8083)
+  - `/ws/matchmaking` → matchmaking-service (port 3002, WebSocket)
+  - `/ws/game` → game-engine (port 5002, WebSocket)
+- **External Ports**: 80 (HTTP), 443 (HTTPS - commented out, ready for SSL configuration)
 
 #### **Production (High Traffic >10,000 users/day) - Full Configuration**
 - **API Gateway** (Kong/Apigee/Nginx) for centralized API management
@@ -189,9 +280,20 @@
 
 ### 4.1 Docker Compose
 - **Docker Compose** for local development
-- **Service definitions** - Service definitions in docker-compose.yml
-- **Network configuration** - Network configuration
-- **Volume management** - Volume management for data persistence
+- **Service definitions** - Service definitions in docker-compose.yml (located in project root)
+- **Network configuration** - `battle-arena-network` (bridge driver) for inter-service communication
+- **Volume management** - Named volumes for data persistence (`mongodb_data`, `redis_data`)
+- **Health checks** - Implemented for all services (MongoDB, Redis, Nginx)
+- **Service discovery** - Services communicate via Docker DNS using service names
+- **Dependencies** - Health-based dependencies ensure services start in correct order
+- **Restart policies** - `restart: unless-stopped` for all services
+
+**Current Implementation:**
+- **Location**: Root `docker-compose.yml`
+- **Active Services**: Nginx (API Gateway), MongoDB 6.0, Redis 7-alpine
+- **Backend Services**: Templates defined (commented out, ready for implementation)
+- **Network**: `battle-arena-network` with bridge driver
+- **Volumes**: Persistent storage for MongoDB and Redis data
 
 ### 4.2 Container Orchestration (Kubernetes / Docker Compose)
 
@@ -317,11 +419,43 @@
 
 ---
 
-## 8. Related Documentation
+## 8. Implementation Reference
+
+### Docker Compose Configuration
+
+The actual implementation can be found in:
+- **Configuration File**: Root `docker-compose.yml`
+- **Nginx Configuration**: `deployments/nginx/nginx.conf`
+- **MongoDB Init Scripts**: `database/init/init.js`
+
+For detailed setup instructions, see:
+- [Docker Compose Setup Guide](../../01-GETTING_STARTED/DOCKER_COMPOSE_SETUP.md)
+- [Docker Installation Guide](../../01-GETTING_STARTED/DOCKER_INSTALLATION.md)
+
+### Quick Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Check status
+docker-compose ps
+
+# Stop services
+docker-compose down
+```
+
+---
+
+## 9. Related Documentation
 
 - [System Architecture](./02-SYSTEM_ARCHITECTURE.md) - System architecture overview
 - [Scalability Considerations](./08-SCALABILITY.md) - Scalability design
 - [Non-Functional Requirements](./10-NON_FUNCTIONAL_REQUIREMENTS.md) - Non-functional requirements
+- [Docker Compose Setup Guide](../../01-GETTING_STARTED/DOCKER_COMPOSE_SETUP.md) - Local development setup
 
 ---
 

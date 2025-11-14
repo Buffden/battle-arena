@@ -853,54 +853,75 @@ Create docker-compose.yml file for running all services locally following the de
 ### Docker Compose Structure
 Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) section 1.1:
 
+**Actual Implementation** (located in root `docker-compose.yml`):
+
 ```yaml
-version: '3.8'
+# Battle Arena - Local Development Docker Compose Configuration
+# Services communicate internally via Docker network using service names
+# Only Nginx API Gateway exposes external ports (80/443)
+# Backend services have NO host ports - accessed only via Nginx
 
 services:
   # Nginx API Gateway - ONLY service that exposes ports to host
   nginx:
     image: nginx:latest
+    container_name: battle-arena-nginx
     ports:
       - "80:80"      # HTTP
-      - "443:443"    # HTTPS (when SSL configured)
+    #   - "443:443"    # HTTPS (when SSL configured) Commented out for now, will be used in production
     volumes:
-      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - battle-arena-network
     depends_on:
-      - mongodb
-      - redis
-      # - auth-service (when implemented)
-      # - profile-service (when implemented)
-      # - etc.
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # MongoDB - Database for persistent data
   mongodb:
-    image: mongo:latest
+    image: mongo:6.0
+    container_name: battle-arena-mongodb
     # Port exposed ONLY for development convenience (direct DB access, debugging)
     # In production, remove port mapping - services access via service name
     ports:
-      - "27017:27017"  # Remove in production, use internal network only
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=battlearena
     volumes:
       - mongodb_data:/data/db
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/init:/docker-entrypoint-initdb.d:ro
     networks:
       - battle-arena-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
 
+  # Redis - Cache and queues
   redis:
-    image: redis:latest
+    image: redis:7-alpine
+    container_name: battle-arena-redis
     # Port exposed ONLY for development convenience (direct Redis access, debugging)
     # In production, remove port mapping - services access via service name
     ports:
-      - "6379:6379"  # Remove in production, use internal network only
+      - "6379:6379"
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     networks:
       - battle-arena-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -911,26 +932,47 @@ services:
   # Services communicate internally via Docker network using service names
   # Example: auth-service connects to mongodb using "mongodb:27017" (not localhost:27017)
   # auth-service:
-  #   build: ./backend-services/auth-service
+  #   build:
+  #     context: ./backend-services/auth-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-auth-service
   #   # NO ports exposed - accessed only via Nginx
   #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
   #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
   #     - REDIS_HOST=redis
   #     - REDIS_PORT=6379
   #   networks:
   #     - battle-arena-network
   #   depends_on:
-  #     - mongodb
-  #     - redis
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
 volumes:
   mongodb_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
   battle-arena-network:
     driver: bridge
+    name: battle-arena-network
 ```
+
+**Key Implementation Details:**
+- Removed `version` field (obsolete in newer Docker Compose)
+- Pinned image versions (mongo:6.0, redis:7-alpine) instead of `:latest`
+- Added explicit container names for easier management
+- Implemented health-based dependencies (`condition: service_healthy`)
+- Added restart policies (`restart: unless-stopped`) for all services
+- Enabled Redis persistence with AOF (`--appendonly yes`)
+- Added health checks for all services (Nginx, MongoDB, Redis)
+- MongoDB init scripts mounted as read-only (`:ro`)
+- All backend service templates included (commented out, ready for implementation)
 
 ### ⚠️ Critical Architecture Principle: Internal Communication Only
 
@@ -953,19 +995,29 @@ networks:
    - Nginx routes external traffic to internal services by service name
 
 ### MongoDB Configuration
+- **Image**: `mongo:6.0` (version pinned for stability)
+- **Container Name**: `battle-arena-mongodb`
 - **Internal Port**: 27017 (within Docker network)
 - **Host Port**: 27017 (exposed ONLY for development convenience - remove in production)
 - **Service Access**: Services connect using `mongodb:27017` (not `localhost:27017`)
-- **Volumes**: Persistent storage for database data
+- **Environment**: `MONGO_INITDB_DATABASE=battlearena`
+- **Volumes**: 
+  - `mongodb_data:/data/db` (persistent storage)
+  - `./database/init:/docker-entrypoint-initdb.d:ro` (init scripts, read-only)
 - **Init Scripts**: `/database/init/init.js` for collection initialization
+- **Health Check**: `mongosh --eval "db.adminCommand('ping')"` with 40s start period
 - **Collections**: Users, Profiles, Matches, Leaderboard, Heroes, Weapons, Arenas
 
 ### Redis Configuration
+- **Image**: `redis:7-alpine` (version pinned, alpine for smaller size)
+- **Container Name**: `battle-arena-redis`
 - **Internal Port**: 6379 (within Docker network)
 - **Host Port**: 6379 (exposed ONLY for development convenience - remove in production)
 - **Service Access**: Services connect using `redis:6379` (not `localhost:6379`)
+- **Persistence**: AOF (Append-Only File) enabled with `--appendonly yes`
+- **Volumes**: `redis_data:/data` (persistent storage)
+- **Health Check**: `redis-cli ping` every 10s
 - **Data Structures**: Sorted Sets (matchmaking queue), Hash (lobby/game state), String (cache)
-- **Persistence**: Optional for development (can use in-memory)
 
 ### Network Configuration
 - **Network Name**: `battle-arena-network`
@@ -974,10 +1026,16 @@ networks:
 - **Service Discovery**: Services reference each other by service name (e.g., `auth-service`, `mongodb`, `redis`)
 
 ### Nginx API Gateway Configuration
-- **External Ports**: 80 (HTTP), 443 (HTTPS) - ONLY external ports
+- **Image**: `nginx:latest`
+- **Container Name**: `battle-arena-nginx`
+- **External Ports**: 80 (HTTP), 443 (HTTPS - commented out for now, will be enabled in production)
+- **Configuration File**: `./deployments/nginx/nginx.conf` mounted as read-only (`:ro`)
 - **Internal Routing**: Routes to services by service name (e.g., `http://auth-service:8081`)
-- **Load Balancing**: Can load balance across multiple service instances
-- **SSL Termination**: Handles HTTPS/WSS encryption
+- **Health Check**: `nginx -t` (config test) every 30s
+- **Dependencies**: Waits for MongoDB and Redis to be healthy before starting
+- **Load Balancing**: Can load balance across multiple service instances (when configured)
+- **SSL Termination**: Handles HTTPS/WSS encryption (when enabled)
+- **Current Status**: Placeholder configuration with `/health` endpoint (full routing in TASK-1-2-8)
 
 ## Related Documentation
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Docker Compose setup (section 1.1)
