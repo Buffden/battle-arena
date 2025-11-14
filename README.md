@@ -1,5 +1,11 @@
 # 🎮 Battle Arena
 
+[![Status](https://img.shields.io/badge/status-active_development-yellow)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)]()
+[![Java](https://img.shields.io/badge/java-17-orange)]()
+[![Node](https://img.shields.io/badge/node-18+-green)]()
+[![Angular](https://img.shields.io/badge/angular-17+-red)]()
+
 > *Where strategy meets nostalgia, and every shot counts.*
 
 **Battle Arena** is a modern multiplayer 2D artillery battle game that brings the classic Pocket Tank experience into the 21st century. Think of it as your favorite retro artillery game, but now you can battle real players from around the world, climb leaderboards, and prove you're the ultimate artillery master.
@@ -98,11 +104,23 @@ Battle Arena follows a **microservices architecture**, which means each part of 
 
 ### Core Services
 
-1. **Auth Service** - Handles user registration, login, Google OAuth, and JWT tokens
-2. **Profile Service** - Manages player profiles, scores, and rank progression
-3. **Leaderboard Service** - Powers those competitive rankings (with smart filtering)
-4. **Matchmaking Service** - Finds you the perfect opponent in seconds
-5. **Game Engine Service** - The heart of the game: physics, turns, scoring
+This project follows a **microservices architecture** with the following services:
+
+| Service | Technology | Port | Description |
+|---------|-----------|------|-------------|
+| **Auth Service** | Spring Boot (Java) | 8081 | User registration, login, Google OAuth, JWT tokens |
+| **Profile Service** | Spring Boot (Java) | 8082 | Player profiles, scores, rank progression |
+| **Leaderboard Service** | Spring Boot (Java) | 8083 | Rankings and leaderboards with filtering |
+| **Matchmaking Service** | Node.js (Express, Socket.io) | 3002 | Hero selection, matchmaking, arena/weapon selection |
+| **Game Engine Service** | Node.js (Express, Socket.io) | 5002 | Game logic, physics, turns, scoring |
+| **Frontend Service** | Angular 17+ | 4200 | User interface and game client |
+
+**Data Stores:**
+- **MongoDB** - Persistent data storage (Users, Profiles, Matches, Leaderboard, Heroes, Weapons, Arenas)
+- **Redis** - Caching and queues (matchmaking queue, game state cache, configuration cache)
+
+**API Gateway:**
+- **Nginx** - Reverse proxy, load balancing, SSL termination
 
 ---
 
@@ -110,11 +128,12 @@ Battle Arena follows a **microservices architecture**, which means each part of 
 
 ### Prerequisites
 
-- **Java 17+** (for Spring Boot services)
-- **Node.js 18+** (for matchmaking and game engine)
-- **Docker & Docker Compose** (for easy local setup)
-- **MongoDB** (or use Docker)
-- **Redis** (or use Docker)
+- **Docker & Docker Compose** - For containerized services and easy local setup
+- **Java 17+** - For Spring Boot services (Auth, Profile, Leaderboard)
+- **Node.js 18+** - For Node.js services (Matchmaking, Game Engine)
+- **Git** - For version control
+- **MongoDB** - Database (or use Docker container)
+- **Redis** - Cache and queues (or use Docker container)
 
 ### Quick Start
 
@@ -131,11 +150,18 @@ Battle Arena follows a **microservices architecture**, which means each part of 
 
 3. **Access the game**
    - Frontend: `http://localhost:4200`
-   - API Gateway: `http://localhost:80`
+   - API Gateway: `http://localhost:80` (routes to backend services)
+   - Auth Service: `http://localhost:8081`
+   - Profile Service: `http://localhost:8082`
+   - Leaderboard Service: `http://localhost:8083`
+   - Matchmaking Service: `http://localhost:3002` (WebSocket)
+   - Game Engine Service: `http://localhost:5002` (WebSocket)
 
 4. **Create an account and start playing!** 🎮
 
-> 💡 **Tip:** Check out my [detailed setup guide](./docs/01-GETTING_STARTED/README.md) for more information.
+> 💡 **Tip:** Check out the [detailed setup guide](./docs/01-GETTING_STARTED/README.md) for more information.
+
+> 🔧 **Environment Setup:** Create `.env` files for each service based on `.env.example` templates (if available).
 
 ---
 
@@ -143,20 +169,35 @@ Battle Arena follows a **microservices architecture**, which means each part of 
 
 ```
 battle-arena/
-├── backend-services/
-│   ├── auth-service/          # Spring Boot - Authentication
-│   ├── profile-service/        # Spring Boot - User profiles
-│   ├── leaderboard-service/    # Spring Boot - Rankings
-│   ├── matchmaking-service/    # Node.js - Matchmaking logic
-│   └── game-engine/            # Node.js - Game physics & logic
-├── frontend-service/           # Angular - The game UI
-├── docs/                       # Comprehensive documentation
-│   ├── 00-PROJECT_DEFINITION/  # What I'm building
-│   ├── 02-ARCHITECTURE/        # How it all fits together
-│   ├── 03-DIAGRAMS/            # Visual architecture
-│   └── 05-PROJECT_MANAGEMENT/  # Development phases
-└── deployments/                # Docker & deployment configs
+├── backend-services/          # 5 microservices (3 Spring Boot, 2 Node.js)
+│   ├── auth-service/          # Spring Boot - Authentication (Port 8081)
+│   ├── profile-service/        # Spring Boot - User profiles (Port 8082)
+│   ├── leaderboard-service/    # Spring Boot - Rankings (Port 8083)
+│   ├── matchmaking-service/    # Node.js - Matchmaking logic (Port 3002)
+│   └── game-engine/            # Node.js - Game physics & logic (Port 5002)
+├── frontend-service/           # Angular - The game UI (Port 4200)
+├── deployments/                # Docker & Kubernetes configurations
+│   ├── docker/                 # Docker Compose for local development
+│   ├── kubernetes/             # Kubernetes manifests for production
+│   └── nginx/                  # Nginx API Gateway configuration
+├── database/                   # MongoDB initialization scripts
+│   └── init/                   # Database initialization scripts
+├── scripts/                     # Utility scripts (setup, deployment, etc.)
+└── docs/                       # Comprehensive documentation
+    ├── 00-PROJECT_DEFINITION/  # What I'm building
+    ├── 02-ARCHITECTURE/        # How it all fits together
+    ├── 03-DIAGRAMS/            # Visual architecture
+    └── 05-PROJECT_MANAGEMENT/  # Development phases
 ```
+
+### Directory Purposes
+
+- **backend-services/**: Contains all 5 microservices following clean architecture principles
+- **frontend-service/**: Angular application with modular structure (auth, dashboard, hero-selection, matchmaking, arena-selection, weapon-selection, arena, profile, leaderboard)
+- **deployments/**: Docker Compose for local development, Kubernetes manifests for production
+- **database/**: MongoDB initialization scripts for collections (Users, Profiles, Matches, Leaderboard, Heroes, Weapons, Arenas)
+- **scripts/**: Setup, deployment, and utility scripts
+- **docs/**: Comprehensive project documentation
 
 ---
 
@@ -177,24 +218,74 @@ battle-arena/
 
 ## 📚 Documentation
 
-I've got you covered with comprehensive documentation:
+Comprehensive documentation is available in the `docs/` folder:
 
-- **[Project Description](./docs/00-PROJECT_DEFINITION/PROJECT_DESCRIPTION_PLAIN_ENGLISH.md)** - What I'm building
-- **[Architecture Overview](./docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md)** - How everything works
-- **[Getting Started Guide](./docs/01-GETTING_STARTED/README.md)** - Detailed setup instructions
-- **[Development Phases](./docs/05-PROJECT_MANAGEMENT/PROJECT_BREAKDOWN.md)** - My implementation roadmap
+### Architecture & Design
+- **[Architecture Overview](./docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md)** - System architecture and component design
+- **[Project Description](./docs/00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md)** - Complete project specification
+- **[System Architecture](./docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md)** - Detailed architecture documentation
+- **[Component Design](./docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md)** - Service structure and responsibilities
+- **[Database Design](./docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md)** - Database schema and relationships
+
+### Getting Started
+- **[Getting Started Guide](./docs/01-GETTING_STARTED/README.md)** - Detailed setup and installation instructions
+- **[Project Management](./docs/05-PROJECT_MANAGEMENT/PROJECT_BREAKDOWN.md)** - Development phases and roadmap
+
+### Visual Documentation
+- **[Architecture Diagrams](./docs/03-DIAGRAMS/README.md)** - Visual architecture diagrams and flow charts
+- **[ER Diagrams](./docs/03-DIAGRAMS/er-diagrams/)** - Database entity relationships
+- **[Sequence Diagrams](./docs/03-DIAGRAMS/sequence-diagrams/)** - Service interaction flows
+
+For complete documentation index, see [docs/README.md](./docs/README.md)
 
 ---
 
 ## 🎯 Design Principles
 
-I take code quality seriously. Every line of code follows these principles:
+Code quality is a top priority. Every line of code follows these principles:
 
-- **🔄 Reusability** - Write once, use everywhere
-- **✨ Clean Code** - Readable, maintainable, self-documenting
-- **🏗️ Clean Architecture** - Clear separation of concerns
+- **🔄 Reusability** - All components, services, and utilities designed for maximum reusability
+- **✨ Clean Code** - Readable, maintainable, self-documenting code
+- **🏗️ Clean Architecture** - Strict separation of concerns with clear boundaries between layers
 - **🔒 Security First** - Defense in depth, input validation, secure by default
-- **📐 SOLID Principles** - Industry best practices
+- **📐 SOLID Principles** - Industry best practices (DRY, SOLID, design patterns)
+
+## 💻 Development
+
+### Development Workflow
+
+1. **Setup Development Environment**
+   ```bash
+   # Install dependencies for each service
+   cd backend-services/auth-service && ./mvnw clean install
+   cd ../matchmaking-service && npm install
+   # ... repeat for other services
+   ```
+
+2. **Run Services Locally**
+   - Use Docker Compose for full stack: `docker-compose up`
+   - Or run services individually for development
+   - Services communicate via Docker network (use service names) or localhost
+
+3. **Testing**
+   - Unit tests: Run tests for each service independently
+   - Integration tests: Test service interactions
+   - End-to-end tests: Test complete user flows
+
+4. **Code Quality**
+   - Follow SOLID principles
+   - Maintain clean architecture layers
+   - Write reusable components
+   - Document complex logic
+   - Security-first approach
+
+### Testing Instructions
+
+- **Spring Boot Services:** `./mvnw test`
+- **Node.js Services:** `npm test`
+- **Angular Frontend:** `ng test` or `npm test`
+
+See individual service README files for service-specific testing instructions.
 
 ---
 

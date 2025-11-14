@@ -1,0 +1,21 @@
+{
+  "name": "matchmaking-service",
+  "version": "1.0.0",
+  "description": "Matchmaking service for Battle Arena - handles hero selection, player queues, and matchmaking",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "matchmaking",
+    "websocket",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
