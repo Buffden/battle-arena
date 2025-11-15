@@ -4,9 +4,7 @@ module.exports = {
     es2021: true,
     jest: true
   },
-  extends: [
-    'eslint:recommended'
-  ],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 2021,
     sourceType: 'module'
@@ -19,9 +17,9 @@ module.exports = {
     'prefer-const': 'error',
 
     // Code style
-    'indent': ['error', 2],
-    'quotes': ['error', 'single'],
-    'semi': ['error', 'always'],
+    indent: ['error', 2],
+    quotes: ['error', 'single'],
+    semi: ['error', 'always'],
     'comma-dangle': ['error', 'never'],
     'no-trailing-spaces': 'error',
     'eol-last': ['error', 'always'],
@@ -31,12 +29,5 @@ module.exports = {
     'no-implied-eval': 'error',
     'no-new-func': 'error'
   },
-  ignorePatterns: [
-    'node_modules/',
-    'coverage/',
-    'dist/',
-    '*.test.js',
-    '*.spec.js'
-  ]
+  ignorePatterns: ['node_modules/', 'coverage/', 'dist/', '*.test.js', '*.spec.js']
 };
-
