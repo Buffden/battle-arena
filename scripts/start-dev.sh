@@ -5,9 +5,7 @@
 
 set -e
 
-echo "=========================================="
 echo "Starting Battle Arena Development Environment"
-echo "=========================================="
 echo ""
 
 # Check if Docker is running
@@ -53,9 +51,7 @@ echo "Service Status:"
 $COMPOSE_CMD ps
 
 echo ""
-echo "=========================================="
 echo "Services started successfully!"
-echo "=========================================="
 echo ""
 echo "Access points:"
 echo "  - API Gateway: http://localhost"

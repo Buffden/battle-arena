@@ -5,9 +5,7 @@
 
 set -e
 
-echo "=========================================="
 echo "Restarting Battle Arena Development Environment"
-echo "=========================================="
 echo ""
 
 # Check if Docker is running
@@ -44,9 +42,7 @@ echo "Service Status:"
 $COMPOSE_CMD ps
 
 echo ""
-echo "=========================================="
 echo "Services restarted successfully!"
-echo "=========================================="
 echo ""
 echo "Access points:"
 echo "  - API Gateway: http://localhost"

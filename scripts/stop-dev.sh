@@ -4,10 +4,7 @@
 # Stops all services using Docker Compose
 
 set -e
-
-echo "=========================================="
 echo "Stopping Battle Arena Development Environment"
-echo "=========================================="
 echo ""
 
 # Check if Docker is running
@@ -35,9 +32,7 @@ echo "Stopping services..."
 $COMPOSE_CMD down
 
 echo ""
-echo "=========================================="
 echo "Services stopped successfully!"
-echo "=========================================="
 echo ""
 echo "Note: Volumes are preserved. Data will persist."
 echo "To remove volumes: $COMPOSE_CMD down -v"
