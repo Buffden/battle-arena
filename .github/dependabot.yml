@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Maven dependencies for Java services
+  - package-ecosystem: "maven"
+    directory: "/backend-services/auth-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "maven"
+    directory: "/backend-services/profile-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "maven"
+    directory: "/backend-services/leaderboard-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # npm dependencies for Node.js services
+  - package-ecosystem: "npm"
+    directory: "/backend-services/matchmaking-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
+    directory: "/backend-services/game-engine"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # npm dependencies for Angular frontend
+  - package-ecosystem: "npm"
+    directory: "/frontend-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
