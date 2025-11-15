@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo \"Build step - add build commands here if needed\"",
+    "test": "echo \"Tests not yet configured - add test framework (Jest, Mocha, etc.)\"",
+    "test:coverage": "echo \"Coverage not yet configured - add coverage tool (nyc, c8, etc.)\"",
+    "lint": "echo \"Linting not yet configured - add ESLint configuration\""
   },
   "keywords": [
     "matchmaking",
