@@ -69,16 +69,15 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.depcheck.outcome }}" != "success" ]; then
-            echo "⚠️ Dependency check found vulnerabilities above CVSS 7.0 threshold"
+            echo "❌ Dependency check found vulnerabilities above CVSS 7.0 threshold"
             echo "Review the HTML report in artifacts for details."
             echo "Vulnerabilities with CVSS >= 7.0 were detected."
-            echo "::warning::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
-            echo "This is a warning during development. Update dependencies to fix vulnerabilities."
-            # Don't fail the workflow - just warn
+            echo "::error::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
+            echo "Update dependencies to fix vulnerabilities before merging."
+            exit 1
           else
             echo "✅ Dependency check passed - no critical vulnerabilities found"
           fi
-        continue-on-error: true
 
       - name: Upload dependency check results
         uses: actions/upload-artifact@v4
