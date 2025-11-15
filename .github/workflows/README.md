@@ -208,6 +208,49 @@ The workflow requires:
 
 ---
 
+## 🔧 Backend CI Workflow
+
+**File:** `backend-ci.yml`
+
+### Overview
+
+Comprehensive CI workflow for all backend services (Java Spring Boot and Node.js services). Runs automated testing, code quality checks, coverage reporting, and build verification.
+
+### Services Covered
+
+- **Java Services**: auth-service, profile-service, leaderboard-service
+- **Node.js Services**: matchmaking-service, game-engine
+
+### What It Does
+
+1. **Java Services** (parallel execution):
+   - Sets up Java 17 with Maven caching
+   - Runs unit tests
+   - Generates JaCoCo coverage reports
+   - Runs Checkstyle (if configured)
+   - Builds JAR packages
+
+2. **Node.js Services** (parallel execution):
+   - Sets up Node.js 18 with npm caching
+   - Installs dependencies
+   - Runs ESLint (if configured)
+   - Runs unit tests
+   - Generates coverage reports
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Matrix strategy for parallel service execution
+- Automatic dependency caching
+- Coverage report artifacts (30-day retention)
+- Fail-fast disabled for complete visibility
+
+---
+
 **Last Updated:** 2025-01-21  
 **Maintainer:** Development Team
 
