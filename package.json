@@ -1,0 +1,39 @@
+{
+  "name": "battle-arena",
+  "version": "1.0.0",
+  "description": "Battle Arena - Multiplayer Artillery Battle Game",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2"
+  },
+  "lint-staged": {
+    "backend-services/matchmaking-service/**/*.js": [
+      "bash -c 'cd backend-services/matchmaking-service && npm run lint:fix'",
+      "bash -c 'cd backend-services/matchmaking-service && npm run format'"
+    ],
+    "backend-services/game-engine/**/*.js": [
+      "bash -c 'cd backend-services/game-engine && npm run lint:fix'",
+      "bash -c 'cd backend-services/game-engine && npm run format'"
+    ],
+    "frontend-service/**/*.{ts,html,css,scss}": [
+      "bash -c 'cd frontend-service && npm run lint:fix'",
+      "bash -c 'cd frontend-service && npm run format'"
+    ],
+    "backend-services/auth-service/**/*.java": [
+      "bash -c 'cd backend-services/auth-service && mvn checkstyle:check'"
+    ],
+    "backend-services/profile-service/**/*.java": [
+      "bash -c 'cd backend-services/profile-service && mvn checkstyle:check'"
+    ],
+    "backend-services/leaderboard-service/**/*.java": [
+      "bash -c 'cd backend-services/leaderboard-service && mvn checkstyle:check'"
+    ],
+    "**/*.{json,md,yml,yaml}": [
+      "npx prettier --write"
+    ]
+  }
+}
