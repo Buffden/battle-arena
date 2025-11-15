@@ -208,6 +208,185 @@ The workflow requires:
 
 ---
 
+## 🔧 Backend CI Workflow
+
+**File:** `backend-ci.yml`
+
+### Overview
+
+Comprehensive CI workflow for all backend services (Java Spring Boot and Node.js services). Runs automated testing, code quality checks, coverage reporting, and build verification.
+
+### Services Covered
+
+- **Java Services**: auth-service, profile-service, leaderboard-service
+- **Node.js Services**: matchmaking-service, game-engine
+
+### What It Does
+
+1. **Java Services** (parallel execution):
+   - Sets up Java 17 with Maven caching
+   - Runs unit tests
+   - Generates JaCoCo coverage reports
+   - Runs Checkstyle (if configured)
+   - Builds JAR packages
+
+2. **Node.js Services** (parallel execution):
+   - Sets up Node.js 18 with npm caching
+   - Installs dependencies
+   - Runs ESLint (if configured)
+   - Runs unit tests
+   - Generates coverage reports
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Matrix strategy for parallel service execution
+- Automatic dependency caching
+- Coverage report artifacts (30-day retention)
+- Fail-fast disabled for complete visibility
+
+---
+
+## 🎨 Frontend CI Workflow
+
+**File:** `frontend-ci.yml`
+
+### Overview
+
+CI workflow for Angular frontend service. Includes testing, code quality checks, coverage reporting, and production build verification.
+
+### What It Does
+
+1. Sets up Node.js 18 with npm caching
+2. Installs dependencies
+3. Runs ESLint (if configured)
+4. Runs Prettier check (if configured)
+5. Runs unit tests with Karma/Jasmine
+6. Generates test coverage reports
+7. Builds Angular production application
+8. Uploads coverage and build artifacts
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Production build verification
+- Coverage threshold checking
+- Build artifacts (7-day retention)
+- Coverage reports (30-day retention)
+
+---
+
+## 🔒 Security Scanning Workflow
+
+**File:** `security.yml`
+
+### Overview
+
+Comprehensive security scanning workflow including dependency vulnerability scanning, SAST (Static Application Security Testing), and license compliance checking.
+
+### What It Does
+
+1. **Dependency Scanning**:
+   - Java services: OWASP Dependency-Check (CVSS-based)
+   - Node.js services: npm audit
+   - Frontend: npm audit
+
+2. **SAST (CodeQL Analysis)**:
+   - Static code analysis for Java and JavaScript
+   - Security and quality query suites
+   - Results in GitHub Security tab
+
+3. **License Compliance**:
+   - Checks all dependencies for acceptable licenses
+   - Enforces MIT, Apache-2.0, BSD, ISC licenses
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+- **Scheduled**: Weekly on Mondays at 00:00 UTC
+
+### Key Features
+
+- Parallel execution of all security scans
+- Fails on critical/high vulnerabilities
+- SARIF format for GitHub Security tab
+- Security reports as artifacts (90-day retention)
+
+---
+
+## 🔍 SonarCloud Analysis Workflow
+
+**File:** `sonarcloud.yml`
+
+### Overview
+
+Comprehensive code quality and security analysis using SonarCloud. Provides code quality metrics, security vulnerability scanning, code coverage aggregation, technical debt tracking, and quality gates.
+
+### What It Does
+
+1. **Java Services Analysis**:
+   - Runs SonarCloud analysis for each Java service
+   - Integrates with JaCoCo coverage reports
+   - Checks code quality, security, and coverage
+
+2. **Node.js Services Analysis**:
+   - Runs SonarCloud analysis for each Node.js service
+   - Integrates with test coverage reports
+   - Checks code quality, security, and coverage
+
+3. **Frontend Analysis**:
+   - Runs SonarCloud analysis for Angular frontend
+   - Integrates with test coverage reports
+   - Checks code quality, security, and coverage
+
+4. **Quality Gates**:
+   - Enforces quality standards
+   - Blocks PRs if quality degrades
+   - Shows quality gate status in PRs
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Comprehensive code quality analysis
+- Security vulnerability scanning (SAST)
+- Code coverage aggregation
+- Technical debt tracking
+- Quality gates (enforce standards)
+- PR comments with findings
+- Historical tracking
+
+### Setup Required
+
+1. **SonarCloud Account**:
+   - Sign up at https://sonarcloud.io
+   - Free for public repositories
+   - Connect GitHub account
+
+2. **Secrets Configuration**:
+   - `SONAR_TOKEN`: SonarCloud authentication token
+   - `SONAR_ORGANIZATION`: SonarCloud organization key (Buffden)
+   - Project key: `Buffden_battle-arena` (single project for entire repository)
+
+### Related Documentation
+
+- [CI/CD Tech Notes](./TECH_NOTES.md) - Quick reference guide
+
+---
+
 **Last Updated:** 2025-01-21  
-**Maintainer:** Development Team
+**Maintainer:** Development Team  
+**Related Story:** STORY-1-3 (CI/CD Pipeline Setup)
 
