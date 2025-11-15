@@ -55,7 +55,10 @@ jobs:
         continue-on-error: true
       
       - name: Generate test coverage
-        run: npm run test:coverage || echo "Coverage not configured - skipping"
+        run: |
+          echo "Skipping test coverage - Chrome headless configuration not yet set up for CI"
+          echo "Coverage can be generated locally with: npm run test:coverage"
+          # npm run test:coverage || echo "Coverage not configured - skipping"
         continue-on-error: true
       
       - name: Check code coverage threshold
