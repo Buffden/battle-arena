@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
       
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        uses: SonarSource/sonarcloud-github-action@5bd1db64534962caf02c4e376fd959a46afd86d9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -106,7 +106,7 @@ jobs:
         continue-on-error: true
       
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        uses: SonarSource/sonarcloud-github-action@5bd1db64534962caf02c4e376fd959a46afd86d9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
         continue-on-error: true
       
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        uses: SonarSource/sonarcloud-github-action@5bd1db64534962caf02c4e376fd959a46afd86d9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
