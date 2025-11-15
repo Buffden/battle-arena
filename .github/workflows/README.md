@@ -251,6 +251,39 @@ Comprehensive CI workflow for all backend services (Java Spring Boot and Node.js
 
 ---
 
+## 🎨 Frontend CI Workflow
+
+**File:** `frontend-ci.yml`
+
+### Overview
+
+CI workflow for Angular frontend service. Includes testing, code quality checks, coverage reporting, and production build verification.
+
+### What It Does
+
+1. Sets up Node.js 18 with npm caching
+2. Installs dependencies
+3. Runs ESLint (if configured)
+4. Runs Prettier check (if configured)
+5. Runs unit tests with Karma/Jasmine
+6. Generates test coverage reports
+7. Builds Angular production application
+8. Uploads coverage and build artifacts
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Production build verification
+- Coverage threshold checking
+- Build artifacts (7-day retention)
+- Coverage reports (30-day retention)
+
+---
+
 **Last Updated:** 2025-01-21  
 **Maintainer:** Development Team
 
