@@ -60,6 +60,7 @@ jobs:
           project: "${{ matrix.service }}"
           path: "."
           format: "HTML,JSON"
+          out: "reports"
           args: >
             --failOnCVSS 7
             --enableRetired
@@ -72,16 +73,24 @@ jobs:
             echo "❌ Dependency check found vulnerabilities above CVSS 7.0 threshold"
             echo "Review the HTML report in artifacts for details."
             echo "Vulnerabilities with CVSS >= 7.0 were detected."
-            echo "::error::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
-            echo "Update dependencies to fix vulnerabilities before merging."
-            exit 1
+
+            if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.base_ref }}" == "main" ]; then
+              # Strict enforcement for main branch - block merges
+              echo "::error::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
+              echo "Blocking merge to main branch. Update dependencies to fix vulnerabilities."
+              exit 1
+            else
+              # Non-blocking warning for develop branch - allow development to continue
+              echo "::warning::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
+              echo "This is a warning for develop branch. Fix vulnerabilities before merging to main."
+            fi
           else
             echo "✅ Dependency check passed - no critical vulnerabilities found"
           fi
 
       - name: Upload dependency check results
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: security-report-java-${{ matrix.service }}-${{ github.sha }}
           path: backend-services/${{ matrix.service }}/reports/**
