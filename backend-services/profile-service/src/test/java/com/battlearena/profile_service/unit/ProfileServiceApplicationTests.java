@@ -1,4 +1,4 @@
-package com.battlearena.auth_service;
+package com.battlearena.profile_service.unit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -6,15 +6,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import com.battlearena.profile_service.ProfileServiceApplication;
+
 /**
- * Unit tests for Auth Service Application
+ * Unit tests for Profile Service Application
  * Tests application context loading without external dependencies
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @TestPropertySource(properties = {
     "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration"
 })
-class AuthServiceApplicationTests {
+class ProfileServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
@@ -26,12 +28,12 @@ class AuthServiceApplicationTests {
 	@Test
 	void applicationMainMethodExists() {
 		// Verify that main method exists and can be called
-		assertTrue(AuthServiceApplication.class.getDeclaredMethods().length > 0, 
+		assertTrue(ProfileServiceApplication.class.getDeclaredMethods().length > 0, 
 			"Application class should have methods");
 	}
 
 	@Test
 	void applicationClassIsNotNull() {
-		assertNotNull(AuthServiceApplication.class, "Application class should not be null");
+		assertNotNull(ProfileServiceApplication.class, "Application class should not be null");
 	}
 }

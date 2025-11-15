@@ -9,7 +9,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     service: 'matchmaking-service',
     port: PORT,
     status: 'running',
@@ -18,6 +18,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Matchmaking service running on port ${PORT}`);
 });
-
