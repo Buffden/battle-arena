@@ -6,6 +6,50 @@
 [![Node](https://img.shields.io/badge/node-18+-green)]()
 [![Angular](https://img.shields.io/badge/angular-17+-red)]()
 
+## 🔍 Code Quality
+
+### Overall Project
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena)
+
+> **Note:** If badges show "N/A" or don't display, verify:
+> 1. Projects exist in SonarCloud: `Buffden_battle-arena`, `Buffden_battle-arena-auth-service`, etc.
+> 2. At least one SonarCloud analysis has completed
+> 3. Project keys match exactly (case-sensitive): Check your SonarCloud dashboard URLs
+> 4. Organization key case: SonarCloud typically uses lowercase (e.g., `buffden` instead of `Buffden`)
+
+### Backend Services
+
+#### Java Services
+**Auth Service**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-auth-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-auth-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-auth-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-auth-service)
+
+**Profile Service**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-profile-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-profile-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-profile-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-profile-service)
+
+**Leaderboard Service**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-leaderboard-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-leaderboard-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-leaderboard-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-leaderboard-service)
+
+#### Node.js Services
+**Matchmaking Service**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-matchmaking-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-matchmaking-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-matchmaking-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-matchmaking-service)
+
+**Game Engine**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-game-engine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-game-engine)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-game-engine&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-game-engine)
+
+### Frontend
+**Angular Frontend**
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-frontend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-frontend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Buffden_battle-arena-frontend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Buffden_battle-arena-frontend)
+
 > *Where strategy meets nostalgia, and every shot counts.*
 
 **Battle Arena** is a modern multiplayer 2D artillery battle game that brings the classic Pocket Tank experience into the 21st century. Think of it as your favorite retro artillery game, but now you can battle real players from around the world, climb leaderboards, and prove you're the ultimate artillery master.

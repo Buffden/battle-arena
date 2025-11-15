@@ -284,6 +284,131 @@ CI workflow for Angular frontend service. Includes testing, code quality checks,
 
 ---
 
+## 🔒 Security Scanning Workflow
+
+**File:** `security.yml`
+
+### Overview
+
+Comprehensive security scanning workflow including dependency vulnerability scanning, SAST (Static Application Security Testing), and license compliance checking.
+
+### What It Does
+
+1. **Dependency Scanning**:
+   - Java services: OWASP Dependency-Check (CVSS-based)
+   - Node.js services: npm audit
+   - Frontend: npm audit
+
+2. **SAST (CodeQL Analysis)**:
+   - Static code analysis for Java and JavaScript
+   - Security and quality query suites
+   - Results in GitHub Security tab
+
+3. **License Compliance**:
+   - Checks all dependencies for acceptable licenses
+   - Enforces MIT, Apache-2.0, BSD, ISC licenses
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+- **Scheduled**: Weekly on Mondays at 00:00 UTC
+
+### Key Features
+
+- Parallel execution of all security scans
+- Fails on critical/high vulnerabilities
+- SARIF format for GitHub Security tab
+- Security reports as artifacts (90-day retention)
+
+---
+
+## 🔍 SonarCloud Analysis Workflow
+
+**File:** `sonarcloud.yml`
+
+### Overview
+
+Comprehensive code quality and security analysis using SonarCloud. Provides code quality metrics, security vulnerability scanning, code coverage aggregation, technical debt tracking, and quality gates.
+
+### What It Does
+
+1. **Java Services Analysis**:
+   - Runs SonarCloud analysis for each Java service
+   - Integrates with JaCoCo coverage reports
+   - Checks code quality, security, and coverage
+
+2. **Node.js Services Analysis**:
+   - Runs SonarCloud analysis for each Node.js service
+   - Integrates with test coverage reports
+   - Checks code quality, security, and coverage
+
+3. **Frontend Analysis**:
+   - Runs SonarCloud analysis for Angular frontend
+   - Integrates with test coverage reports
+   - Checks code quality, security, and coverage
+
+4. **Quality Gates**:
+   - Enforces quality standards
+   - Blocks PRs if quality degrades
+   - Shows quality gate status in PRs
+
+### When It Runs
+
+- **Pull Request** to `main` or `develop`
+- **Push** to `main` or `develop`
+
+### Key Features
+
+- Comprehensive code quality analysis
+- Security vulnerability scanning (SAST)
+- Code coverage aggregation
+- Technical debt tracking
+- Quality gates (enforce standards)
+- PR comments with findings
+- Historical tracking
+
+### Setup Required
+
+1. **SonarCloud Account**:
+   - Sign up at https://sonarcloud.io
+   - Free for public repositories
+   - Connect GitHub account
+
+2. **Secrets Configuration**:
+   - `SONAR_TOKEN`: SonarCloud authentication token
+   - `SONAR_ORGANIZATION`: SonarCloud organization key (Buffden)
+   - Project keys: `Buffden_battle-arena-{service-name}`
+
+### Related Documentation
+
+- [SonarQube Integration Tech Notes](./TECH_NOTES/07-SONARQUBE_INTEGRATION.md)
+- [SonarCloud Setup Guide](./TECH_NOTES/SONARCLOUD_SETUP.md)
+- [SonarCloud Badges Guide](./TECH_NOTES/SONARCLOUD_BADGES.md)
+
+---
+
+## 📚 Tech Notes
+
+**Directory:** `TECH_NOTES/`
+
+Comprehensive technical documentation for complex CI/CD topics:
+
+1. **[Matrix Strategy](./TECH_NOTES/01-GITHUB_ACTIONS_MATRIX_STRATEGY.md)** - Parallel job execution patterns
+2. **[Code Coverage](./TECH_NOTES/02-CODE_COVERAGE_AND_THRESHOLDS.md)** - Coverage setup and enforcement
+3. **[Security Scanning](./TECH_NOTES/03-SECURITY_SCANNING_APPROACHES.md)** - Multi-layered security approach
+4. **[Workflow Optimization](./TECH_NOTES/04-WORKFLOW_OPTIMIZATION.md)** - Performance and cost optimization
+5. **[Docker Image Building](./TECH_NOTES/05-DOCKER_IMAGE_BUILDING.md)** - Containerization strategy (planned)
+6. **[Continuous Deployment](./TECH_NOTES/06-CONTINUOUS_DEPLOYMENT.md)** - CD strategy (planned)
+7. **[SonarQube Integration](./TECH_NOTES/07-SONARQUBE_INTEGRATION.md)** - SonarQube/SonarCloud integration analysis
+8. **[SonarCloud Setup Guide](./TECH_NOTES/SONARCLOUD_SETUP.md)** - SonarCloud configuration guide
+9. **[SonarCloud Badges](./TECH_NOTES/SONARCLOUD_BADGES.md)** - GitHub README badges setup
+
+See [Tech Notes README](./TECH_NOTES/README.md) for complete index.
+
+---
+
 **Last Updated:** 2025-01-21  
-**Maintainer:** Development Team
+**Maintainer:** Development Team  
+**Related Story:** STORY-1-3 (CI/CD Pipeline Setup)
 
