@@ -63,8 +63,9 @@ jobs:
         with:
           projectBaseDir: backend-services/${{ matrix.service }}
           args: >
-            -Dsonar.projectKey=Buffden_battle-arena-${{ matrix.service }}
+            -Dsonar.projectKey=Buffden_battle-arena
             -Dsonar.organization=Buffden
+            -Dsonar.modules=${{ matrix.service }}
             -Dsonar.sources=src/main
             -Dsonar.tests=src/test
             -Dsonar.java.binaries=target/classes
@@ -112,8 +113,9 @@ jobs:
         with:
           projectBaseDir: backend-services/${{ matrix.service }}
           args: >
-            -Dsonar.projectKey=Buffden_battle-arena-${{ matrix.service }}
+            -Dsonar.projectKey=Buffden_battle-arena
             -Dsonar.organization=Buffden
+            -Dsonar.modules=${{ matrix.service }}
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
@@ -156,8 +158,9 @@ jobs:
         with:
           projectBaseDir: frontend-service
           args: >
-            -Dsonar.projectKey=Buffden_battle-arena-frontend
+            -Dsonar.projectKey=Buffden_battle-arena
             -Dsonar.organization=Buffden
+            -Dsonar.modules=frontend
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info

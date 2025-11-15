@@ -378,33 +378,11 @@ Comprehensive code quality and security analysis using SonarCloud. Provides code
 2. **Secrets Configuration**:
    - `SONAR_TOKEN`: SonarCloud authentication token
    - `SONAR_ORGANIZATION`: SonarCloud organization key (Buffden)
-   - Project keys: `Buffden_battle-arena-{service-name}`
+   - Project key: `Buffden_battle-arena` (single project for entire repository)
 
 ### Related Documentation
 
-- [SonarQube Integration Tech Notes](./TECH_NOTES/07-SONARQUBE_INTEGRATION.md)
-- [SonarCloud Setup Guide](./TECH_NOTES/SONARCLOUD_SETUP.md)
-- [SonarCloud Badges Guide](./TECH_NOTES/SONARCLOUD_BADGES.md)
-
----
-
-## 📚 Tech Notes
-
-**Directory:** `TECH_NOTES/`
-
-Comprehensive technical documentation for complex CI/CD topics:
-
-1. **[Matrix Strategy](./TECH_NOTES/01-GITHUB_ACTIONS_MATRIX_STRATEGY.md)** - Parallel job execution patterns
-2. **[Code Coverage](./TECH_NOTES/02-CODE_COVERAGE_AND_THRESHOLDS.md)** - Coverage setup and enforcement
-3. **[Security Scanning](./TECH_NOTES/03-SECURITY_SCANNING_APPROACHES.md)** - Multi-layered security approach
-4. **[Workflow Optimization](./TECH_NOTES/04-WORKFLOW_OPTIMIZATION.md)** - Performance and cost optimization
-5. **[Docker Image Building](./TECH_NOTES/05-DOCKER_IMAGE_BUILDING.md)** - Containerization strategy (planned)
-6. **[Continuous Deployment](./TECH_NOTES/06-CONTINUOUS_DEPLOYMENT.md)** - CD strategy (planned)
-7. **[SonarQube Integration](./TECH_NOTES/07-SONARQUBE_INTEGRATION.md)** - SonarQube/SonarCloud integration analysis
-8. **[SonarCloud Setup Guide](./TECH_NOTES/SONARCLOUD_SETUP.md)** - SonarCloud configuration guide
-9. **[SonarCloud Badges](./TECH_NOTES/SONARCLOUD_BADGES.md)** - GitHub README badges setup
-
-See [Tech Notes README](./TECH_NOTES/README.md) for complete index.
+- [CI/CD Tech Notes](./TECH_NOTES.md) - Quick reference guide
 
 ---
 
