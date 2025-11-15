@@ -168,11 +168,27 @@ jobs:
           fi
         continue-on-error: false
       
+      - name: Install Chrome dependencies
+        run: |
+          # Install Chrome/Chromium for headless testing
+          if ! command -v google-chrome &> /dev/null; then
+            if ! command -v chromium-browser &> /dev/null; then
+              echo "Installing Chromium..."
+              sudo apt-get update
+              sudo apt-get install -y chromium-browser chromium-chromedriver
+            fi
+          fi
+        continue-on-error: true
+      
       - name: Run tests with coverage
         run: |
-          echo "Skipping test coverage - Chrome headless configuration not yet set up for CI"
-          echo "Coverage can be generated locally with: npm run test:coverage"
-          # npm run test:coverage || echo "Coverage not configured - skipping"
+          # Set Chrome binary path (try different locations)
+          if command -v google-chrome &> /dev/null; then
+            export CHROME_BIN=$(which google-chrome)
+          elif command -v chromium-browser &> /dev/null; then
+            export CHROME_BIN=$(which chromium-browser)
+          fi
+          npm run test:coverage -- --watch=false --browsers=ChromeHeadlessCI
         continue-on-error: true
       
       - name: SonarCloud Scan
