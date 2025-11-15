@@ -308,7 +308,9 @@ There is a need for a scalable multiplayer game platform that can:
 
 ### 6.6 Development Tools
 - **Build Tools:** Maven (Java), NPM (Node.js), Angular CLI
-- **Testing:** JUnit (Java), Jest (Node.js), Jasmine (Angular)
+- **Testing:** JUnit 5 (Java), Jest (Node.js), Jasmine/Karma (Angular)
+  - **Test Structure:** Organized in `unit/` and `integration/` directories for Java, `__tests__/` for Node.js
+  - **Configuration:** Jest config files (`jest.config.js`), Karma config (`karma.conf.js`)
 - **Code Quality:** ESLint, Prettier, Checkstyle, SonarCloud
 - **Version Control:** Git
 - **CI/CD:** GitHub Actions (with SonarCloud integration for code quality analysis)

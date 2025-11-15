@@ -292,7 +292,8 @@ package "CI/CD" #LightGoldenrodYellow {
       **Purpose:** CI/CD pipeline
       **Features:**
       - Automated builds
-      - Automated tests (JUnit, Jest, Jasmine)
+      - Automated tests (JUnit 5, Jest, Jasmine/Karma)
+      - Test structure: unit/ and integration/ directories (Java), __tests__/ (Node.js)
       - Code quality checks (ESLint, Checkstyle, Prettier)
       - Security scanning (OWASP, CodeQL, npm audit)
       - Coverage reporting (JaCoCo, Istanbul, Karma)
