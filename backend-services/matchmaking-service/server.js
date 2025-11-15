@@ -9,7 +9,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     service: 'matchmaking-service',
     port: PORT,
     status: 'running',
