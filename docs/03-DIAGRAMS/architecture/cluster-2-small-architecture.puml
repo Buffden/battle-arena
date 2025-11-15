@@ -236,7 +236,8 @@ package "CI/CD" #LightCyan {
   note right of GitHubActions
     **Technology:** GitHub Actions
     **Features:**
-    - Automated testing (JUnit, Jest, Jasmine)
+    - Automated testing (JUnit 5, Jest, Jasmine/Karma)
+    - Test structure: unit/ and integration/ directories (Java), __tests__/ (Node.js)
     - Code quality checks (ESLint, Checkstyle, Prettier)
     - Security scanning (OWASP, CodeQL, npm audit)
     - Coverage reporting (JaCoCo, Istanbul, Karma)

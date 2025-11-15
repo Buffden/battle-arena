@@ -25,26 +25,5 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^6.3.3"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "coverageDirectory": "coverage",
-    "collectCoverageFrom": [
-      "server.js",
-      "src/**/*.js"
-    ],
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.js",
-      "**/?(*.)+(spec|test).js"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/coverage/"
-    ]
   }
 }

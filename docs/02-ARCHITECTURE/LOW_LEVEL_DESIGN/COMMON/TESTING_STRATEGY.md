@@ -181,12 +181,27 @@ TestRunner
 ### 5.1 Unit Tests
 **Purpose:** Test individual components  
 **Coverage Target:** 80%+ code coverage  
-**Tools:** JUnit (Java), Jest (Node.js), Jasmine (Angular)
+**Tools:** JUnit 5 (Java), Jest (Node.js), Jasmine (Angular)
+
+**Test Directory Structure:**
+- **Java Services:** `src/test/java/com/battlearena/{service}/unit/` - Unit tests (`*Tests.java`)
+- **Node.js Services:** `src/__tests__/` - Test files (`*.test.js`, `*.spec.js`)
+- **Angular Frontend:** `src/app/` - Component tests (`*.spec.ts`)
+
+**Configuration:**
+- **Java:** JUnit 5 via `spring-boot-starter-test` in `pom.xml`
+- **Node.js:** Jest configured in `jest.config.js` with test patterns `**/__tests__/**/*.js`
+- **Angular:** Jasmine/Karma configured in `karma.conf.js`, tests discovered via `tsconfig.spec.json`
 
 ### 5.2 Integration Tests
 **Purpose:** Test component integration  
 **Coverage Target:** 60%+ code coverage  
 **Tools:** Spring Boot Test (Java), Jest (Node.js), Angular Testing Utilities
+
+**Test Directory Structure:**
+- **Java Services:** `src/test/java/com/battlearena/{service}/integration/` - Integration tests (`*IntegrationTests.java`)
+- **Node.js Services:** `src/__tests__/` - Integration tests can be in same directory with naming convention
+- **Angular Frontend:** `src/app/` - Integration tests in same directory as unit tests
 
 ### 5.3 End-to-End Tests
 **Purpose:** Test complete workflows  
