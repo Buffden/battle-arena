@@ -9,7 +9,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     service: 'game-engine',
     port: PORT,
     status: 'running',
@@ -18,6 +18,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Game engine service running on port ${PORT}`);
 });
-

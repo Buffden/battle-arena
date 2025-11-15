@@ -22,4 +22,3 @@ describe('App Routes', () => {
     expect(router).toBeDefined();
   });
 });
-
