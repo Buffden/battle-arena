@@ -1,10 +1,12 @@
-package com.battlearena.auth_service;
+package com.battlearena.auth_service.unit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+
+import com.battlearena.auth_service.AuthServiceApplication;
 
 /**
  * Unit tests for Auth Service Application
