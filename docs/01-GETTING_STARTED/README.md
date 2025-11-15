@@ -85,7 +85,9 @@ docs/
 │   └── DESIGN_PROCESS_EXPLANATION.md
 │
 ├── 01-GETTING_STARTED/          # You are here
-│   └── README.md
+│   ├── README.md
+│   ├── LOCAL_SETUP.md            # Local development setup guide
+│   └── DOCKER_INSTALLATION.md
 │
 ├── 02-ARCHITECTURE/             # ✅ Architecture Documentation
 │   ├── README.md                # ✅ Architecture Index
@@ -115,6 +117,12 @@ docs/
 ---
 
 ## 🚀 Quick Start
+
+### For Developers - Local Setup
+1. **Start:** [Local Setup Guide](./LOCAL_SETUP.md) - Complete local development setup instructions
+2. **Then:** [Docker Installation](./DOCKER_INSTALLATION.md) - Docker setup (if needed)
+3. **Reference:** [Project Description](../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md) - Understand requirements
+4. **Next:** [High-Level Design](../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/README.md) - Review architecture
 
 ### For Project Managers
 1. **Start:** [Project Description - Plain English](../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION_PLAIN_ENGLISH.md) 🌟

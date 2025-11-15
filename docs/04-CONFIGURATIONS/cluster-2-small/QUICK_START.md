@@ -371,7 +371,7 @@ nano backend-services/configuration-service/src/main/resources/application.yml
 ### **9.2 Update Nginx Configuration:**
 ```bash
 # Edit Nginx configuration
-nano nginx/nginx.conf
+nano deployments/nginx/nginx.conf
 
 # Restart Nginx
 docker-compose restart nginx
