@@ -20,4 +20,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Matchmaking service running on port ${PORT}`);
 });
-
