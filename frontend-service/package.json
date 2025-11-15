@@ -11,20 +11,10 @@
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI",
     "test:coverage": "ng test --code-coverage",
     "test:coverage:headless": "ng test --code-coverage --watch=false --browsers=ChromeHeadless",
-    "lint": "ng lint || echo \"ESLint not yet configured\"",
-    "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\" || echo \"Prettier not yet configured\""
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
+    "lint": "ng lint",
+    "lint:fix": "ng lint --fix",
+    "format": "prettier --write \"src/**/*.{ts,html,css,scss}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\""
   },
   "private": true,
   "dependencies": {
@@ -42,13 +32,21 @@
     "@angular/build": "^20.3.10",
     "@angular/cli": "^20.3.10",
     "@angular/compiler-cli": "^20.3.0",
+    "@angular-eslint/builder": "^18.0.0",
+    "@angular-eslint/eslint-plugin": "^18.0.0",
+    "@angular-eslint/eslint-plugin-template": "^18.0.0",
+    "@angular-eslint/template-parser": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "@types/jasmine": "~5.1.0",
+    "eslint": "^8.57.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "prettier": "^3.2.5",
     "typescript": "~5.9.2"
   }
 }

@@ -9,7 +9,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     service: 'game-engine',
     port: PORT,
     status: 'running',
