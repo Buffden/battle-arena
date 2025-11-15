@@ -1,0 +1,235 @@
+# Battle Arena - Local Development Docker Compose Configuration
+# Services communicate internally via Docker network using service names
+# Only Nginx API Gateway exposes external ports (80/443)
+# Backend services have NO host ports - accessed only via Nginx
+
+services:
+  # ************************************************************
+  # Nginx API Gateway - ONLY service that exposes ports to host
+  # ************************************************************
+  nginx:
+    image: nginx:latest
+    container_name: battle-arena-nginx
+    ports:
+      - "80:80"      # HTTP
+  #   - "443:443"    # HTTPS (when SSL configured) Commented out for now, will be used in production
+    volumes:
+      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - battle-arena-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # Backend services will be added below as they are implemented
+      # - auth-service
+      # - profile-service
+      # - leaderboard-service
+      # - matchmaking-service
+      # - game-engine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  # ************************************************************
+  # MongoDB - Database for persistent data
+  # ************************************************************
+  mongodb:
+    image: mongo:6.0
+    container_name: battle-arena-mongodb
+    # Port exposed ONLY for development convenience (direct DB access, debugging)
+    # In production, remove port mapping - services access via service name
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=battlearena
+      # Optional: Set root username/password for production
+      # - MONGO_INITDB_ROOT_USERNAME=admin
+      # - MONGO_INITDB_ROOT_PASSWORD=changeme
+    volumes:
+      - mongodb_data:/data/db
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - battle-arena-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # ************************************************************
+  # Redis - Cache and queues
+  # ************************************************************
+  redis:
+    image: redis:7-alpine
+    container_name: battle-arena-redis
+    # Port exposed ONLY for development convenience (direct Redis access, debugging)
+    # In production, remove port mapping - services access via service name
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - battle-arena-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ************************************************************
+  # Backend Services - NO host ports exposed
+  # Services communicate internally via Docker network using service names
+  # Example: auth-service connects to mongodb using "mongodb:27017" (not localhost:27017)
+  # ************************************************************
+  
+  # Auth Service (Spring Boot) - Port 8081
+  # auth-service:
+  #   build:
+  #     context: ./backend-services/auth-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-auth-service
+  #   # NO ports exposed - accessed only via Nginx
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - JWT_SECRET=${JWT_SECRET:-changeme}
+  #     - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Profile Service (Spring Boot) - Port 8082
+  # profile-service:
+  #   build:
+  #     context: ./backend-services/profile-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-profile-service
+  #   # NO ports exposed - accessed only via Nginx
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Leaderboard Service (Spring Boot) - Port 8083
+  # leaderboard-service:
+  #   build:
+  #     context: ./backend-services/leaderboard-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-leaderboard-service
+  #   # NO ports exposed - accessed only via Nginx
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Matchmaking Service (Node.js) - Port 3002
+  # matchmaking-service:
+  #   build:
+  #     context: ./backend-services/matchmaking-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-matchmaking-service
+  #   # NO ports exposed - accessed only via Nginx (WebSocket)
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3002
+  #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Game Engine Service (Node.js) - Port 5002
+  # game-engine:
+  #   build:
+  #     context: ./backend-services/game-engine
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-game-engine
+  #   # NO ports exposed - accessed only via Nginx (WebSocket)
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=5002
+  #     - MONGODB_URI=mongodb://mongodb:27017/battlearena
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # Frontend Service (Angular) - Port 4200
+  # frontend-service:
+  #   build:
+  #     context: ./frontend-service
+  #     dockerfile: Dockerfile
+  #   container_name: battle-arena-frontend
+  #   # NO ports exposed - accessed only via Nginx
+  #   environment:
+  #     - NODE_ENV=production
+  #     - API_URL=http://nginx/api
+  #     - WS_URL=ws://nginx/ws
+  #   networks:
+  #     - battle-arena-network
+  #   depends_on:
+  #     - nginx
+  #   restart: unless-stopped
+
+# ************************************************************
+# Volumes - Persistent data storage
+# ************************************************************
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ************************************************************
+# Networks - Inter-service communication
+# ************************************************************
+networks:
+  battle-arena-network:
+    driver: bridge
+    name: battle-arena-network
+

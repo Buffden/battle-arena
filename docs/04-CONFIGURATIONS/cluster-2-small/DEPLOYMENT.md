@@ -127,13 +127,16 @@ services:
 
   # API Gateway
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
+    container_name: battle-arena-nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
+      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deployments/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - battle-arena-network
     replicas: 1-2
     deploy:
       resources:
