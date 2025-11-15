@@ -243,12 +243,14 @@
 - **CI/CD Pipeline** - GitHub Actions, Jenkins, or GitLab CI
 - **Automated testing** - Automated testing on code changes (unit, integration, e2e)
 - **Code quality checks** - Code quality and linting checks
+- **Code quality analysis** - SonarCloud/SonarQube for comprehensive code quality, security, and technical debt analysis
 - **Security scanning** - Security vulnerability scanning (SAST, DAST)
 - **Build automation** - Automated build and packaging
 - **Docker image building** - Automated Docker image building
 - **Image scanning** - Docker image vulnerability scanning
 - **Dependency scanning** - Dependency vulnerability scanning
-- **Code coverage** - Code coverage reporting
+- **Code coverage** - Code coverage reporting (JaCoCo for Java, Istanbul/NYC for Node.js, Karma for Angular)
+- **Quality gates** - SonarCloud quality gates to enforce code quality standards and block PRs if standards aren't met
 
 ### 5.2 Continuous Deployment
 - **Automated deployment** - Automated deployment to environments (dev, staging, production)
