@@ -27,6 +27,7 @@ module.exports = function karma (config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' },
+        { type: 'text' },
         { type: 'lcov' }
       ],
       check: {
@@ -36,11 +37,17 @@ module.exports = function karma (config) {
           functions: 80,
           lines: 80
         }
+      },
+      includeAllSources: true,
+      instrumenterOptions: {
+        istanbul: { noCompact: true }
       }
     },
-    reporters: ['progress', 'kjhtml', 'coverage'],
-    browsers: ['Chrome'],
-    restartOnFileChange: true,
+    reporters: ['progress', 'coverage'],
+    browsers: ['ChromeHeadless'],
+    autoWatch: false,
+    restartOnFileChange: false,
+    singleRun: true,
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',

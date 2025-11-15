@@ -195,5 +195,6 @@ If Prettier fails:
 ## Related Documentation
 
 - [Code Quality Tools](./CODE_QUALITY_TOOLS.md) - Detailed tool configuration
+- [SonarCloud Coverage Setup](./SONARCLOUD_COVERAGE_SETUP.md) - Coverage reporting to SonarCloud
 - [Testing Strategy](./02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing approach
 - [Design Principles](./02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Code quality standards

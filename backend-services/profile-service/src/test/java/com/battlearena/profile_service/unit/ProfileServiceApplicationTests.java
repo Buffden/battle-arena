@@ -1,10 +1,12 @@
-package com.battlearena.profile_service;
+package com.battlearena.profile_service.unit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+
+import com.battlearena.profile_service.ProfileServiceApplication;
 
 /**
  * Unit tests for Profile Service Application
