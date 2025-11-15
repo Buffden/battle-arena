@@ -144,6 +144,26 @@ node "Tracing Cluster" as TracingCluster #LightYellow {
     component [Jaeger] as Jaeger
 }
 
+node "CI/CD Pipeline" as CICDPipeline #LightGoldenrodYellow {
+    note right of CICDPipeline
+        **CI/CD Infrastructure:**
+        - GitHub Actions (CI/CD)
+        - Automated testing (JUnit, Jest, Jasmine)
+        - Code quality checks (ESLint, Checkstyle, Prettier)
+        - Security scanning (OWASP, CodeQL, npm audit)
+        - SonarCloud (code quality analysis, quality gates)
+        - Coverage reporting (JaCoCo, Istanbul, Karma)
+        - Build verification
+        - Docker image building (future)
+    end note
+    
+    component [GitHub Actions] as GitHubActions
+    component [SonarCloud] as SonarCloud
+    component [Code Quality Checks] as CodeQuality
+    component [Security Scanning] as SecurityScan
+    component [Test Coverage] as TestCoverage
+}
+
 node "Service Mesh" as ServiceMeshNode {
     component [Istio Control Plane] as IstioCP
     component [Envoy Proxies] as Envoy

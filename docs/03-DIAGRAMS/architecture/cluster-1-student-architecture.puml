@@ -170,16 +170,31 @@ package "Orchestration" #LightPink {
 
 package "CI/CD" #LightCyan {
   [GitHub Actions\nFree Tier] as GitHubActions
+  [SonarCloud\nCode Quality] as SonarCloud
   
   note right of GitHubActions
     **Technology:** GitHub Actions
     **Features:**
-    - Automated testing
+    - Automated testing (JUnit, Jest, Jasmine)
+    - Code quality checks (ESLint, Checkstyle, Prettier)
+    - Security scanning (OWASP, CodeQL, npm audit)
+    - Coverage reporting (JaCoCo, Istanbul, Karma)
     - Automated building
     - Automated deployment
     **Limits:** 2,000 minutes/month (free tier)
     **Cost:** $0/month (free tier)
   end note
+  note right of SonarCloud
+    **Technology:** SonarCloud
+    **Purpose:** Code quality analysis
+    **Features:**
+    - Code quality metrics
+    - Security vulnerability scanning (SAST)
+    - Code coverage aggregation
+    - Quality gates enforcement
+    **Cost:** Free for public repositories
+  end note
+  GitHubActions --> SonarCloud : quality analysis
 }
 
 ' Relationships
