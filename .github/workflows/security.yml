@@ -35,7 +35,20 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          cache: "maven"
+
+      - name: Verify Java installation
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -105,33 +118,40 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Run npm audit
+        id: npm_audit
         run: |
+          # Generate JSON report for parsing (always succeeds even if vulnerabilities found)
           npm audit --audit-level=moderate --json > npm-audit-report.json || true
-          npm audit --audit-level=moderate
-        continue-on-error: true
+          # Run audit to display full report (exits with code 1 if any vulnerabilities found at moderate+ level)
+          npm audit --audit-level=moderate || echo "⚠️ Audit found vulnerabilities - checking severity..."
 
       - name: Check for critical vulnerabilities
         run: |
           if [ -f npm-audit-report.json ]; then
             CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' npm-audit-report.json)
             HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' npm-audit-report.json)
+            MODERATE=$(jq -r '.metadata.vulnerabilities.moderate // 0' npm-audit-report.json)
 
             echo "Vulnerability Summary:"
             echo "- Critical: $CRITICAL"
             echo "- High: $HIGH"
+            echo "- Moderate: $MODERATE"
 
             if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-              echo "⚠️ Critical or High severity vulnerabilities found!"
+              echo "❌ Critical or High severity vulnerabilities found!"
               echo "Please review and fix vulnerabilities before merging."
-              echo "::warning::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
-              echo "This is a warning during development. Update dependencies to fix vulnerabilities."
+              echo "::error::Critical or High severity vulnerabilities found in ${{ matrix.service }}"
+              echo "Update dependencies to fix vulnerabilities: npm audit fix"
+              exit 1
+            elif [ "$MODERATE" -gt 0 ]; then
+              echo "⚠️ Moderate severity vulnerabilities found (non-blocking)"
+              echo "Consider updating dependencies when possible: npm audit fix"
             else
               echo "✅ No critical or high severity vulnerabilities found"
             fi
           else
             echo "Warning: npm audit report not generated"
           fi
-        continue-on-error: true
 
       - name: Upload npm audit results
         uses: actions/upload-artifact@v4
@@ -167,33 +187,40 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Run npm audit
+        id: npm_audit
         run: |
+          # Generate JSON report for parsing (always succeeds even if vulnerabilities found)
           npm audit --audit-level=moderate --json > npm-audit-report.json || true
-          npm audit --audit-level=moderate
-        continue-on-error: true
+          # Run audit to display full report (exits with code 1 if any vulnerabilities found at moderate+ level)
+          npm audit --audit-level=moderate || echo "⚠️ Audit found vulnerabilities - checking severity..."
 
       - name: Check for critical vulnerabilities
         run: |
           if [ -f npm-audit-report.json ]; then
             CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' npm-audit-report.json)
             HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' npm-audit-report.json)
+            MODERATE=$(jq -r '.metadata.vulnerabilities.moderate // 0' npm-audit-report.json)
 
             echo "Vulnerability Summary:"
             echo "- Critical: $CRITICAL"
             echo "- High: $HIGH"
+            echo "- Moderate: $MODERATE"
 
             if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-              echo "⚠️ Critical or High severity vulnerabilities found!"
+              echo "❌ Critical or High severity vulnerabilities found!"
               echo "Please review and fix vulnerabilities before merging."
-              echo "::warning::Critical or High severity vulnerabilities found in frontend"
-              echo "This is a warning during development. Update dependencies to fix vulnerabilities."
+              echo "::error::Critical or High severity vulnerabilities found in frontend"
+              echo "Update dependencies to fix vulnerabilities: npm audit fix"
+              exit 1
+            elif [ "$MODERATE" -gt 0 ]; then
+              echo "⚠️ Moderate severity vulnerabilities found (non-blocking)"
+              echo "Consider updating dependencies when possible: npm audit fix"
             else
               echo "✅ No critical or high severity vulnerabilities found"
             fi
           else
             echo "Warning: npm audit report not generated"
           fi
-        continue-on-error: true
 
       - name: Upload npm audit results
         uses: actions/upload-artifact@v4
@@ -222,7 +249,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@014f16e7ab1402f30e7c3329d33797e7948572db
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
@@ -233,21 +260,37 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          cache: "maven"
 
-      - name: Autobuild Java
+      - name: Verify Java installation
         if: matrix.language == 'java'
-        uses: github/codeql-action/autobuild@v3
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java
+
+      - name: Cache Maven dependencies
+        if: matrix.language == 'java'
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build Java Services
+        if: matrix.language == 'java'
+        run: |
+          for service in auth-service profile-service leaderboard-service; do
+            echo "Building $service..."
+            cd backend-services/$service
+            # CodeQL only needs compiled code for analysis, tests are run separately in backend-ci
+            mvn clean compile || echo "Build failed for $service, continuing..."
+            cd - > /dev/null
+          done
         continue-on-error: true
 
-      - name: Autobuild JavaScript
-        if: matrix.language == 'javascript'
-        uses: github/codeql-action/autobuild@v3
-        env:
-          CODEQL_ACTION_BUILD_MODE: manual
-
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@014f16e7ab1402f30e7c3329d33797e7948572db
         with:
           category: "/language:${{ matrix.language }}"
         continue-on-error: true

@@ -34,6 +34,12 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
+      - name: Verify Java installation
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java
+
       - name: Validate Maven POM
         run: mvn validate
 
