@@ -1494,6 +1494,7 @@ Create comprehensive GitHub Actions workflows for automated testing, building, c
 - [ ] Backend CI workflow created (includes testing, code quality, coverage, security scanning)
 - [ ] Frontend CI workflow created (includes testing, code quality, coverage)
 - [ ] Security scanning workflow created (dependency scanning, SAST)
+- [ ] SonarCloud/SonarQube integration configured (code quality analysis, quality gates)
 - [ ] Build verification works for all services
 - [ ] Workflows documented with clear descriptions
 - [ ] Docker image building configured (for future deployment)
@@ -1553,6 +1554,14 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
 - Dependency scanning
 - SAST scanning
 - License compliance checking
+
+**SonarCloud Analysis Workflow (.github/workflows/sonarcloud.yml):**
+- Code quality analysis for all services (Java, Node.js, Frontend)
+- Security vulnerability scanning (SAST)
+- Code coverage aggregation and reporting
+- Technical debt tracking
+- Quality gates enforcement
+- PR comments with quality gate status
 
 ## Related Documentation
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - CI/CD requirements (section 5.1)
@@ -1833,7 +1842,7 @@ jobs:
 
 ### Security Scanning Tools
 - **Dependency Scanning:** npm audit, OWASP Dependency Check (Maven)
-- **SAST:** GitHub CodeQL, SonarQube (optional)
+- **SAST:** GitHub CodeQL, SonarCloud/SonarQube (integrated in CI/CD pipeline)
 - **License Compliance:** license-checker (npm), license-maven-plugin (Maven)
 
 ### Failure Criteria

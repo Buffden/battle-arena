@@ -7,8 +7,9 @@
     "start": "node server.js",
     "dev": "node server.js",
     "build": "echo \"Build step - add build commands here if needed\"",
-    "test": "echo \"Tests not yet configured - add test framework (Jest, Mocha, etc.)\"",
-    "test:coverage": "echo \"Coverage not yet configured - add coverage tool (nyc, c8, etc.)\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "echo \"Linting not yet configured - add ESLint configuration\""
   },
   "keywords": [
@@ -20,5 +21,30 @@
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "server.js",
+      "src/**/*.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/coverage/"
+    ]
   }
 }

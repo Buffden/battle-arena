@@ -309,9 +309,9 @@ There is a need for a scalable multiplayer game platform that can:
 ### 6.6 Development Tools
 - **Build Tools:** Maven (Java), NPM (Node.js), Angular CLI
 - **Testing:** JUnit (Java), Jest (Node.js), Jasmine (Angular)
-- **Code Quality:** ESLint, Prettier, Checkstyle
+- **Code Quality:** ESLint, Prettier, Checkstyle, SonarCloud
 - **Version Control:** Git
-- **CI/CD:** GitHub Actions
+- **CI/CD:** GitHub Actions (with SonarCloud integration for code quality analysis)
 
 ---
 

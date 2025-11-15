@@ -39,6 +39,20 @@ jobs:
             npm install
           fi
       
+      - name: Install Chrome dependencies
+        run: |
+          # Install Chrome/Chromium for headless testing
+          if ! command -v google-chrome &> /dev/null; then
+            if ! command -v chromium-browser &> /dev/null; then
+              echo "Installing Chromium..."
+              sudo apt-get update
+              sudo apt-get install -y chromium-browser chromium-chromedriver
+            fi
+          fi
+          # Install Xvfb for virtual display (fallback, ChromeHeadless usually doesn't need it)
+          sudo apt-get install -y xvfb || echo "Xvfb installation skipped"
+        continue-on-error: true
+      
       - name: Run ESLint (if configured)
         run: npm run lint || echo "ESLint not configured - skipping"
         continue-on-error: true
@@ -49,16 +63,24 @@ jobs:
       
       - name: Run unit tests
         run: |
-          echo "Skipping tests - Chrome headless configuration not yet set up for CI"
-          echo "Tests can be run locally with: npm test"
-          # npm test -- --watch=false --browsers=ChromeHeadless || echo "Tests not fully configured - skipping"
+          # Set Chrome binary path (try different locations)
+          if command -v google-chrome &> /dev/null; then
+            export CHROME_BIN=$(which google-chrome)
+          elif command -v chromium-browser &> /dev/null; then
+            export CHROME_BIN=$(which chromium-browser)
+          fi
+          npm run test:ci
         continue-on-error: true
       
       - name: Generate test coverage
         run: |
-          echo "Skipping test coverage - Chrome headless configuration not yet set up for CI"
-          echo "Coverage can be generated locally with: npm run test:coverage"
-          # npm run test:coverage || echo "Coverage not configured - skipping"
+          # Set Chrome binary path (try different locations)
+          if command -v google-chrome &> /dev/null; then
+            export CHROME_BIN=$(which google-chrome)
+          elif command -v chromium-browser &> /dev/null; then
+            export CHROME_BIN=$(which chromium-browser)
+          fi
+          npm run test:coverage -- --watch=false --browsers=ChromeHeadlessCI
         continue-on-error: true
       
       - name: Check code coverage threshold

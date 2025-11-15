@@ -90,6 +90,7 @@ Create GitHub Actions workflows for automated testing, building, and deployment.
 - [ ] Create GitHub Actions workflow for frontend
 - [ ] Configure automated testing
 - [ ] Configure build verification
+- [ ] Set up SonarCloud/SonarQube integration (code quality analysis, quality gates)
 - [ ] Set up deployment workflows (future)
 - [ ] Document CI/CD process
 
