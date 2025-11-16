@@ -41,8 +41,6 @@ jobs:
           java -version
           echo "JAVA_HOME=$JAVA_HOME"
           which java
-          # Export JAVA_HOME to environment for subsequent steps
-          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -58,6 +56,10 @@ jobs:
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@2ba636726705b0f74f126ebeaacaf2ad4600b967
         id: depcheck
+        env:
+          # Set JAVA_HOME to Docker container's Java path
+          # The OWASP Dependency Check Docker container has Java at /opt/jdk
+          JAVA_HOME: /opt/jdk
         with:
           project: "${{ matrix.service }}"
           path: "."
