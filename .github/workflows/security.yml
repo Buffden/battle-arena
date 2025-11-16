@@ -63,7 +63,7 @@ jobs:
         with:
           project: "${{ matrix.service }}"
           path: "."
-          format: "HTML,JSON"
+          format: "ALL"
           out: "reports"
           args: >
             --failOnCVSS 7
