@@ -101,7 +101,7 @@ jobs:
           NODE_ENV: production
       
       - name: Upload test coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: coverage-frontend-${{ github.sha }}
@@ -110,7 +110,7 @@ jobs:
           if-no-files-found: ignore
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: success()
         with:
           name: frontend-build-${{ github.sha }}

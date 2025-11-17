@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload dependency check results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-report-java-${{ matrix.service }}-${{ github.sha }}
           path: backend-services/${{ matrix.service }}/reports/**
@@ -166,7 +166,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: security-report-nodejs-${{ matrix.service }}-${{ github.sha }}
@@ -235,7 +235,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: security-report-frontend-${{ github.sha }}
