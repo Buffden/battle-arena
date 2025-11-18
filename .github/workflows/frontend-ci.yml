@@ -6,6 +6,10 @@ on:
   push:
     branches: [main, develop]
 
+# Skip workflows for dependabot branch to reduce triggers
+# Dependabot PRs will accumulate on dependabot/update-dependencies branch
+# Then create one PR from that branch to develop (which will trigger workflows)
+
 # Prevent concurrent runs on the same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,21 +19,24 @@ jobs:
   frontend-ci:
     name: Frontend CI
     runs-on: ubuntu-latest
+    # Skip if PR is targeting dependabot branch (to reduce workflow triggers)
+    # Note: Workflows only trigger on PRs to main/develop, so this is a safety check
+    if: github.event_name != 'pull_request' || github.event.pull_request.base.ref != 'dependabot/update-dependencies'
     defaults:
       run:
         working-directory: frontend-service
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: frontend-service/package-lock.json
-      
+
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -38,7 +45,7 @@ jobs:
             echo "package-lock.json not found, using npm install"
             npm install
           fi
-      
+
       - name: Install Chrome dependencies
         run: |
           # Install Chrome/Chromium for headless testing
@@ -52,15 +59,15 @@ jobs:
           # Install Xvfb for virtual display (fallback, ChromeHeadless usually doesn't need it)
           sudo apt-get install -y xvfb || echo "Xvfb installation skipped"
         continue-on-error: true
-      
+
       - name: Run ESLint (if configured)
         run: npm run lint || echo "ESLint not configured - skipping"
         continue-on-error: true
-      
+
       - name: Run Prettier check (if configured)
         run: npm run format:check || echo "Prettier not configured - skipping"
         continue-on-error: true
-      
+
       - name: Run unit tests
         run: |
           # Set Chrome binary path (try different locations)
@@ -71,7 +78,7 @@ jobs:
           fi
           npm run test:ci
         continue-on-error: true
-      
+
       - name: Generate test coverage
         run: |
           # Set Chrome binary path (try different locations)
@@ -82,7 +89,7 @@ jobs:
           fi
           npm run test:coverage -- --watch=false --browsers=ChromeHeadlessCI
         continue-on-error: true
-      
+
       - name: Check code coverage threshold
         run: |
           if [ -d coverage ]; then
@@ -94,12 +101,12 @@ jobs:
             echo "Warning: Coverage report not found"
           fi
         continue-on-error: true
-      
+
       - name: Build Angular application
         run: npm run build
         env:
           NODE_ENV: production
-      
+
       - name: Upload test coverage reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -108,7 +115,7 @@ jobs:
           path: frontend-service/coverage/**
           retention-days: 30
           if-no-files-found: ignore
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         if: success()
@@ -117,7 +124,7 @@ jobs:
           path: frontend-service/dist/**
           retention-days: 7
           if-no-files-found: ignore
-      
+
       - name: Create summary
         if: always()
         run: |
@@ -133,4 +140,3 @@ jobs:
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Build artifacts: Available for 7 days" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage reports: Available for 30 days" >> $GITHUB_STEP_SUMMARY
-

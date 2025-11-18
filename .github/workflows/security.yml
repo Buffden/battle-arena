@@ -9,6 +9,10 @@ on:
     # Run security scans weekly on Monday at 00:00 UTC
     - cron: "0 0 * * 1"
 
+# Skip workflows for dependabot branch to reduce triggers
+# Dependabot PRs will accumulate on dependabot/update-dependencies branch
+# Then create one PR from that branch to develop (which will trigger workflows)
+
 # Prevent concurrent runs on the same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
