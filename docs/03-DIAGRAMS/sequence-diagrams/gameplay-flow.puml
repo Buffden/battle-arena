@@ -198,5 +198,9 @@ GameEngine -> GameEngine: Process match result
 GameEngine --> Frontend1: match-ended\n{winner, isDraw, matchResult}
 GameEngine --> Frontend2: match-ended\n{winner, isDraw, matchResult}
 
+== Post-Match Processing ==
+Note over GameEngine: See post-match-flow.puml for detailed\nscore and rank update flow
+GameEngine -> GameEngine: Trigger post-match processing\n(update scores, ranks, leaderboard)
+
 @enduml
 

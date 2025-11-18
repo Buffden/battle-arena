@@ -1,0 +1,109 @@
+@startuml Post-Match Result Screen Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Game Engine Service" as GameEngine
+participant "Match Result Processor" as MatchProcessor
+participant "Profile Service Client" as ProfileClient
+participant "Profile Service" as ProfileService
+participant "MongoDB" as MongoDB
+
+title Post-Match Result Screen Flow
+
+== Match Ends ==
+GameEngine -> MatchProcessor: processMatchResult(matchId, matchResult)
+activate MatchProcessor
+MatchProcessor -> MatchProcessor: Calculate final scores\n(player1Score, player2Score)
+MatchProcessor -> MatchProcessor: Determine winner\n(based on HP and score)
+MatchProcessor -> MatchProcessor: Calculate rank changes\n(before/after rank tiers, score changes)
+
+== Get Rank Changes ==
+MatchProcessor -> ProfileClient: getRankChanges(player1Id, player2Id)
+activate ProfileClient
+ProfileClient -> ProfileService: GET /api/profile/{playerId}/rank-changes\n{playerId}
+activate ProfileService
+ProfileService -> MongoDB: Get profile (before match)
+activate MongoDB
+MongoDB --> ProfileService: Profile (before match)\n{rankTier: "Silver", globalScore: 1000}
+deactivate MongoDB
+ProfileService -> ProfileService: Calculate new rank tier\n(based on updated score)
+ProfileService -> ProfileService: Calculate rank change\n(newRankTier - oldRankTier, scoreChange)
+ProfileService --> ProfileClient: RankChangeResponse\n{oldRankTier, newRankTier, rankChange, scoreChange}
+deactivate ProfileService
+ProfileClient --> MatchProcessor: RankChangeResponse (player1)
+deactivate ProfileClient
+
+MatchProcessor -> ProfileClient: getRankChanges(player2Id)
+activate ProfileClient
+ProfileClient -> ProfileService: GET /api/profile/{player2Id}/rank-changes
+activate ProfileService
+ProfileService -> MongoDB: Get profile (before match)
+activate MongoDB
+MongoDB --> ProfileService: Profile (before match)
+deactivate MongoDB
+ProfileService -> ProfileService: Calculate new rank tier and change
+ProfileService --> ProfileClient: RankChangeResponse (player2)
+deactivate ProfileService
+ProfileClient --> MatchProcessor: RankChangeResponse (player2)
+deactivate ProfileClient
+
+== Prepare Match Results ==
+MatchProcessor -> MatchProcessor: Aggregate match results\n{winner, player1Score, player2Score, player1HP, player2HP, \nplayer1RankChange, player2RankChange, player1ScoreChange, player2ScoreChange}
+MatchProcessor --> GameEngine: MatchResultSummary
+deactivate MatchProcessor
+
+== Send Results to Frontend ==
+GameEngine --> Frontend1: match-ended\n{matchResult: {winner: "player1", player1Score: 150, player2Score: 120, \nplayer1HP: 50, player2HP: 0, player1RankChange: {oldRank: "Silver", newRank: "Gold", change: +1}, \nplayer2RankChange: {oldRank: "Silver", newRank: "Silver", change: 0}, \nplayer1ScoreChange: +150, player2ScoreChange: +120}}
+GameEngine --> Frontend2: match-ended\n{matchResult: {winner: "player1", player1Score: 150, player2Score: 120, \nplayer1HP: 50, player2HP: 0, player1RankChange: {oldRank: "Silver", newRank: "Silver", change: 0}, \nplayer2RankChange: {oldRank: "Silver", newRank: "Silver", change: 0}, \nplayer1ScoreChange: +120, player2ScoreChange: +120}}
+
+== Display Post-Match Result Screen ==
+Frontend1 -> Frontend1: Display post-match result screen
+Frontend1 -> Frontend1: Show match summary\n- Winner: Player1\n- Final Scores: 150 vs 120\n- Final HP: 50 vs 0
+Frontend1 -> Frontend1: Show rank tier changes\n- Before: Silver → After: Gold (+1 tier)\n- Score: +150 points
+Frontend1 -> Frontend1: Show score changes\n- Points gained: +150\n- New total score: 1150
+Frontend1 -> Frontend1: Show navigation options\n- "Play Again" button\n- "Dashboard" button\n- "Profile" button\n- "View Detailed Results" button
+Frontend1 --> Player1: Post-match result screen displayed
+
+Frontend2 -> Frontend2: Display post-match result screen
+Frontend2 -> Frontend2: Show match summary\n- Winner: Player1 (You Lost)\n- Final Scores: 120 vs 150\n- Final HP: 0 vs 50
+Frontend2 -> Frontend2: Show rank tier changes\n- Before: Silver → After: Silver (no change)\n- Score: +120 points
+Frontend2 -> Frontend2: Show score changes\n- Points gained: +120\n- New total score: 1120
+Frontend2 -> Frontend2: Show navigation options
+Frontend2 --> Player2: Post-match result screen displayed
+
+== User Navigation ==
+alt Player Clicks "Play Again"
+    Player1 -> Frontend1: Click "Play Again"
+    activate Frontend1
+    Frontend1 -> Frontend1: Navigate to hero selection screen
+    Frontend1 -> Frontend1: Pre-select previous heroes (optional)
+    Frontend1 --> Player1: Hero selection screen
+    deactivate Frontend1
+else Player Clicks "Dashboard"
+    Player1 -> Frontend1: Click "Dashboard"
+    activate Frontend1
+    Frontend1 -> Frontend1: Navigate to dashboard
+    Frontend1 --> Player1: Dashboard screen
+    deactivate Frontend1
+else Player Clicks "Profile"
+    Player1 -> Frontend1: Click "Profile"
+    activate Frontend1
+    Frontend1 -> Frontend1: Navigate to profile page
+    Frontend1 --> Player1: Profile page
+    deactivate Frontend1
+else Player Clicks "View Detailed Results"
+    Player1 -> Frontend1: Click "View Detailed Results"
+    activate Frontend1
+    Frontend1 -> Frontend1: Navigate to match history detail page
+    Frontend1 -> Frontend1: Load detailed match data\n(turn-by-turn actions, score breakdown, etc.)
+    Frontend1 --> Player1: Detailed match results page
+    deactivate Frontend1
+end
+
+@enduml
+

@@ -1,0 +1,118 @@
+@startuml Weapon Selection Timeout/Disconnection Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Weapon Selector" as WeaponSelector
+participant "Selection Timer" as Timer
+participant "Lobby Manager" as LobbyManager
+participant "Queue Manager" as QueueManager
+participant "Redis" as Redis
+
+title Weapon Selection Timeout/Disconnection Flow (30s Total, 2min TTL)
+
+== Weapon Selection Start ==
+Matchmaking -> WeaponSelector: startWeaponSelection(matchId, heroType)
+activate WeaponSelector
+WeaponSelector -> Redis: Store weapon selection state\n(weapon-selection:{matchId}, TTL: 2 minutes)
+activate Redis
+Redis --> WeaponSelector: Stored
+deactivate Redis
+WeaponSelector -> Timer: Start 30-second TOTAL timer\n(for all 20 weapons, ~3s per weapon)
+activate Timer
+Timer --> WeaponSelector: Timer started
+deactivate Timer
+WeaponSelector --> Matchmaking: WeaponSelectionState
+deactivate WeaponSelector
+
+Matchmaking --> Frontend1: weapon-selection-started\n{availableWeapons, totalTimer: 30s}
+Matchmaking --> Frontend2: weapon-selection-started\n{availableWeapons, totalTimer: 30s}
+
+== Timeout or Disconnection Occurs ==
+alt 30s Total Timer Expired (Random Weapon Selection)
+    Timer -> WeaponSelector: Timeout (30s total expired)\n(matchId)
+    activate WeaponSelector
+    WeaponSelector -> WeaponSelector: Check selection status
+    WeaponSelector -> WeaponSelector: Not all weapons selected (20 total)
+    WeaponSelector -> WeaponSelector: Select random weapons for both players\n(until 10 weapons each = 20 total)
+    WeaponSelector -> Redis: Update weapon selection state\n(all weapons selected randomly)
+    activate Redis
+    Redis --> WeaponSelector: Updated
+    deactivate Redis
+    WeaponSelector -> WeaponSelector: Mark selection complete
+    WeaponSelector --> Matchmaking: WeaponSelectionState (completed - timeout)
+    deactivate WeaponSelector
+    Matchmaking --> Frontend1: weapon-selection-timeout\n{player1Weapons: 10/10 (random), player2Weapons: 10/10 (random)}
+    Matchmaking --> Frontend2: weapon-selection-timeout\n{player1Weapons: 10/10 (random), player2Weapons: 10/10 (random)}
+    Matchmaking -> Matchmaking: Proceed to Game Start
+else 2min TTL Expired or Player Disconnects (Match Cancellation)
+    alt 2min TTL Expired
+        Timer -> WeaponSelector: TTL Expired (2 minutes)\n(matchId)
+        activate WeaponSelector
+        WeaponSelector -> WeaponSelector: Check selection status
+        WeaponSelector -> WeaponSelector: Selection not completed within 2 minutes
+        WeaponSelector -> WeaponSelector: Cancel match
+    else Player Disconnects
+        Matchmaking -> Matchmaking: Detect player disconnection\n(WebSocket disconnect event)
+        Matchmaking -> WeaponSelector: handleDisconnection(matchId, playerId)
+        activate WeaponSelector
+        WeaponSelector -> WeaponSelector: Check selection status
+        WeaponSelector -> WeaponSelector: Player disconnected during weapon selection
+        WeaponSelector -> WeaponSelector: Cancel match
+    end
+
+    == Cancel Match ==
+    WeaponSelector -> Timer: Stop timer
+    activate Timer
+    Timer --> WeaponSelector: Timer stopped
+    deactivate Timer
+    WeaponSelector -> Redis: Delete weapon selection state
+    activate Redis
+    Redis --> WeaponSelector: Deleted
+    deactivate Redis
+    WeaponSelector -> LobbyManager: cancelMatch(matchId)
+    activate LobbyManager
+    LobbyManager -> Redis: Delete lobby
+    activate Redis
+    Redis --> LobbyManager: Lobby deleted
+    deactivate Redis
+    LobbyManager --> WeaponSelector: Match cancelled
+    deactivate LobbyManager
+
+    == Return Players to Queue ==
+    WeaponSelector -> QueueManager: returnToQueue(player1Id, player2Id)
+    activate QueueManager
+    QueueManager -> Redis: Add players back to queue
+    activate Redis
+    Redis --> QueueManager: Players added to queue
+    deactivate Redis
+    QueueManager --> WeaponSelector: Players returned to queue
+    deactivate QueueManager
+    WeaponSelector -> WeaponSelector: Log timeout/disconnection for analytics\n(matchId, reason, playerId if disconnected)
+    WeaponSelector --> Matchmaking: Match cancelled
+    deactivate WeaponSelector
+
+    == Notify Players ==
+    alt TTL Expired
+        Matchmaking --> Frontend1: weapon-selection-cancelled\n{reason: "Weapon selection timed out (2 minutes)", returnToQueue: true}
+        Matchmaking --> Frontend2: weapon-selection-cancelled\n{reason: "Weapon selection timed out (2 minutes)", returnToQueue: true}
+    else Disconnection
+        Matchmaking --> Frontend1: weapon-selection-cancelled\n{reason: "Opponent disconnected", returnToQueue: true}
+        Matchmaking --> Frontend2: weapon-selection-cancelled\n{reason: "You disconnected", returnToQueue: true}
+    end
+    Matchmaking -> Matchmaking: Log cancellation for analytics\n(matchId, cancellationReason)
+
+    == Return to Queue ==
+    Frontend1 -> Frontend1: Display cancellation message
+    Frontend1 -> Frontend1: Return to matchmaking queue screen
+    Frontend2 -> Frontend2: Display cancellation message
+    Frontend2 -> Frontend2: Return to matchmaking queue screen
+end
+
+@enduml
+

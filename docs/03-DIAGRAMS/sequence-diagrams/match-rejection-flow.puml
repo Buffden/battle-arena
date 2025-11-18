@@ -1,0 +1,79 @@
+@startuml Match Rejection Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Lobby Manager" as LobbyManager
+participant "Queue Manager" as QueueManager
+participant "Acceptance Timer" as Timer
+participant "Redis" as Redis
+
+title Match Rejection Flow
+
+== Match Found ==
+Matchmaking --> Frontend1: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
+Matchmaking --> Frontend2: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
+activate Matchmaking
+
+== Start Acceptance Timer ==
+Matchmaking -> LobbyManager: createLobby(matchId, player1Id, player2Id)
+activate LobbyManager
+LobbyManager -> Redis: Create lobby (Hash)\nKey: lobby:{matchId}
+activate Redis
+Redis --> LobbyManager: Lobby created
+deactivate Redis
+LobbyManager -> Timer: Start 30-second acceptance timer\n(matchId)
+activate Timer
+Timer --> LobbyManager: Timer started
+deactivate Timer
+LobbyManager --> Matchmaking: Lobby created
+deactivate LobbyManager
+
+== Player 1 Rejects Match ==
+Player1 -> Frontend1: Click "Reject"
+activate Frontend1
+Frontend1 -> Matchmaking: WebSocket: reject-match\n{matchId}
+activate Matchmaking
+Matchmaking -> LobbyManager: rejectMatch(matchId, player1Id)
+activate LobbyManager
+LobbyManager -> LobbyManager: Cancel match
+LobbyManager -> Timer: Stop acceptance timer
+activate Timer
+Timer --> LobbyManager: Timer stopped
+deactivate Timer
+LobbyManager -> Redis: Delete lobby
+activate Redis
+Redis --> LobbyManager: Lobby deleted
+deactivate Redis
+LobbyManager -> QueueManager: returnToQueue(player1Id, player2Id)
+activate QueueManager
+QueueManager -> Redis: Add players back to queue\n(matchmaking:queue:{heroType})
+activate Redis
+Redis --> QueueManager: Players added to queue
+deactivate Redis
+QueueManager --> LobbyManager: Players returned to queue
+deactivate QueueManager
+LobbyManager -> LobbyManager: Log rejection for analytics\n(matchId, player1Id, rejectionReason)
+LobbyManager --> Matchmaking: Match rejected
+deactivate LobbyManager
+
+== Notify Both Players ==
+Matchmaking --> Frontend1: match-rejected\n{reason: "You rejected the match", returnToQueue: true}
+Matchmaking --> Frontend2: match-rejected\n{reason: "Opponent rejected the match", returnToQueue: true}
+Matchmaking -> Matchmaking: Log rejection for analytics\n(matchId, player1Id, player2Id, rejectedBy: player1Id)
+deactivate Matchmaking
+deactivate Frontend1
+
+== Return to Queue ==
+Frontend1 -> Frontend1: Display rejection message\n"Match rejected. Returning to queue..."
+Frontend1 -> Frontend1: Return to matchmaking queue screen
+Frontend2 -> Frontend2: Display rejection message\n"Opponent rejected the match. Returning to queue..."
+Frontend2 -> Frontend2: Return to matchmaking queue screen
+
+@enduml
+

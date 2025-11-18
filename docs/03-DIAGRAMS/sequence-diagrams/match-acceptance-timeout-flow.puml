@@ -1,0 +1,93 @@
+@startuml Match Acceptance Timeout Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Lobby Manager" as LobbyManager
+participant "Acceptance Timer" as Timer
+participant "Queue Manager" as QueueManager
+participant "Redis" as Redis
+
+title Match Acceptance Timeout Flow (30s Timeout)
+
+== Match Found ==
+Matchmaking --> Frontend1: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
+Matchmaking --> Frontend2: match-found\n{matchId, opponent, assignedHero, timeout: 30s}
+activate Matchmaking
+
+== Start Acceptance Timer ==
+Matchmaking -> LobbyManager: createLobby(matchId, player1Id, player2Id)
+activate LobbyManager
+LobbyManager -> Redis: Create lobby (Hash)\nKey: lobby:{matchId}\nValue: {player1Id, player2Id, status: pending, createdAt}
+activate Redis
+Redis --> LobbyManager: Lobby created
+deactivate Redis
+LobbyManager -> Timer: Start 30-second acceptance timer\n(matchId)
+activate Timer
+Timer --> LobbyManager: Timer started
+deactivate Timer
+LobbyManager --> Matchmaking: Lobby created
+deactivate LobbyManager
+
+== Player 1 Accepts ==
+Player1 -> Frontend1: Click "Accept"
+activate Frontend1
+Frontend1 -> Matchmaking: WebSocket: accept-match\n{matchId}
+activate Matchmaking
+Matchmaking -> LobbyManager: acceptMatch(matchId, player1Id)
+activate LobbyManager
+LobbyManager -> Redis: Update lobby status\n(player1Accepted: true)
+activate Redis
+Redis --> LobbyManager: Updated
+deactivate Redis
+LobbyManager -> LobbyManager: Check if both players accepted
+LobbyManager --> Matchmaking: Lobby updated (player1 accepted, waiting for player2)
+deactivate LobbyManager
+Matchmaking --> Frontend1: match-acceptance-update\n{player1Accepted: true, player2Accepted: false}
+deactivate Matchmaking
+deactivate Frontend1
+
+== Player 2 Does NOT Accept (Timeout) ==
+Timer -> LobbyManager: Timeout (30s expired)\n(matchId)
+activate LobbyManager
+LobbyManager -> LobbyManager: Check acceptance status
+LobbyManager -> LobbyManager: Player2 did not accept within 30s
+LobbyManager -> LobbyManager: Automatically reject match
+LobbyManager -> Redis: Delete lobby
+activate Redis
+Redis --> LobbyManager: Lobby deleted
+deactivate Redis
+LobbyManager -> QueueManager: returnToQueue(player1Id, player2Id)
+activate QueueManager
+QueueManager -> Redis: Add players back to queue
+activate Redis
+Redis --> QueueManager: Players added to queue
+deactivate Redis
+QueueManager --> LobbyManager: Players returned to queue
+deactivate QueueManager
+LobbyManager -> Timer: Stop timer
+activate Timer
+Timer --> LobbyManager: Timer stopped
+deactivate Timer
+LobbyManager --> Matchmaking: Match rejected (timeout)
+deactivate LobbyManager
+
+== Notify Players ==
+Matchmaking --> Frontend1: match-rejected-timeout\n{reason: "Opponent did not accept within 30 seconds", returnToQueue: true}
+Matchmaking --> Frontend2: match-rejected-timeout\n{reason: "You did not accept within 30 seconds", returnToQueue: true}
+Matchmaking -> Matchmaking: Log timeout for analytics\n(matchId, player1Id, player2Id, timeoutReason)
+deactivate Matchmaking
+
+== Return to Queue ==
+Frontend1 -> Frontend1: Display timeout message\n"Match cancelled: Opponent did not accept"
+Frontend1 -> Frontend1: Return to matchmaking queue screen
+Frontend2 -> Frontend2: Display timeout message\n"Match cancelled: You did not accept in time"
+Frontend2 -> Frontend2: Return to matchmaking queue screen
+
+@enduml
+

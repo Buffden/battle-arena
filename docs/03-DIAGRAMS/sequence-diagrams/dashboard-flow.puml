@@ -1,0 +1,80 @@
+@startuml Dashboard Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Frontend" as Frontend
+participant "Auth Service\n(Spring Boot)" as AuthService
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Leaderboard Service\n(Spring Boot)" as LeaderboardService
+participant "Matchmaking Service\n(Node.js)" as Matchmaking
+participant "MongoDB" as MongoDB
+participant "Redis" as Redis
+
+title Dashboard Flow (Multi-Service Data Aggregation)
+
+== Load Dashboard ==
+User -> Frontend: Navigate to Dashboard
+activate Frontend
+Frontend -> Frontend: Extract JWT token from storage
+
+== Validate Authentication ==
+Frontend -> AuthService: Validate JWT token\nPOST /api/auth/validate\n{token}
+activate AuthService
+AuthService -> AuthService: Decode and validate JWT token
+AuthService -> AuthService: Extract userId from token
+alt Token Valid
+    AuthService --> Frontend: TokenValidationResponse\n{valid: true, userId}
+    deactivate AuthService
+else Token Invalid or Expired
+    AuthService --> Frontend: TokenValidationResponse\n{valid: false, error}
+    deactivate AuthService
+    Frontend --> User: Redirect to login
+    deactivate Frontend
+end
+
+== Parallel Data Fetching ==
+par Get Profile Summary
+    Frontend -> ProfileService: GET /api/profile/{userId}/summary\n(Header: Authorization: Bearer {token})
+    activate ProfileService
+    ProfileService -> ProfileService: Validate JWT token
+    ProfileService -> ProfileService: Get profile summary\n(globalScore, rankTier, wins, losses, matchesPlayed)
+    ProfileService --> Frontend: ProfileSummaryResponse\n{globalScore, rankTier, wins, losses, matchesPlayed, winRate}
+    deactivate ProfileService
+and Get Rank Position
+    Frontend -> LeaderboardService: GET /api/leaderboard/rank/{userId}\n(Header: Authorization: Bearer {token})
+    activate LeaderboardService
+    LeaderboardService -> LeaderboardService: Validate JWT token
+    LeaderboardService -> LeaderboardService: Get player rank position\n(rank, totalPlayers, percentile)
+    LeaderboardService --> Frontend: RankPositionResponse\n{rank, totalPlayers, percentile, rankTier}
+    deactivate LeaderboardService
+and Get Matchmaking Status
+    Frontend -> Matchmaking: GET /api/matchmaking/status/{userId}\n(Header: Authorization: Bearer {token})
+    activate Matchmaking
+    Matchmaking -> Matchmaking: Validate JWT token
+    Matchmaking -> Redis: Check if player in queue\n(matchmaking:queue:*)
+    activate Redis
+    Redis --> Matchmaking: Queue status\n{inQueue: true/false, position, estimatedWaitTime}
+    deactivate Redis
+    Matchmaking --> Frontend: MatchmakingStatusResponse\n{inQueue, position, estimatedWaitTime, matchId (if in match)}
+    deactivate Matchmaking
+end
+
+== Aggregate Dashboard Data ==
+Frontend -> Frontend: Combine data from all services\n(profile summary, rank position, matchmaking status)
+Frontend -> Frontend: Build dashboard view\n(score, rank tier, statistics, queue status)
+Frontend --> User: Display dashboard\n(profile summary, rank position, matchmaking status, quick actions)
+deactivate Frontend
+
+== Refresh Dashboard (Optional) ==
+alt User Refreshes Dashboard
+    User -> Frontend: Refresh dashboard
+    activate Frontend
+    Note over Frontend: Repeat parallel data fetching\nand aggregation
+    Frontend --> User: Updated dashboard data
+    deactivate Frontend
+end
+
+@enduml
+

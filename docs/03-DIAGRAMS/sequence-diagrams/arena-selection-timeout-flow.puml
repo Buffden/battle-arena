@@ -1,0 +1,100 @@
+@startuml Arena Selection Timeout Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Matchmaking Service" as Matchmaking
+participant "Arena Selector" as ArenaSelector
+participant "Selection Timer" as Timer
+participant "Lobby Manager" as LobbyManager
+participant "Queue Manager" as QueueManager
+participant "Redis" as Redis
+
+title Arena Selection Timeout/Disconnection Flow (5min TTL)
+
+== Arena Selection Start ==
+Matchmaking -> ArenaSelector: startArenaSelection(matchId, heroType)
+activate ArenaSelector
+ArenaSelector -> Redis: Store arena selection state\n(arena-selection:{matchId}, TTL: 5 minutes)
+activate Redis
+Redis --> ArenaSelector: Stored
+deactivate Redis
+ArenaSelector -> Timer: Start arena selection timer\n(matchId, TTL: 5 minutes)
+activate Timer
+Timer --> ArenaSelector: Timer started
+deactivate Timer
+ArenaSelector --> Matchmaking: ArenaSelectionState
+deactivate ArenaSelector
+
+Matchmaking --> Frontend1: arena-selection-started\n{availableArenas}
+Matchmaking --> Frontend2: arena-selection-started\n{availableArenas}
+
+== Timeout or Disconnection Occurs ==
+alt Arena Selection Timeout (5min TTL Expired)
+    Timer -> ArenaSelector: Timeout (5 minutes expired)\n(matchId)
+    activate ArenaSelector
+    ArenaSelector -> ArenaSelector: Check selection status
+    ArenaSelector -> ArenaSelector: Arena selection not completed within 5 minutes
+    ArenaSelector -> ArenaSelector: Cancel match
+else Player Disconnects
+    Matchmaking -> Matchmaking: Detect player disconnection\n(WebSocket disconnect event)
+    Matchmaking -> ArenaSelector: handleDisconnection(matchId, playerId)
+    activate ArenaSelector
+    ArenaSelector -> ArenaSelector: Check selection status
+    ArenaSelector -> ArenaSelector: Player disconnected during arena selection
+    ArenaSelector -> ArenaSelector: Cancel match
+end
+
+== Cancel Match ==
+ArenaSelector -> Timer: Stop timer
+activate Timer
+Timer --> ArenaSelector: Timer stopped
+deactivate Timer
+ArenaSelector -> Redis: Delete arena selection state
+activate Redis
+Redis --> ArenaSelector: Deleted
+deactivate Redis
+ArenaSelector -> LobbyManager: cancelMatch(matchId)
+activate LobbyManager
+LobbyManager -> Redis: Delete lobby
+activate Redis
+Redis --> LobbyManager: Lobby deleted
+deactivate Redis
+LobbyManager --> ArenaSelector: Match cancelled
+deactivate LobbyManager
+
+== Return Players to Queue ==
+ArenaSelector -> QueueManager: returnToQueue(player1Id, player2Id)
+activate QueueManager
+QueueManager -> Redis: Add players back to queue\n(matchmaking:queue:{heroType})
+activate Redis
+Redis --> QueueManager: Players added to queue
+deactivate Redis
+QueueManager --> ArenaSelector: Players returned to queue
+deactivate QueueManager
+ArenaSelector -> ArenaSelector: Log timeout/disconnection for analytics\n(matchId, reason, playerId if disconnected)
+ArenaSelector --> Matchmaking: Match cancelled
+deactivate ArenaSelector
+
+== Notify Players ==
+alt Timeout
+    Matchmaking --> Frontend1: arena-selection-cancelled\n{reason: "Arena selection timed out (5 minutes)", returnToQueue: true}
+    Matchmaking --> Frontend2: arena-selection-cancelled\n{reason: "Arena selection timed out (5 minutes)", returnToQueue: true}
+else Disconnection
+    Matchmaking --> Frontend1: arena-selection-cancelled\n{reason: "Opponent disconnected", returnToQueue: true}
+    Matchmaking --> Frontend2: arena-selection-cancelled\n{reason: "You disconnected", returnToQueue: true}
+end
+Matchmaking -> Matchmaking: Log cancellation for analytics\n(matchId, cancellationReason)
+
+== Return to Queue ==
+Frontend1 -> Frontend1: Display cancellation message
+Frontend1 -> Frontend1: Return to matchmaking queue screen
+Frontend2 -> Frontend2: Display cancellation message
+Frontend2 -> Frontend2: Return to matchmaking queue screen
+
+@enduml
+

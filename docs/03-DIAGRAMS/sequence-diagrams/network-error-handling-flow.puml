@@ -1,0 +1,106 @@
+@startuml Network Error Handling Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player
+participant "Frontend" as Frontend
+participant "Backend Service" as Backend
+participant "WebSocket Connection" as WebSocket
+participant "Network Monitor" as NetworkMonitor
+participant "Error Handler" as ErrorHandler
+
+title Network Error Handling Flow
+
+== Network Error Occurs ==
+alt Connection Lost
+    Player -> Frontend: Perform action
+    activate Frontend
+    Frontend -> Backend: API Request
+    Backend --> Frontend: Network Error\n(connection lost, timeout, etc.)
+else WebSocket Disconnect
+    WebSocket -> Frontend: WebSocket disconnect event
+    activate Frontend
+    Frontend -> NetworkMonitor: Detect disconnection
+    activate NetworkMonitor
+    NetworkMonitor -> NetworkMonitor: Check connection status
+    NetworkMonitor --> Frontend: Connection lost
+    deactivate NetworkMonitor
+else Request Timeout
+    Frontend -> Backend: API Request
+    activate Backend
+    Backend --> Frontend: Request timeout (no response)
+    deactivate Backend
+end
+
+== Detect Network Error ==
+Frontend -> ErrorHandler: handleNetworkError(error)
+activate ErrorHandler
+ErrorHandler -> ErrorHandler: Classify error type\n(connection lost, timeout, server error, etc.)
+ErrorHandler -> ErrorHandler: Determine error severity\n(critical, warning, info)
+ErrorHandler --> Frontend: ErrorDetails\n{type, severity, message, recoveryOptions}
+deactivate ErrorHandler
+
+== Display Error Message ==
+Frontend -> Frontend: Display clear error message\n(based on error type)
+alt Connection Lost
+    Frontend -> Frontend: Show message: "Connection lost. Attempting to reconnect..."
+else Request Timeout
+    Frontend -> Frontend: Show message: "Request timed out. Please try again."
+else Server Error
+    Frontend -> Frontend: Show message: "Server error. Please try again later."
+end
+
+== Provide Recovery Options ==
+Frontend -> Frontend: Show recovery options
+alt In Match
+    Frontend -> Frontend: Show options:\n- "Retry Connection"\n- "Reconnect to Match"\n- "Exit Match"
+    Player -> Frontend: Click "Retry Connection"
+    activate Frontend
+    Frontend -> WebSocket: Attempt to reconnect
+    activate WebSocket
+    WebSocket -> WebSocket: Try to establish connection
+    alt Reconnection Successful
+        WebSocket --> Frontend: Connection restored
+        Frontend -> Frontend: Clear error message
+        Frontend -> Frontend: Resume normal operation
+        Frontend --> Player: Connection restored
+    else Reconnection Failed
+        WebSocket --> Frontend: Reconnection failed
+        Frontend -> Frontend: Show message: "Reconnection failed. Handling as disconnection..."
+        Frontend -> Frontend: Trigger disconnection handling flow\n(see disconnection-handling-flow.puml)
+        Frontend --> Player: Disconnection handling initiated
+    end
+    deactivate WebSocket
+    deactivate Frontend
+else Not In Match
+    Frontend -> Frontend: Show options:\n- "Retry"\n- "Go to Dashboard"\n- "Refresh Page"
+    Player -> Frontend: Click "Retry"
+    activate Frontend
+    Frontend -> Backend: Retry original request
+    activate Backend
+    alt Request Successful
+        Backend --> Frontend: 200 OK\n{response data}
+        Frontend -> Frontend: Clear error message
+        Frontend --> Player: Request successful
+    else Request Failed Again
+        Backend --> Frontend: Error response
+        Frontend -> Frontend: Show error message again
+        Frontend -> Frontend: Increment retry count
+        alt Retry Count < Max Retries
+            Frontend -> Frontend: Show "Retry" option again
+        else Retry Count >= Max Retries
+            Frontend -> Frontend: Show message: "Multiple retries failed. Please try again later."
+            Frontend -> Frontend: Disable retry option
+        end
+        Frontend --> Player: Error persists
+    end
+    deactivate Backend
+    deactivate Frontend
+end
+
+== Log Error ==
+Frontend -> Frontend: Log network error for analytics\n(errorType, severity, timestamp, userAction, recoveryAction)
+
+@enduml
+

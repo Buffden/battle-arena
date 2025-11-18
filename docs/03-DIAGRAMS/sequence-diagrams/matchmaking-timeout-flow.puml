@@ -1,0 +1,99 @@
+@startuml Matchmaking Timeout Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player
+participant "Frontend" as Frontend
+participant "Matchmaking Service" as Matchmaking
+participant "Matchmaking Engine" as MatchmakingEngine
+participant "Queue Manager" as QueueManager
+participant "Queue Timer" as Timer
+participant "Redis" as Redis
+
+title Matchmaking Timeout Flow (Extended Timeout)
+
+== Join Queue ==
+Player -> Frontend: Click "Find Match"
+activate Frontend
+Frontend -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds}
+activate Matchmaking
+Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, rankTier, socketId)
+activate QueueManager
+QueueManager -> Redis: Add to queue (Sorted Set)
+activate Redis
+Redis --> QueueManager: Added to queue
+deactivate Redis
+QueueManager -> Timer: Start extended timeout timer\n(playerId, configurable timeout, e.g., 10 minutes)
+activate Timer
+Timer --> QueueManager: Timer started
+deactivate Timer
+QueueManager --> Matchmaking: QueueStatus\n{position, estimatedWaitTime}
+deactivate QueueManager
+Matchmaking --> Frontend: queue-status\n{position, estimatedWaitTime}
+deactivate Matchmaking
+deactivate Frontend
+
+== Search for Match ==
+loop Every few seconds
+    Matchmaking -> MatchmakingEngine: findMatch(playerId)
+    activate MatchmakingEngine
+    MatchmakingEngine -> QueueManager: getPlayersInQueue(heroType, scoreRange)
+    activate QueueManager
+    QueueManager -> Redis: Get players in score range
+    activate Redis
+    Redis --> QueueManager: QueueEntry[]
+    deactivate Redis
+    QueueManager --> MatchmakingEngine: QueueEntry[]
+    deactivate QueueManager
+    MatchmakingEngine -> MatchmakingEngine: Check hero compatibility
+    alt Match Found
+        MatchmakingEngine --> Matchmaking: Match found
+        Matchmaking -> Timer: Stop timeout timer
+        activate Timer
+        Timer --> Matchmaking: Timer stopped
+        deactivate Timer
+        Matchmaking --> Frontend: match-found\n{matchId, opponent, assignedHero}
+        Note over Matchmaking: Proceed with match acceptance flow
+    else No Match Found
+        MatchmakingEngine -> QueueManager: expandQueueRange(heroType, baseScore)
+        activate QueueManager
+        QueueManager -> QueueManager: Widen score range (after 5 minutes)
+        QueueManager --> MatchmakingEngine: Expanded score range
+        deactivate QueueManager
+        MatchmakingEngine --> Matchmaking: No match found (continue waiting)
+    end
+    deactivate MatchmakingEngine
+end
+
+== Extended Timeout Occurs ==
+Timer -> QueueManager: Timeout (extended timeout expired)\n(playerId)
+activate QueueManager
+QueueManager -> QueueManager: Check if player still in queue
+QueueManager -> QueueManager: No match found after extended timeout
+QueueManager -> Redis: Remove player from queue
+activate Redis
+Redis --> QueueManager: Player removed
+deactivate Redis
+QueueManager --> Matchmaking: Player removed from queue (timeout)
+deactivate QueueManager
+
+== Notify Player ==
+Matchmaking -> Matchmaking: Generate meaningful timeout message\n(based on queue length, time waited, etc.)
+Matchmaking --> Frontend: matchmaking-timeout\n{message: "No match found after extended search. Please try again later.", \nsuggestions: ["Try different hero selection", "Try again in a few minutes"]}
+Matchmaking -> Matchmaking: Log timeout for analytics\n(playerId, timeWaited, queueLength, heroTypes)
+
+== Display Message ==
+Frontend -> Frontend: Display meaningful timeout message
+Frontend -> Frontend: Show suggestions to player
+Frontend -> Frontend: Provide "Try Again" button
+Frontend --> Player: Display timeout message and options
+
+== Player Can Try Again ==
+Player -> Frontend: Click "Try Again" (optional)
+activate Frontend
+Frontend -> Frontend: Return to hero selection or queue screen
+deactivate Frontend
+
+@enduml
+
