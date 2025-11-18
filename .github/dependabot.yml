@@ -1,50 +1,78 @@
 version: 2
 updates:
-  # Maven dependencies for Java services
+  # Maven dependencies for Java services - grouped to reduce PRs
   - package-ecosystem: "maven"
     directory: "/backend-services/auth-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      java-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "maven"
     directory: "/backend-services/profile-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      java-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "maven"
     directory: "/backend-services/leaderboard-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      java-dependencies:
+        patterns:
+          - "*"
 
-  # npm dependencies for Node.js services
+  # npm dependencies for Node.js services - grouped to reduce PRs
   - package-ecosystem: "npm"
     directory: "/backend-services/matchmaking-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      nodejs-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "npm"
     directory: "/backend-services/game-engine"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      nodejs-dependencies:
+        patterns:
+          - "*"
 
-  # npm dependencies for Angular frontend
+  # npm dependencies for Angular frontend - grouped to reduce PRs
   - package-ecosystem: "npm"
     directory: "/frontend-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
 
-  # GitHub Actions
+  # GitHub Actions - grouped to reduce PRs
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "develop"
+    target-branch: "dependabot/update-dependencies"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
