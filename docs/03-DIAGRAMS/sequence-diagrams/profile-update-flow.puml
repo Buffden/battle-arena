@@ -1,0 +1,96 @@
+@startuml Profile Update Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Frontend" as Frontend
+participant "Auth Interceptor" as AuthInterceptor
+participant "Auth Service\n(Spring Boot)" as AuthService
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Profile Repository" as ProfileRepository
+participant "MongoDB" as MongoDB
+
+title Profile Update Flow (JWT Validation, Authorization, and Profile Update)
+
+== Request Profile Update ==
+User -> Frontend: Update Profile\n(displayName, avatar)
+activate Frontend
+Frontend -> Frontend: Validate input (client-side)
+Frontend -> Frontend: Build update request\n{displayName, avatar}
+
+== JWT Token Validation (Via Interceptor) ==
+Frontend -> AuthInterceptor: HTTP Request with JWT token
+activate AuthInterceptor
+AuthInterceptor -> AuthInterceptor: Extract JWT token from request header
+AuthInterceptor -> AuthService: Validate JWT token\nPOST /api/auth/validate\n{token}
+activate AuthService
+AuthService -> AuthService: Decode and validate JWT token
+AuthService -> AuthService: Check token expiration
+AuthService -> AuthService: Extract userId from token
+alt Token Valid
+    AuthService --> AuthInterceptor: TokenValidationResponse\n{valid: true, userId}
+    deactivate AuthService
+    AuthInterceptor -> AuthInterceptor: Add userId to request context
+    AuthInterceptor --> Frontend: Request authorized
+    deactivate AuthInterceptor
+else Token Invalid or Expired
+    AuthService --> AuthInterceptor: TokenValidationResponse\n{valid: false, error}
+    deactivate AuthService
+    AuthInterceptor --> Frontend: 401 Unauthorized\n{error: "Invalid or expired token"}
+    deactivate AuthInterceptor
+    Frontend --> User: Show error: Please login
+    deactivate Frontend
+end
+
+== Update Profile ==
+Frontend -> ProfileService: PUT /api/profile/{userId}\n{displayName, avatar}\n(Header: Authorization: Bearer {token})
+activate ProfileService
+
+== Authorization Check ==
+ProfileService -> AuthService: Validate JWT token and check authorization\nPOST /api/auth/authorize\n{token, resource: "profile", resourceId: userId}
+activate AuthService
+AuthService -> AuthService: Validate token and extract userId
+AuthService -> AuthService: Check authorization\n(userId from token must match resourceId)
+alt Authorized (userId matches)
+    AuthService --> ProfileService: AuthorizationResponse\n{authorized: true, userId}
+    deactivate AuthService
+else Not Authorized (userId mismatch)
+    AuthService --> ProfileService: AuthorizationResponse\n{authorized: false, error: "Cannot update other user's profile"}
+    deactivate AuthService
+    ProfileService --> Frontend: 403 Forbidden\n{error: "Cannot update other user's profile"}
+    deactivate ProfileService
+    Frontend --> User: Show error: Unauthorized
+    deactivate Frontend
+end
+
+== Validate and Update Profile ==
+ProfileService -> ProfileService: Validate update data\n(displayName length, avatar format, etc.)
+ProfileService -> ProfileRepository: findById(userId)
+activate ProfileRepository
+ProfileRepository -> MongoDB: Query profiles collection\nby userId
+activate MongoDB
+MongoDB --> ProfileRepository: Profile document
+deactivate MongoDB
+ProfileRepository --> ProfileService: Profile
+deactivate ProfileRepository
+
+ProfileService -> ProfileService: Update profile fields\n(displayName, avatar, updatedAt)
+ProfileService -> ProfileRepository: save(profile)
+activate ProfileRepository
+ProfileRepository -> MongoDB: Update profile document\n(displayName, avatar, updatedAt)
+activate MongoDB
+MongoDB --> ProfileRepository: Profile updated
+deactivate MongoDB
+ProfileRepository --> ProfileService: Updated Profile
+deactivate ProfileRepository
+
+ProfileService --> Frontend: ProfileUpdateResponse\n{userId, displayName, avatar, updatedAt}
+deactivate ProfileService
+
+Frontend -> Frontend: Update UI with new profile data
+Frontend --> User: Show success: Profile updated
+deactivate Frontend
+
+@enduml
+

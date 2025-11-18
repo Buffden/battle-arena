@@ -1,0 +1,147 @@
+@startuml Disconnection Handling Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Game Engine Service\n(Node.js)" as GameEngine
+participant "Disconnection Service" as DisconnectionService
+participant "Rejoin Manager" as RejoinManager
+participant "Matchmaking Service\n(Node.js)" as Matchmaking
+participant "Profile Service Client" as ProfileClient
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Redis" as Redis
+participant "MongoDB" as MongoDB
+
+title Disconnection Handling Flow (Rejoin Window and Penalties)
+
+== Player Disconnection Detected ==
+Player1 -> Frontend1: Network disconnect\n(WebSocket connection lost)
+activate Frontend1
+Frontend1 -> GameEngine: WebSocket disconnect event
+deactivate Frontend1
+GameEngine -> DisconnectionService: handleDisconnection(matchId, playerId)
+activate DisconnectionService
+
+== Store Rejoin State ==
+DisconnectionService -> DisconnectionService: Generate rejoin token\n(secure random token, expires in 1 minute)
+DisconnectionService -> RejoinManager: createRejoinState(matchId, playerId, rejoinToken, matchState)
+activate RejoinManager
+RejoinManager -> Redis: Store rejoin state (Hash)\nKey: rejoin:{matchId}:{playerId}\nValue: {rejoinToken, matchState, timestamp, expiresAt: 60s}
+activate Redis
+Redis --> RejoinManager: Rejoin state stored
+deactivate Redis
+RejoinManager --> DisconnectionService: Rejoin state created
+deactivate RejoinManager
+
+== Notify Opponent ==
+DisconnectionService -> GameEngine: Player disconnected
+GameEngine --> Frontend2: player-disconnected\n{opponentId, rejoinWindow: 60s}
+deactivate DisconnectionService
+deactivate GameEngine
+
+== Start Rejoin Timer ==
+GameEngine -> DisconnectionService: startRejoinTimer(matchId, playerId, 60s)
+activate DisconnectionService
+activate DisconnectionService
+DisconnectionService -> DisconnectionService: Start 60-second timer
+deactivate DisconnectionService
+
+== Player Attempts Rejoin ==
+alt Player Rejoins Within Window
+    Player1 -> Frontend1: Reconnect\n(WebSocket reconnection)
+    activate Frontend1
+    Frontend1 -> Matchmaking: WebSocket: rejoin-match\n{matchId, rejoinToken}
+    activate Matchmaking
+    Matchmaking -> RejoinManager: validateRejoinToken(matchId, playerId, rejoinToken)
+    activate RejoinManager
+    RejoinManager -> Redis: Get rejoin state\nKey: rejoin:{matchId}:{playerId}
+    activate Redis
+    Redis --> RejoinManager: RejoinState\n{rejoinToken, matchState, expiresAt}
+    deactivate Redis
+    RejoinManager -> RejoinManager: Validate token and expiration
+    alt Token Valid and Not Expired
+        RejoinManager -> GameEngine: rejoinPlayer(matchId, playerId, matchState)
+        activate GameEngine
+        GameEngine -> GameEngine: Restore player to match\n(restore game state, position, HP, weapons)
+        GameEngine -> Redis: Update game state\n(game:{matchId})
+        activate Redis
+        Redis --> GameEngine: Updated
+        deactivate Redis
+        GameEngine --> Matchmaking: Player rejoined
+        deactivate GameEngine
+        RejoinManager -> Redis: Delete rejoin state\n(rejoin:{matchId}:{playerId})
+        activate Redis
+        Redis --> RejoinManager: Deleted
+        deactivate Redis
+        RejoinManager --> Matchmaking: Rejoin successful
+        deactivate RejoinManager
+        Matchmaking --> Frontend1: rejoin-successful\n{matchId, gameState}
+        deactivate Matchmaking
+        Frontend1 -> GameEngine: WebSocket: join-game-room\n{matchId}
+        activate GameEngine
+        GameEngine --> Frontend1: game-state-update\n{gameState}
+        GameEngine --> Frontend2: player-rejoined\n{opponentId}
+        deactivate GameEngine
+        deactivate Frontend1
+    else Token Invalid or Expired
+        RejoinManager --> Matchmaking: Rejoin failed (token invalid/expired)
+        deactivate RejoinManager
+        Matchmaking --> Frontend1: rejoin-failed\n{error: "Rejoin window expired"}
+        deactivate Matchmaking
+        deactivate Frontend1
+        Note over GameEngine, ProfileService: Proceed to penalty flow
+    end
+else Rejoin Timer Expires (60 seconds)
+    DisconnectionService -> DisconnectionService: rejoinTimeout(matchId, playerId)
+    deactivate DisconnectionService
+    Note over GameEngine, ProfileService: Proceed to penalty flow
+end
+
+== Apply Disconnection Penalty ==
+GameEngine -> DisconnectionService: applyDisconnectionPenalty(matchId, playerId)
+activate DisconnectionService
+DisconnectionService -> DisconnectionService: Get penalty config\n(from ConfigurationManager/Redis cache)\n(scoreReduction, rankImpact, etc.)
+DisconnectionService -> ProfileClient: applyDisconnectionPenalty(playerId, penaltyConfig)
+activate ProfileClient
+ProfileClient -> ProfileService: POST /api/profile/penalty/disconnection\n{userId, penaltyConfig: {scoreReduction, rankImpact}}
+activate ProfileService
+ProfileService -> ProfileService: Calculate penalty\n(scoreReduction based on config, rankImpact)
+ProfileService -> ProfileService: Update profile\n(globalScore -= scoreReduction, rankTier may decrease)
+ProfileService -> MongoDB: Update profile document\n(globalScore, rankTier, disconnectionCount++)
+activate MongoDB
+MongoDB --> ProfileService: Profile updated
+deactivate MongoDB
+ProfileService --> ProfileClient: PenaltyAppliedResponse\n{newScore, newRankTier, penaltyApplied}
+deactivate ProfileService
+ProfileClient --> DisconnectionService: Penalty applied
+deactivate ProfileClient
+deactivate DisconnectionService
+
+== Forfeit Match ==
+GameEngine -> Matchmaking: forfeitMatch(matchId, playerId, reason: "disconnection")
+activate Matchmaking
+Matchmaking -> Matchmaking: Mark match as forfeited\n(player1 forfeited, player2 wins)
+Matchmaking -> Redis: Update match status\n(match:{matchId}: status = "forfeited")
+activate Redis
+Redis --> Matchmaking: Updated
+deactivate Redis
+Matchmaking --> Frontend2: match-forfeited\n{winner: player2, reason: "opponent disconnected"}
+deactivate Matchmaking
+
+== Cleanup ==
+GameEngine -> RejoinManager: cleanupRejoinState(matchId, playerId)
+activate RejoinManager
+RejoinManager -> Redis: Delete rejoin state\n(rejoin:{matchId}:{playerId})
+activate Redis
+Redis --> RejoinManager: Deleted
+deactivate Redis
+deactivate RejoinManager
+GameEngine -> GameEngine: End match\n(cleanup game state)
+deactivate GameEngine
+
+@enduml
+

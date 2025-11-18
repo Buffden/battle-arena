@@ -13,6 +13,8 @@ participant "Queue Manager" as QueueManager
 participant "Hero Selector" as HeroSelector
 participant "Lobby Manager" as LobbyManager
 participant "Redis" as Redis
+participant "Profile Service Client" as ProfileClient
+participant "Profile Service\n(Spring Boot)" as ProfileService
 participant "Game Engine Service\n(Node.js)" as GameEngine
 
 title Matchmaking Flow (Hero Selection, Global Score/Rank-based Matching)
@@ -26,10 +28,22 @@ deactivate Frontend1
 == Join Queue ==
 Player1 -> Frontend1: Click "Find Match"
 activate Frontend1
-Frontend1 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds, globalScore}
+Frontend1 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds}
 activate Matchmaking
 Matchmaking -> Matchmaking: Validate JWT token
-Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, socketId)
+
+== Get Player Global Score and Rank ==
+Matchmaking -> ProfileClient: getPlayerScoreAndRank(playerId)
+activate ProfileClient
+ProfileClient -> ProfileService: GET /api/profile/{playerId}/score-rank
+activate ProfileService
+ProfileService -> ProfileService: Get profile from cache or database
+ProfileService --> ProfileClient: ScoreRankResponse\n{globalScore, rankTier}
+deactivate ProfileService
+ProfileClient --> Matchmaking: ScoreRankResponse\n{globalScore, rankTier}
+deactivate ProfileClient
+
+Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, rankTier, socketId)
 activate QueueManager
 QueueManager -> QueueManager: Add to hero-based queues\n(matchmaking:queue:{heroType} for each heroId)
 QueueManager -> Redis: Add to queue (Sorted Set)\nKey: matchmaking:queue:{heroType}\nScore: globalScore\nValue: {playerId, heroIds, socketId}
@@ -45,10 +59,22 @@ deactivate Frontend1
 
 Player2 -> Frontend2: Click "Find Match"
 activate Frontend2
-Frontend2 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds, globalScore}
+Frontend2 -> Matchmaking: WebSocket: join-queue\n{playerId, heroIds}
 activate Matchmaking
 Matchmaking -> Matchmaking: Validate JWT token
-Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, socketId)
+
+== Get Player Global Score and Rank ==
+Matchmaking -> ProfileClient: getPlayerScoreAndRank(playerId)
+activate ProfileClient
+ProfileClient -> ProfileService: GET /api/profile/{playerId}/score-rank
+activate ProfileService
+ProfileService -> ProfileService: Get profile from cache or database
+ProfileService --> ProfileClient: ScoreRankResponse\n{globalScore, rankTier}
+deactivate ProfileService
+ProfileClient --> Matchmaking: ScoreRankResponse\n{globalScore, rankTier}
+deactivate ProfileClient
+
+Matchmaking -> QueueManager: addToQueue(playerId, heroIds, globalScore, rankTier, socketId)
 activate QueueManager
 QueueManager -> QueueManager: Add to hero-based queues
 QueueManager -> Redis: Add to queue (Sorted Set)
@@ -81,7 +107,7 @@ alt Heroes Compatible
     HeroSelector -> HeroSelector: Select random hero from common heroes
     HeroSelector --> MatchmakingEngine: assignedHero: String
     deactivate HeroSelector
-    
+
     MatchmakingEngine -> LobbyManager: createLobby(player1Id, player2Id, assignedHero)
     activate LobbyManager
     LobbyManager -> Redis: Create lobby (Hash)\nKey: lobby:{matchId}
@@ -90,7 +116,7 @@ alt Heroes Compatible
     deactivate Redis
     LobbyManager --> MatchmakingEngine: Lobby
     deactivate LobbyManager
-    
+
     MatchmakingEngine -> QueueManager: removeFromQueue(playerId)
     activate QueueManager
     QueueManager -> Redis: Remove from queue
@@ -99,7 +125,7 @@ alt Heroes Compatible
     deactivate Redis
     QueueManager --> MatchmakingEngine: Removed
     deactivate QueueManager
-    
+
     MatchmakingEngine --> Matchmaking: Match found
 else No Match Found
     MatchmakingEngine -> QueueManager: expandQueueRange(heroType, baseScore)

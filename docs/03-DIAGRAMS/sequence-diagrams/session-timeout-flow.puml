@@ -1,0 +1,77 @@
+@startuml Session Timeout Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Angular\nFrontend" as Frontend
+participant "Auth Service\n(Spring Boot)" as AuthService
+participant "JWT Validator" as JWTValidator
+participant "MongoDB" as MongoDB
+
+title Session Timeout Flow (JWT Token Expiration)
+
+== User Makes Request ==
+User -> Frontend: Perform action (e.g., view profile, join queue)
+activate Frontend
+Frontend -> Frontend: Get JWT token from storage\n(localStorage/sessionStorage)
+Frontend -> AuthService: API Request\n(Header: Authorization: Bearer {token})
+activate AuthService
+
+== Token Validation ==
+AuthService -> JWTValidator: Validate JWT token
+activate JWTValidator
+JWTValidator -> JWTValidator: Decode token
+JWTValidator -> JWTValidator: Check expiration (exp claim)
+alt Token Expired
+    JWTValidator -> JWTValidator: Token expiration time < current time
+    JWTValidator --> AuthService: Token expired
+else Token Valid
+    JWTValidator -> JWTValidator: Verify signature
+    JWTValidator -> MongoDB: Check if token blacklisted (optional)
+    activate MongoDB
+    MongoDB --> JWTValidator: Token not blacklisted
+    deactivate MongoDB
+    JWTValidator --> AuthService: Token valid
+end
+deactivate JWTValidator
+
+== Handle Expired Token ==
+alt Token Expired
+    AuthService --> Frontend: 401 Unauthorized\n{error: "Token expired", code: "SESSION_EXPIRED"}
+    deactivate AuthService
+
+    == Frontend Handles Expiration ==
+    Frontend -> Frontend: Detect 401 Unauthorized response
+    Frontend -> Frontend: Check error code (SESSION_EXPIRED)
+    Frontend -> Frontend: Clear stored tokens\n(localStorage/sessionStorage)
+    Frontend -> Frontend: Clear user data from memory\n(currentUser, userProfile, etc.)
+    Frontend -> Frontend: Clear HTTP interceptors\n(remove auth headers)
+    Frontend -> Frontend: Clear WebSocket connections\n(if connected)
+    Frontend -> Frontend: Display session expired message\n("Your session has expired. Please login again.")
+    Frontend -> Frontend: Redirect to login page
+    Frontend --> User: Redirected to login page\nwith session expired message
+else Token Valid
+    AuthService -> AuthService: Process request normally
+    AuthService --> Frontend: 200 OK\n{response data}
+    deactivate AuthService
+    Frontend --> User: Display requested content
+end
+deactivate Frontend
+
+== User Re-authenticates ==
+User -> Frontend: Login again
+activate Frontend
+Frontend -> AuthService: POST /api/auth/login\n{username, password}
+activate AuthService
+AuthService -> AuthService: Validate credentials
+AuthService -> AuthService: Generate new JWT token
+AuthService --> Frontend: 200 OK\n{token, user}
+deactivate AuthService
+Frontend -> Frontend: Store new token
+Frontend -> Frontend: Redirect to dashboard
+Frontend --> User: Logged in successfully
+deactivate Frontend
+
+@enduml
+

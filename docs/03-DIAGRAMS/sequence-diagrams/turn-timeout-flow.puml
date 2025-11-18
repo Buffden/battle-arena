@@ -1,0 +1,105 @@
+@startuml Turn Timeout Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player1
+actor Player2
+participant "Frontend 1" as Frontend1
+participant "Frontend 2" as Frontend2
+participant "Game Engine Service" as GameEngine
+participant "Turn Manager" as TurnManager
+participant "Turn Timer" as Timer
+participant "Game Room Manager" as GameRoomManager
+participant "Weapon Selector" as WeaponSelector
+participant "Redis" as Redis
+
+title Turn Timeout Flow (15s per Turn)
+
+== Turn Start ==
+GameEngine -> TurnManager: startTurn(matchId, player1Id)
+activate TurnManager
+TurnManager -> TurnManager: Initialize turn state\n(turnNumber: N, currentPlayer: player1Id, 15s timer)
+TurnManager -> Timer: Start 15-second turn timer\n(matchId, turnNumber)
+activate Timer
+Timer --> TurnManager: Timer started
+deactivate Timer
+TurnManager -> Redis: Store turn state\n(turn:{matchId})
+activate Redis
+Redis --> TurnManager: Turn state stored
+deactivate Redis
+TurnManager --> GameEngine: TurnState
+deactivate TurnManager
+
+GameEngine --> Frontend1: turn-started\n{currentTurn: player1, turnTimer: 15s, turnNumber: N}
+GameEngine --> Frontend2: turn-started\n{currentTurn: player1, turnTimer: 15s, turnNumber: N}
+
+== Player Does NOT Act (Timeout) ==
+Timer -> TurnManager: Timeout (15s expired)\n(matchId, turnNumber)
+activate TurnManager
+TurnManager -> TurnManager: Check if player acted
+TurnManager -> TurnManager: Player did not act within 15s
+TurnManager -> TurnManager: Automatically skip turn
+TurnManager -> GameRoomManager: getGameState(matchId)
+activate GameRoomManager
+GameRoomManager -> Redis: Get game state
+activate Redis
+Redis --> GameRoomManager: GameState
+deactivate Redis
+GameRoomManager --> TurnManager: GameState
+deactivate GameRoomManager
+
+== Select Default Action ==
+TurnManager -> TurnManager: Check if weapon selected
+alt Weapon Not Selected
+    TurnManager -> WeaponSelector: selectRandomWeapon(matchId, player1Id)
+    activate WeaponSelector
+    WeaponSelector -> WeaponSelector: Get available weapons from game state
+    WeaponSelector -> WeaponSelector: Select random weapon
+    WeaponSelector -> GameRoomManager: updateWeaponSelection(matchId, player1Id, randomWeaponId)
+    activate GameRoomManager
+    GameRoomManager -> Redis: Update game state
+    activate Redis
+    Redis --> GameRoomManager: Updated
+    deactivate Redis
+    GameRoomManager --> WeaponSelector: Weapon selected
+    deactivate GameRoomManager
+    WeaponSelector --> TurnManager: Random weapon selected
+    deactivate WeaponSelector
+    TurnManager -> TurnManager: Skip fire (no action taken)
+else Weapon Selected
+    TurnManager -> TurnManager: Skip fire (no action taken)
+end
+
+== Update Game State ==
+TurnManager -> GameRoomManager: updateTurnState(matchId, turnSkipped: true)
+activate GameRoomManager
+GameRoomManager -> Redis: Update game state\n(turnSkipped: true, turnCompleted: true)
+activate Redis
+Redis --> GameRoomManager: Updated
+deactivate Redis
+GameRoomManager --> TurnManager: Game state updated
+deactivate GameRoomManager
+
+== Switch to Next Turn ==
+TurnManager -> TurnManager: Switch to opponent's turn\n(currentPlayer: player2Id)
+TurnManager -> Timer: Start next turn timer (15s)
+activate Timer
+Timer --> TurnManager: Timer started
+deactivate Timer
+TurnManager -> Redis: Update turn state
+activate Redis
+Redis --> TurnManager: Updated
+deactivate Redis
+TurnManager --> GameEngine: Turn skipped, next turn started
+deactivate TurnManager
+
+== Notify Players ==
+GameEngine --> Frontend1: turn-timeout\n{playerId: player1Id, reason: "Turn timeout - no action taken", skipped: true}
+GameEngine --> Frontend2: turn-timeout\n{playerId: player1Id, reason: "Turn timeout - no action taken", skipped: true}
+GameEngine --> Frontend1: turn-started\n{currentTurn: player2, turnTimer: 15s, turnNumber: N+1}
+GameEngine --> Frontend2: turn-started\n{currentTurn: player2, turnTimer: 15s, turnNumber: N+1}
+GameEngine -> GameEngine: Log timeout for analytics\n(matchId, player1Id, turnNumber, timeoutReason)
+
+@enduml
+

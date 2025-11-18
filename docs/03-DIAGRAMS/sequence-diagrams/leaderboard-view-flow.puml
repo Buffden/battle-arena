@@ -1,0 +1,102 @@
+@startuml Leaderboard View Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Frontend" as Frontend
+participant "Leaderboard Service\n(Spring Boot)" as LeaderboardService
+participant "Leaderboard Repository" as LeaderboardRepository
+participant "Profile Service Client" as ProfileClient
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Profile Repository" as ProfileRepository
+participant "MongoDB" as MongoDB
+
+title Leaderboard View Flow (With Filtering and Player Statistics)
+
+== Request Leaderboard ==
+User -> Frontend: View Leaderboard\n(with optional filters)
+activate Frontend
+Frontend -> Frontend: Build query parameters\n?region={region}&heroType={heroType}&winRate={winRate}&weapons={weapons}
+Frontend -> LeaderboardService: GET /api/leaderboard?filters={...}
+activate LeaderboardService
+
+== Query Leaderboard Entries ==
+LeaderboardService -> LeaderboardRepository: findByFilters(filters)
+activate LeaderboardRepository
+LeaderboardRepository -> MongoDB: Query leaderboard collection\nwith filters (region, heroType, winRate, weapons)
+activate MongoDB
+MongoDB --> LeaderboardRepository: LeaderboardEntry[]\n(rank, playerId, globalScore, rankTier)
+deactivate MongoDB
+LeaderboardRepository --> LeaderboardService: LeaderboardEntry[]
+deactivate LeaderboardRepository
+
+== Get Player Statistics from Profile Service ==
+LeaderboardService -> LeaderboardService: Extract playerIds from entries\n(playerIds: string[])
+LeaderboardService -> ProfileClient: getPlayerProfilesBatch(playerIds)
+activate ProfileClient
+ProfileClient -> ProfileService: GET /api/profile/batch?playerIds={...}
+activate ProfileService
+ProfileService -> ProfileRepository: findByIds(playerIds)
+activate ProfileRepository
+ProfileRepository -> MongoDB: Query profiles collection\nby playerIds
+activate MongoDB
+MongoDB --> ProfileRepository: Profile[]\n(wins, losses, matchesPlayed, winRate, heroUsage, weaponUsage)
+deactivate MongoDB
+ProfileRepository --> ProfileService: Profile[]
+deactivate ProfileRepository
+ProfileService -> ProfileService: Calculate winRate\n(wins / matchesPlayed)
+ProfileService -> ProfileService: Aggregate heroUsage and weaponUsage
+ProfileService --> ProfileClient: PlayerProfileData[]\n(wins, losses, winRate, heroUsage, weaponUsage)
+deactivate ProfileService
+ProfileClient --> LeaderboardService: PlayerProfileData[]
+deactivate ProfileClient
+
+== Combine Leaderboard and Profile Data ==
+LeaderboardService -> LeaderboardService: Merge leaderboard entries\nwith player profile data
+LeaderboardService -> LeaderboardService: Create combined leaderboard response\n(rank, playerId, globalScore, rankTier, wins, losses, winRate, heroUsage, weaponUsage)
+LeaderboardService --> Frontend: LeaderboardResponse\n{entries: [{rank, playerId, globalScore, rankTier, wins, losses, winRate, heroUsage, weaponUsage}], totalCount, currentPage}
+deactivate LeaderboardService
+Frontend -> Frontend: Display leaderboard\nwith player statistics
+Frontend --> User: Show leaderboard
+deactivate Frontend
+
+== Filter Leaderboard (Optional) ==
+alt User Applies Filters
+    User -> Frontend: Apply filters\n(region, heroType, winRate, weapons)
+    activate Frontend
+    Frontend -> LeaderboardService: GET /api/leaderboard?region={region}&heroType={heroType}&winRate={winRate}&weapons={weapons}
+    activate LeaderboardService
+    LeaderboardService -> LeaderboardRepository: findByFilters(filters)
+    activate LeaderboardRepository
+    LeaderboardRepository -> MongoDB: Query with filters
+    activate MongoDB
+    MongoDB --> LeaderboardRepository: Filtered LeaderboardEntry[]
+    deactivate MongoDB
+    LeaderboardRepository --> LeaderboardService: Filtered LeaderboardEntry[]
+    deactivate LeaderboardRepository
+    LeaderboardService -> ProfileClient: getPlayerProfilesBatch(playerIds)
+    activate ProfileClient
+    ProfileClient -> ProfileService: GET /api/profile/batch?playerIds={...}
+    activate ProfileService
+    ProfileService -> ProfileRepository: findByIds(playerIds)
+    activate ProfileRepository
+    ProfileRepository -> MongoDB: Query profiles
+    activate MongoDB
+    MongoDB --> ProfileRepository: Profile[]
+    deactivate MongoDB
+    ProfileRepository --> ProfileService: Profile[]
+    deactivate ProfileRepository
+    ProfileService --> ProfileClient: PlayerProfileData[]
+    deactivate ProfileService
+    ProfileClient --> LeaderboardService: PlayerProfileData[]
+    deactivate ProfileClient
+    LeaderboardService -> LeaderboardService: Merge and filter data
+    LeaderboardService --> Frontend: Filtered LeaderboardResponse
+    deactivate LeaderboardService
+    Frontend --> User: Show filtered leaderboard
+    deactivate Frontend
+end
+
+@enduml
+

@@ -1,0 +1,63 @@
+@startuml Queue Cancellation Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor Player
+participant "Frontend" as Frontend
+participant "Matchmaking Service\n(Node.js)" as Matchmaking
+participant "Queue Manager" as QueueManager
+participant "Redis" as Redis
+
+title Queue Cancellation Flow (Leave Matchmaking Queue)
+
+== Player Leaves Queue ==
+Player -> Frontend: Click "Cancel" or "Leave Queue"
+activate Frontend
+Frontend -> Frontend: Show confirmation dialog\n(optional, or direct cancellation)
+alt Player Confirms Cancellation
+    Frontend -> Matchmaking: WebSocket: leave-queue\n{playerId}
+    activate Matchmaking
+    Matchmaking -> Matchmaking: Validate JWT token
+    Matchmaking -> Matchmaking: Verify player is in queue
+
+    == Remove from Queue ==
+    Matchmaking -> QueueManager: removeFromQueue(playerId)
+    activate QueueManager
+    QueueManager -> QueueManager: Get player's hero selections\n(from queue entry)
+    QueueManager -> QueueManager: Remove from all hero-based queues\n(matchmaking:queue:{heroType} for each heroId)
+
+    loop For each hero type in player's selection
+        QueueManager -> Redis: Remove from queue (Sorted Set)\nKey: matchmaking:queue:{heroType}\nRemove: {playerId, heroIds, socketId}
+        activate Redis
+        Redis --> QueueManager: Removed from queue
+        deactivate Redis
+    end
+
+    QueueManager -> QueueManager: Cleanup queue state\n(remove any pending match attempts)
+    QueueManager --> Matchmaking: QueueStatus\n{removed: true}
+    deactivate QueueManager
+
+    == Notify Player ==
+    Matchmaking --> Frontend: queue-left\n{success: true, message: "Left queue"}
+    deactivate Matchmaking
+    Frontend -> Frontend: Update UI\n(return to hero selection or dashboard)
+    Frontend --> Player: Show confirmation\n"Left matchmaking queue"
+    deactivate Frontend
+else Player Cancels Confirmation
+    Frontend -> Frontend: Keep player in queue
+    Frontend --> Player: Remain in queue
+    deactivate Frontend
+end
+
+== Queue Status Update (Optional) ==
+alt Queue Manager Updates Status
+    QueueManager -> QueueManager: Recalculate queue statistics\n(update estimated wait times for remaining players)
+    QueueManager -> Redis: Update queue metadata\n(if needed for statistics)
+    activate Redis
+    Redis --> QueueManager: Updated
+    deactivate Redis
+end
+
+@enduml
+

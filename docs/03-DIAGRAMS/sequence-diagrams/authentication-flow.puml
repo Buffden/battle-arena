@@ -109,5 +109,51 @@ Frontend -> Frontend: Store token securely
 Frontend --> User: Redirect to dashboard
 deactivate Frontend
 
+== User Logout ==
+User -> Frontend: Click "Logout"
+activate Frontend
+Frontend -> Frontend: Show confirmation dialog\n(optional, or direct logout)
+
+alt User Confirms Logout
+    == Frontend Token Cleanup ==
+    Frontend -> Frontend: Clear JWT token from storage\n(localStorage/sessionStorage)
+    Frontend -> Frontend: Clear refresh token from storage\n(if exists)
+    Frontend -> Frontend: Clear user data from memory\n(currentUser, userProfile, etc.)
+
+    == Backend Logout (Optional) ==
+    alt Backend Logout Endpoint Exists
+        Frontend -> AuthService: POST /api/auth/logout\n{token}\n(Header: Authorization: Bearer {token})
+        activate AuthService
+        AuthService -> AuthService: Validate JWT token
+        AuthService -> AuthService: Extract userId from token
+        AuthService -> MongoDB: Update user session\n(invalidate token, update lastLogout timestamp)
+        activate MongoDB
+        MongoDB --> AuthService: Session updated
+        deactivate MongoDB
+        alt Token Blacklist Enabled
+            AuthService -> MongoDB: Add token to blacklist\n(blacklistedTokens collection)\n{token, userId, blacklistedAt, expiresAt}
+            activate MongoDB
+            MongoDB --> AuthService: Token blacklisted
+            deactivate MongoDB
+        end
+        AuthService --> Frontend: 200 OK\n{message: "Logged out successfully"}
+        deactivate AuthService
+    else Frontend-Only Logout
+        Note over Frontend: Token cleared from storage\nNo backend call needed\n(Stateless JWT - token becomes invalid when removed)
+    end
+
+    == Frontend Cleanup ==
+    Frontend -> Frontend: Clear all cached data\n(profile data, matchmaking state, etc.)
+    Frontend -> Frontend: Clear HTTP interceptors\n(remove auth headers)
+    Frontend -> Frontend: Clear WebSocket connections\n(if connected)
+    Frontend -> Frontend: Redirect to login page
+    Frontend --> User: Redirected to login page
+    deactivate Frontend
+else User Cancels Logout
+    Frontend -> Frontend: Keep user logged in
+    Frontend --> User: Remain on current page
+    deactivate Frontend
+end
+
 @enduml
 

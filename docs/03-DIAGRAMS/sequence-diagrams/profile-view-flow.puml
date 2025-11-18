@@ -1,0 +1,73 @@
+@startuml Profile View Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Frontend" as Frontend
+participant "Auth Interceptor" as AuthInterceptor
+participant "Auth Service\n(Spring Boot)" as AuthService
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Profile Repository" as ProfileRepository
+participant "MongoDB" as MongoDB
+
+title Profile View Flow (JWT Validation and Profile Retrieval)
+
+== Request Profile ==
+User -> Frontend: View My Profile
+activate Frontend
+Frontend -> Frontend: Navigate to profile page
+
+== JWT Token Validation (Via Interceptor) ==
+Frontend -> AuthInterceptor: HTTP Request with JWT token
+activate AuthInterceptor
+AuthInterceptor -> AuthInterceptor: Extract JWT token from request header
+AuthInterceptor -> AuthService: Validate JWT token\nPOST /api/auth/validate\n{token}
+activate AuthService
+AuthService -> AuthService: Decode and validate JWT token
+AuthService -> AuthService: Check token expiration
+AuthService -> AuthService: Extract userId from token
+alt Token Valid
+    AuthService --> AuthInterceptor: TokenValidationResponse\n{valid: true, userId}
+    deactivate AuthService
+    AuthInterceptor -> AuthInterceptor: Add userId to request context
+    AuthInterceptor --> Frontend: Request authorized
+    deactivate AuthInterceptor
+else Token Invalid or Expired
+    AuthService --> AuthInterceptor: TokenValidationResponse\n{valid: false, error}
+    deactivate AuthService
+    AuthInterceptor --> Frontend: 401 Unauthorized\n{error: "Invalid or expired token"}
+    deactivate AuthInterceptor
+    Frontend --> User: Redirect to login
+    deactivate Frontend
+end
+
+== Get Profile Data ==
+Frontend -> ProfileService: GET /api/profile/{userId}\n(Header: Authorization: Bearer {token})
+activate ProfileService
+ProfileService -> AuthService: Validate JWT token\n(extract userId from token)
+activate AuthService
+AuthService -> AuthService: Validate token and extract userId
+AuthService --> ProfileService: TokenValidationResponse\n{valid: true, userId}
+deactivate AuthService
+
+ProfileService -> ProfileService: Verify userId matches requested profile\n(users can only view their own profile)
+ProfileService -> ProfileRepository: findById(userId)
+activate ProfileRepository
+ProfileRepository -> MongoDB: Query profiles collection\nby userId
+activate MongoDB
+MongoDB --> ProfileRepository: Profile document\n{userId, globalScore, rankTier, wins, losses, matchesPlayed, heroUsage, weaponUsage, matchHistory}
+deactivate MongoDB
+ProfileRepository --> ProfileService: Profile
+deactivate ProfileRepository
+
+ProfileService -> ProfileService: Calculate derived statistics\n(winRate = wins / matchesPlayed, etc.)
+ProfileService --> Frontend: ProfileResponse\n{userId, globalScore, rankTier, wins, losses, matchesPlayed, winRate, heroUsage, weaponUsage, matchHistory}
+deactivate ProfileService
+
+Frontend -> Frontend: Display profile data\n(score, rank tier, statistics, match history)
+Frontend --> User: Show profile page
+deactivate Frontend
+
+@enduml
+

@@ -1,0 +1,93 @@
+@startuml Match History View Flow
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+actor User
+participant "Frontend" as Frontend
+participant "Profile Service\n(Spring Boot)" as ProfileService
+participant "Profile Repository" as ProfileRepository
+participant "Game Engine Service\n(Node.js)" as GameEngine
+participant "Match Repository" as MatchRepository
+participant "MongoDB" as MongoDB
+
+title Match History View Flow (Profile Service + Game Engine Service)
+
+== Request Match History ==
+User -> Frontend: View Match History
+activate Frontend
+Frontend -> Frontend: Navigate to match history page
+
+== Get Match History Summary from Profile Service ==
+Frontend -> ProfileService: GET /api/profile/{userId}/matches\n(Header: Authorization: Bearer {token})
+activate ProfileService
+ProfileService -> ProfileService: Validate JWT token and extract userId
+ProfileService -> ProfileRepository: findById(userId)
+activate ProfileRepository
+ProfileRepository -> MongoDB: Query profiles collection\nby userId
+activate MongoDB
+MongoDB --> ProfileRepository: Profile document\n{matchHistory: [{matchId, result, timestamp, score}]}
+deactivate MongoDB
+ProfileRepository --> ProfileService: Profile\n(matchHistory array)
+deactivate ProfileRepository
+
+ProfileService -> ProfileService: Sort match history by timestamp\n(most recent first)
+ProfileService -> ProfileService: Paginate match history\n(page, pageSize)
+ProfileService --> Frontend: MatchHistorySummaryResponse\n{matches: [{matchId, result, timestamp, score, opponentId}], totalCount, currentPage, totalPages}
+deactivate ProfileService
+
+Frontend -> Frontend: Display match history list\n(matchId, result, timestamp, score)
+
+== Get Match Details from Game Engine Service ==
+alt User Clicks on Match
+    User -> Frontend: Click on match\n(matchId)
+    activate Frontend
+    Frontend -> GameEngine: GET /api/matches/{matchId}\n(Header: Authorization: Bearer {token})
+    activate GameEngine
+    GameEngine -> GameEngine: Validate JWT token
+    GameEngine -> GameEngine: Verify user participated in match\n(userId must be player1 or player2)
+    GameEngine -> MatchRepository: findById(matchId)
+    activate MatchRepository
+    MatchRepository -> MongoDB: Query matches collection\nby matchId
+    activate MongoDB
+    MongoDB --> MatchRepository: Match document\n{matchId, player1Id, player2Id, heroType, arenaId, weapons, turns, scores, winner, duration, timestamp}
+    deactivate MongoDB
+    MatchRepository --> GameEngine: Match
+    deactivate MatchRepository
+
+    GameEngine -> GameEngine: Format match details\n(include gameplay data, turns, scores, weapons used)
+    GameEngine --> Frontend: MatchDetailsResponse\n{matchId, player1Id, player2Id, heroType, arenaId, weapons, turns: [{turnNumber, playerId, action, damage, score}], scores, winner, duration, timestamp}
+    deactivate GameEngine
+
+    Frontend -> Frontend: Display match details\n(gameplay, turns, scores, weapons)
+    Frontend --> User: Show match details page
+    deactivate Frontend
+end
+
+== Batch Get Match Details (Optional) ==
+alt Frontend Requests Multiple Match Details
+    Frontend -> Frontend: Request match details for visible matches\n(matchIds: string[])
+    Frontend -> GameEngine: POST /api/matches/batch\n{matchIds: string[]}\n(Header: Authorization: Bearer {token})
+    activate GameEngine
+    GameEngine -> GameEngine: Validate JWT token
+    GameEngine -> MatchRepository: findByIds(matchIds)
+    activate MatchRepository
+    MatchRepository -> MongoDB: Query matches collection\nby matchIds (using $in)
+    activate MongoDB
+    MongoDB --> MatchRepository: Match[]\n(multiple match documents)
+    deactivate MongoDB
+    MatchRepository --> GameEngine: Match[]
+    deactivate MatchRepository
+
+    GameEngine -> GameEngine: Filter matches where user participated\n(userId must be player1 or player2 in each match)
+    GameEngine -> GameEngine: Format match details for each match
+    GameEngine --> Frontend: MatchDetailsBatchResponse\n{matches: [{matchId, player1Id, player2Id, heroType, arenaId, weapons, turns, scores, winner, duration, timestamp}]}
+    deactivate GameEngine
+
+    Frontend -> Frontend: Display match details for visible matches
+    Frontend --> User: Show match history with details
+    deactivate Frontend
+end
+
+@enduml
+

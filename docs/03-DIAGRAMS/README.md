@@ -60,11 +60,13 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 🛠️ Tools Required
 
 ### PlantUML (Recommended)
+
 - **Extension:** PlantUML by jebbs
 - **Dependencies:** Graphviz
 - **Installation:** See [UML_DIAGRAM_SETUP.md](../UML_DIAGRAM_SETUP.md)
 
 ### Mermaid (Alternative)
+
 - **Extension:** Mermaid Preview by vstirbu
 - **Installation:** See [UML_DIAGRAM_SETUP.md](../UML_DIAGRAM_SETUP.md)
 
@@ -73,12 +75,14 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 📝 Diagram Files
 
 ### Architecture Diagrams
+
 - **system-architecture.puml** - High-level system architecture
 - **component-diagram.puml** - Component diagram
 - **container-diagram.puml** - Container diagram
 - **deployment-diagram.puml** - Deployment diagram
 
 ### Class Diagrams
+
 - **auth-service.puml** ✅ - Auth Service class diagram
 - **profile-service.puml** ✅ - Profile Service class diagram
 - **leaderboard-service.puml** ✅ - Leaderboard Service class diagram
@@ -87,8 +91,13 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 - **frontend-components.puml** ✅ - Frontend Components class diagram
 - **database-schema.puml** ✅ - Database Schema class diagram (Repository, DAO patterns)
 
-### Sequence Diagrams
-- **authentication-flow.puml** ✅ - User authentication flow
+### Sequence Diagrams (25 total)
+
+**Complete Index:** See [Sequence Diagrams README](./sequence-diagrams/README.md) for detailed documentation.
+
+**Core Flows:**
+
+- **authentication-flow.puml** ✅ - User authentication flow (registration, login, logout)
 - **hero-selection-flow.puml** ✅ - Hero selection flow
 - **matchmaking-flow.puml** ✅ - Matchmaking flow (includes hero selection, global score/rank-based matching)
 - **arena-selection-flow.puml** ✅ - Arena selection flow (voting/elimination)
@@ -96,15 +105,42 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 - **gameplay-flow.puml** ✅ - Gameplay flow (includes movement, scoring, physics)
 - **movement-flow.puml** ✅ - Movement flow (4 moves per game, repositioning save scoring)
 - **post-match-flow.puml** ✅ - Post-match flow (score and rank updates)
+- **post-match-result-screen-flow.puml** ✅ - Post-match result screen display
+
+**Profile & Leaderboard:**
+
+- **profile-view-flow.puml** ✅ - Profile view flow
+- **profile-update-flow.puml** ✅ - Profile update flow
+- **match-history-view-flow.puml** ✅ - Match history view flow
+- **leaderboard-view-flow.puml** ✅ - Leaderboard view flow
+- **dashboard-flow.puml** ✅ - Dashboard data aggregation flow
+
+**Timeout & Error Handling:**
+
+- **match-acceptance-timeout-flow.puml** ✅ - Match acceptance timeout (30s)
+- **match-rejection-flow.puml** ✅ - Match rejection handling
+- **matchmaking-timeout-flow.puml** ✅ - Matchmaking timeout handling
+- **arena-selection-timeout-flow.puml** ✅ - Arena selection timeout/disconnection
+- **weapon-selection-timeout-flow.puml** ✅ - Weapon selection timeout/disconnection
+- **turn-timeout-flow.puml** ✅ - Turn timeout handling (15s)
+- **session-timeout-flow.puml** ✅ - Session expiration handling
+- **network-error-handling-flow.puml** ✅ - Network error recovery
+
+**Supporting Flows:**
+
+- **disconnection-handling-flow.puml** ✅ - Disconnection handling with rejoin window
+- **queue-cancellation-flow.puml** ✅ - Leave matchmaking queue
 - **database-access-flow.puml** ✅ - Database access flow (Repository pattern)
 
 ### State Diagrams
+
 - **arena-selection-state.puml** ✅ - Arena selection state machine
 - **weapon-selection-state.puml** ✅ - Weapon selection state machine
 - **game-state.puml** ✅ - Game state machine
 - **turn-state.puml** ✅ - Turn state machine (15 seconds per turn)
 
 ### ER Diagrams
+
 - **database-er-diagram.puml** ✅ - Database entity-relationship diagram (7 entities, 8 relationships)
 
 ---
@@ -112,12 +148,14 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 🚀 How to Use
 
 ### Viewing Diagrams
+
 1. Install PlantUML extension in Cursor/VS Code
 2. Install Graphviz (required for PlantUML)
 3. Open `.puml` file
 4. Press `Alt+D` to preview
 
 ### Exporting to PNG
+
 1. Open `.puml` file
 2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
 3. Type "PlantUML: Export Current Diagram"
@@ -125,6 +163,7 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 5. Save to `exported/` directory
 
 ### Using in Documentation
+
 1. Export diagram to PNG
 2. Save PNG to `exported/` directory
 3. Reference in markdown:
@@ -137,17 +176,20 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 📚 Diagram Guidelines
 
 ### Naming Conventions
+
 - Use kebab-case for file names: `auth-service.puml`
 - Use descriptive names: `authentication-flow.puml`
 - Group related diagrams in subdirectories
 
 ### Diagram Standards
+
 - Use consistent colors and styles
 - Add notes for complex concepts
 - Keep diagrams readable and simple
 - Update diagrams when architecture changes
 
 ### Version Control
+
 - Commit `.puml` source files to Git
 - Commit exported PNG files to Git (via GitHub Actions)
 - Keep diagrams in sync with code
@@ -158,6 +200,7 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 🔄 Maintaining Diagrams
 
 ### When to Update
+
 - When architecture changes
 - When new services are added
 - When API contracts change
@@ -165,6 +208,7 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 - When design patterns change
 
 ### Update Process
+
 1. Update `.puml` source file
 2. Export to PNG (or let GitHub Actions handle it)
 3. Update documentation references
@@ -185,6 +229,7 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## ✅ Checklist
 
 ### Setup
+
 - [x] Install PlantUML extension
 - [x] Install Graphviz
 - [x] Create diagrams directory structure
@@ -193,9 +238,10 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 - [x] GitHub Actions workflow for auto-generation
 
 ### Diagram Creation
+
 - [x] ER diagram (database schema)
 - [x] Class diagrams for all services (7 diagrams)
-- [x] Sequence diagrams for key flows (9 diagrams)
+- [x] Sequence diagrams for all flows (25 diagrams) ✅ **COMPLETE**
 - [x] State diagrams for state machines (4 diagrams)
 - [ ] Export all diagrams to PNG (via GitHub Actions)
 - [x] Update documentation with diagram references
@@ -205,9 +251,11 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ## 📊 Diagram Status
 
 ### ER Diagrams
+
 - [x] Database ER Diagram (7 entities, 8 relationships)
 
 ### Class Diagrams
+
 - [x] Auth Service
 - [x] Profile Service
 - [x] Leaderboard Service
@@ -216,18 +264,38 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 - [x] Frontend Components
 - [x] Database Schema
 
-### Sequence Diagrams
+### Sequence Diagrams (25 total) ✅ **COMPLETE**
+
 - [x] Authentication Flow
+- [x] Session Timeout Flow
 - [x] Hero Selection Flow
-- [x] Matchmaking Flow (updated with hero selection)
+- [x] Matchmaking Flow
+- [x] Match Acceptance Timeout Flow
+- [x] Match Rejection Flow
+- [x] Matchmaking Timeout Flow
+- [x] Queue Cancellation Flow
 - [x] Arena Selection Flow
+- [x] Arena Selection Timeout Flow
 - [x] Weapon Selection Flow
+- [x] Weapon Selection Timeout Flow
 - [x] Gameplay Flow
 - [x] Movement Flow
+- [x] Turn Timeout Flow
+- [x] Disconnection Handling Flow
 - [x] Post-Match Flow
+- [x] Post-Match Result Screen Flow
+- [x] Profile View Flow
+- [x] Profile Update Flow
+- [x] Match History View Flow
+- [x] Leaderboard View Flow
+- [x] Dashboard Flow
+- [x] Network Error Handling Flow
 - [x] Database Access Flow
 
+**See [Sequence Diagrams README](./sequence-diagrams/README.md) for complete index and details.**
+
 ### State Diagrams
+
 - [x] Arena Selection State
 - [x] Weapon Selection State
 - [x] Game State
@@ -240,6 +308,7 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 ---
 
 **Document Control:**
+
 - **Author:** Documentation Team
 - **Last Updated:** 2024
 - **Status:** Active - All mandatory diagrams created
@@ -254,9 +323,10 @@ This directory contains all UML diagrams for the Battle Arena - Multiplayer Arti
 
 ---
 
-**Total Diagrams: 25 PlantUML files**
+**Total Diagrams: 41 PlantUML files**
+
 - **ER Diagrams:** 1
 - **Class Diagrams:** 7
-- **Sequence Diagrams:** 9
+- **Sequence Diagrams:** 25 ✅ **COMPLETE**
 - **State Diagrams:** 4
 - **Architecture Diagrams:** 4

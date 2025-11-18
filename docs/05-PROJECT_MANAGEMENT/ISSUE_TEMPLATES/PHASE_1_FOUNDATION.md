@@ -7,6 +7,7 @@
 ## EPIC-1: Foundation & Infrastructure Setup
 
 ### Issue Template:
+
 ```
 Title: EPIC-1: Foundation & Infrastructure Setup
 
@@ -61,17 +62,17 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 - **Monitoring infrastructure** - Prometheus, Grafana (when services are running)
 - **Distributed tracing** - Jaeger/Zipkin (optional, for production)
 
-**Rationale:** 
+**Rationale:**
 - Phase 1 establishes the foundation (structure, dev environment basics, CI/CD, development tooling)
 - API documentation is added in Phase 2 when first REST APIs are implemented
 - Service-specific implementations (Dockerfiles, logging, monitoring) are added when services are built and need them
 - This follows an incremental approach: build foundation → implement services → add production infrastructure
 
 ## Related Documentation
-- [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Microservices architecture overview
-- [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure and responsibilities
-- [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development and production deployment strategies
-- [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
+- [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Microservices architecture overview
+- [Component Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure and responsibilities
+- [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development and production deployment strategies
+- [Design Principles](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
 
 ## Architecture Diagrams
 - **System Architecture:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png`
@@ -90,6 +91,7 @@ Phase 1: Foundation
 ### STORY-1-1: Set up project structure and repository
 
 #### Issue Template:
+
 ```
 Title: STORY-1-1: Set up project structure and repository
 
@@ -111,7 +113,7 @@ Set up the complete project structure with all microservices, frontend, and infr
 ## Technical Details
 
 ### Backend Services Structure
-Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md):
+Based on [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md):
 
 **Spring Boot Services (Java):**
 - `backend-services/auth-service/` - Port 8081, MongoDB (Users collection), REST API
@@ -132,15 +134,15 @@ Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM
 - `scripts/` - Utility scripts for setup and deployment
 
 ### Design Principles Compliance
-All structure must follow [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md):
+All structure must follow [Design Principles](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md):
 - **REUSABILITY** - Shared utilities and common components
 - **CLEAN ARCHITECTURE** - Strict layer separation (controller, service, repository, model, dto)
 - **SOLID Principles** - Single responsibility per component
 - **DRY** - No code duplication
 
 ## Related Documentation
-- [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure details
-- [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service responsibilities and ports
+- [Component Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure details
+- [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service responsibilities and ports
 
 ## Labels
 epic:foundation, infrastructure, feature, priority:high
@@ -150,6 +152,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-1: Create root project structure
+
 ```
 Title: TASK-1-1-1: Create root project structure
 
@@ -172,16 +175,19 @@ Create the root directory structure for the Battle Arena project following the m
 ## Technical Details
 
 ### Required Root Directories
-Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) and [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md):
+Based on [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) and [Component Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md):
 
 ```
+
 battle-arena/
-  - backend-services/     # 5 microservices (3 Spring Boot, 2 Node.js)
-  - frontend-service/     # Angular application
-  - deployments/          # Docker and Kubernetes configurations
-  - database/             # MongoDB initialization scripts
-  - scripts/              # Utility scripts
-  - docs/                 # Documentation (already exists)
+
+- backend-services/ # 5 microservices (3 Spring Boot, 2 Node.js)
+- frontend-service/ # Angular application
+- deployments/ # Docker and Kubernetes configurations
+- database/ # MongoDB initialization scripts
+- scripts/ # Utility scripts
+- docs/ # Documentation (already exists)
+
 ```
 
 ### Directory Purpose
@@ -208,6 +214,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-2: Initialize backend-services directory
+
 ```
 Title: TASK-1-1-2: Initialize backend-services directory
 
@@ -237,21 +244,24 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 
 **For auth-service, profile-service, leaderboard-service:**
 ```
+
 service-name/
-  - src/main/java/
-    - controller/            # REST controllers
-    - service/               # Business logic
-    - repository/            # Data access layer
-    - model/                 # Entity models
-    - dto/                   # Data transfer objects
-    - security/              # Security configuration
-    - config/                # Configuration classes
-    - exception/             # Exception handlers
-  - src/main/resources/
-    - application.properties # Configuration
-  - pom.xml                  # Maven dependencies
-  - README.md                # Service documentation
-  - .gitignore               # Java/Spring Boot patterns
+
+- src/main/java/
+  - controller/ # REST controllers
+  - service/ # Business logic
+  - repository/ # Data access layer
+  - model/ # Entity models
+  - dto/ # Data transfer objects
+  - security/ # Security configuration
+  - config/ # Configuration classes
+  - exception/ # Exception handlers
+- src/main/resources/
+  - application.properties # Configuration
+- pom.xml # Maven dependencies
+- README.md # Service documentation
+- .gitignore # Java/Spring Boot patterns
+
 ```
 
 ### Node.js Services Structure
@@ -259,19 +269,22 @@ Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT
 
 **For matchmaking-service, game-engine:**
 ```
+
 service-name/
-  - src/
-    - config/                # Configuration files
-    - controllers/           # Request handlers
-    - services/              # Business logic
-    - middleware/            # Express middleware
-    - routes/                # Route definitions
-    - utils/                 # Utility functions
-    - types/                 # Type definitions
-  - server.js                # Application entry point
-  - package.json             # NPM dependencies
-  - README.md                # Service documentation
-  - .gitignore              # Node.js patterns
+
+- src/
+  - config/ # Configuration files
+  - controllers/ # Request handlers
+  - services/ # Business logic
+  - middleware/ # Express middleware
+  - routes/ # Route definitions
+  - utils/ # Utility functions
+  - types/ # Type definitions
+- server.js # Application entry point
+- package.json # NPM dependencies
+- README.md # Service documentation
+- .gitignore # Node.js patterns
+
 ```
 
 ### Service Responsibilities
@@ -296,6 +309,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-3: Initialize frontend-service directory
+
 ```
 Title: TASK-1-1-3: Initialize frontend-service directory
 
@@ -322,27 +336,30 @@ Create directory structure for Angular frontend service following the component 
 Based on [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) section 1.1:
 
 ```
+
 frontend-service/
-  - src/
-    - app/
-      - auth/              # Authentication module
-      - dashboard/         # Dashboard module
-      - hero-selection/    # Hero selection module
-      - matchmaking/       # Matchmaking module
-      - arena-selection/   # Arena selection module
-      - weapon-selection/  # Weapon selection module
-      - pages/
-        - arena/           # Game arena module
-      - profile/           # Profile module
-      - leaderboard/       # Leaderboard module
-      - shared/            # Shared components
-      - services/          # Angular services
-      - guards/            # Route guards
-      - interceptors/      # HTTP interceptors
-    - assets/              # Static assets
-  - README.md              # Frontend documentation
-  - .gitignore             # Angular/Node.js patterns
-  - package.json           # NPM dependencies (created during Angular init)
+
+- src/
+  - app/
+    - auth/ # Authentication module
+    - dashboard/ # Dashboard module
+    - hero-selection/ # Hero selection module
+    - matchmaking/ # Matchmaking module
+    - arena-selection/ # Arena selection module
+    - weapon-selection/ # Weapon selection module
+    - pages/
+      - arena/ # Game arena module
+    - profile/ # Profile module
+    - leaderboard/ # Leaderboard module
+    - shared/ # Shared components
+    - services/ # Angular services
+    - guards/ # Route guards
+    - interceptors/ # HTTP interceptors
+  - assets/ # Static assets
+- README.md # Frontend documentation
+- .gitignore # Angular/Node.js patterns
+- package.json # NPM dependencies (created during Angular init)
+
 ```
 
 ### Frontend Services Required
@@ -380,6 +397,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-4: Create deployments directory structure
+
 ```
 Title: TASK-1-1-4: Create deployments directory structure
 
@@ -412,6 +430,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-5: Create database directory for init scripts
+
 ```
 Title: TASK-1-1-5: Create database directory for init scripts
 
@@ -439,9 +458,12 @@ Based on [Database Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_D
 
 Create:
 ```
+
 database/
-  - init/
-    - init.js (MongoDB initialization script)
+
+- init/
+  - init.js (MongoDB initialization script)
+
 ```
 
 ### MongoDB Collections to Initialize
@@ -474,6 +496,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-6: Create scripts directory
+
 ```
 Title: TASK-1-1-6: Create scripts directory
 
@@ -504,6 +527,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-7: Configure .gitignore for all services
+
 ```
 Title: TASK-1-1-7: Configure .gitignore for all services
 
@@ -540,6 +564,7 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-8: Create service-specific README files
+
 ```
 Title: TASK-1-1-8: Create service-specific README files
 
@@ -578,7 +603,8 @@ Phase 1: Foundation
 ```
 
 #### Subtask: TASK-1-1-9: Create root README.md
-```
+
+````
 Title: TASK-1-1-9: Create root README.md
 
 Description:
@@ -708,18 +734,22 @@ See [docs/README.md](docs/README.md) for complete documentation.
 ## Contributing
 
 [Contributing guidelines...]
-```
+````
 
 ## Related Documentation
+
 - [Project Description](../../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md) - Project overview and features
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Architecture details
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure
 
 ## Labels
+
 epic:foundation, documentation, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 ---
@@ -728,16 +758,21 @@ Phase 1: Foundation
 
 #### Issue Template:
 ```
+
 Title: STORY-1-2: Set up development environment and tooling
 
 Description:
+
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure development environment with Docker Compose for local development following the deployment architecture specification. This setup is recommended for student projects (<1,000 users/month) and provides a simple, free orchestration solution for all services, databases, and infrastructure.
 
 ## Acceptance Criteria
+
 - [ ] Docker and Docker Compose installed and verified
 - [ ] Local development environment working with all services
 - [ ] MongoDB container configured (port 27017) with required collections
@@ -750,12 +785,14 @@ Configure development environment with Docker Compose for local development foll
 ## Technical Details
 
 ### Docker Compose Configuration
+
 Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) section 1.1:
 
 **Recommended for:** Student projects (<1,000 users/month), local development
 **Cost:** $0/month (local) or $5-10/month (small cloud VM)
 
 ### Required Services
+
 - **MongoDB**: Port 27017, persistent volumes, initialization scripts
 - **Redis**: Port 6379, persistent volumes (optional for development)
 - **Backend Services**: Auth (8081), Profile (8082), Leaderboard (8083), Matchmaking (3002), Game Engine (5002)
@@ -763,7 +800,9 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
 - **Network**: Docker network for inter-service communication
 
 ### MongoDB Collections Required
+
 Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) section 4.1:
+
 - Users (Auth Service)
 - Profiles (Profile Service)
 - Matches (Game Engine Service)
@@ -771,71 +810,93 @@ Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM
 - Heroes, Weapons, Arenas (Configuration data)
 
 ### Redis Data Structures
+
 Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) section 4.2:
+
 - **Sorted Sets**: Matchmaking queue (hero-based queues)
 - **Hash**: Lobby storage, Game state cache
 - **String**: Cache data, Hero/Weapon/Arena configurations
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development environment setup (section 1.1)
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Data storage requirements (sections 4.1-4.2)
 - **Deployment Diagram:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Deployment%20Diagram.png`
 
 ## Labels
+
 epic:foundation, infrastructure, feature, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-1: Install and verify Docker and Docker Compose
 ```
+
 Title: TASK-1-2-1: Install and verify Docker and Docker Compose
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Install Docker and Docker Compose and verify installation.
 
 ## Acceptance Criteria
+
 - [ ] Docker installed
 - [ ] Docker Compose installed
 - [ ] Both verified working
 - [ ] Installation documented
 
 ## Technical Details
+
 - Install Docker Desktop (Mac/Windows) or Docker Engine (Linux)
 - Install Docker Compose
 - Verify with: docker --version, docker-compose --version
 - Test with: docker run hello-world
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-2: Create docker-compose.yml for local development
 ```
+
 Title: TASK-1-2-2: Create docker-compose.yml for local development
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create docker-compose.yml file for running all services locally following the deployment architecture. **Critical:** Services communicate internally via Docker network using service names. Only Nginx API Gateway exposes external ports (80/443). Backend services have NO host ports - they're accessed only via Nginx. Database ports (MongoDB/Redis) are exposed only for development convenience and should be removed in production.
 
 ## Acceptance Criteria
+
 - [ ] docker-compose.yml created in root directory
 - [ ] Nginx API Gateway service defined (ONLY service with external ports 80/443)
 - [ ] MongoDB service defined with internal port 27017, volumes, and init scripts
@@ -851,6 +912,7 @@ Create docker-compose.yml file for running all services locally following the de
 ## Technical Details
 
 ### Docker Compose Structure
+
 Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) section 1.1:
 
 **Actual Implementation** (located in root `docker-compose.yml`):
@@ -867,7 +929,7 @@ services:
     image: nginx:latest
     container_name: battle-arena-nginx
     ports:
-      - "80:80"      # HTTP
+      - "80:80" # HTTP
     #   - "443:443"    # HTTPS (when SSL configured) Commented out for now, will be used in production
     volumes:
       - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -964,6 +1026,7 @@ networks:
 ```
 
 **Key Implementation Details:**
+
 - Removed `version` field (obsolete in newer Docker Compose)
 - Pinned image versions (mongo:6.0, redis:7-alpine) instead of `:latest`
 - Added explicit container names for easier management
@@ -995,13 +1058,14 @@ networks:
    - Nginx routes external traffic to internal services by service name
 
 ### MongoDB Configuration
+
 - **Image**: `mongo:6.0` (version pinned for stability)
 - **Container Name**: `battle-arena-mongodb`
 - **Internal Port**: 27017 (within Docker network)
 - **Host Port**: 27017 (exposed ONLY for development convenience - remove in production)
 - **Service Access**: Services connect using `mongodb:27017` (not `localhost:27017`)
 - **Environment**: `MONGO_INITDB_DATABASE=battlearena`
-- **Volumes**: 
+- **Volumes**:
   - `mongodb_data:/data/db` (persistent storage)
   - `./database/init:/docker-entrypoint-initdb.d:ro` (init scripts, read-only)
 - **Init Scripts**: `/database/init/init.js` for collection initialization
@@ -1009,6 +1073,7 @@ networks:
 - **Collections**: Users, Profiles, Matches, Leaderboard, Heroes, Weapons, Arenas
 
 ### Redis Configuration
+
 - **Image**: `redis:7-alpine` (version pinned, alpine for smaller size)
 - **Container Name**: `battle-arena-redis`
 - **Internal Port**: 6379 (within Docker network)
@@ -1020,12 +1085,14 @@ networks:
 - **Data Structures**: Sorted Sets (matchmaking queue), Hash (lobby/game state), String (cache)
 
 ### Network Configuration
+
 - **Network Name**: `battle-arena-network`
 - **Driver**: Bridge (for local development)
 - **Purpose**: Enable inter-service communication via service names
 - **Service Discovery**: Services reference each other by service name (e.g., `auth-service`, `mongodb`, `redis`)
 
 ### Nginx API Gateway Configuration
+
 - **Image**: `nginx:latest`
 - **Container Name**: `battle-arena-nginx`
 - **External Ports**: 80 (HTTP), 443 (HTTPS - commented out for now, will be enabled in production)
@@ -1038,33 +1105,43 @@ networks:
 - **Current Status**: Placeholder configuration with `/health` endpoint (full routing in TASK-1-2-8)
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Docker Compose setup (section 1.1)
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service ports and data storage (sections 2.1-2.5, 4.1-4.2)
 - **Cluster 1 Student Deployment:** `https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Cluster%201%20Student%20Deployment.png`
 - Networks and volumes
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-3: Configure MongoDB container
 ```
+
 Title: TASK-1-2-3: Configure MongoDB container
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure MongoDB container in docker-compose.yml with proper settings.
 
 ## Acceptance Criteria
+
 - [ ] MongoDB container configured
 - [ ] Port 27017 exposed
 - [ ] Volume for data persistence
@@ -1072,7 +1149,9 @@ Configure MongoDB container in docker-compose.yml with proper settings.
 - [ ] Health check configured
 
 ## Technical Details
+
 MongoDB configuration:
+
 - Image: mongo:6.0
 - Port: 27017:27017
 - Volume: ./database/data:/data/db
@@ -1080,61 +1159,81 @@ MongoDB configuration:
 - Health check: mongosh --eval "db.adminCommand('ping')"
 
 ## Labels
+
 epic:foundation, database, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-4: Configure Redis container
 ```
+
 Title: TASK-1-2-4: Configure Redis container
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure Redis container in docker-compose.yml with proper settings.
 
 ## Acceptance Criteria
+
 - [ ] Redis container configured
 - [ ] Port 6379 exposed
 - [ ] Volume for data persistence (optional)
 - [ ] Health check configured
 
 ## Technical Details
+
 Redis configuration:
+
 - Image: redis:7.0
 - Port: 6379:6379
 - Volume: ./database/redis:/data (optional)
 - Health check: redis-cli ping
 
 ## Labels
+
 epic:foundation, database, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-5: Create development startup scripts
 ```
+
 Title: TASK-1-2-5: Create development startup scripts
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create scripts to help with local development (start, stop, restart services).
 
 ## Acceptance Criteria
+
 - [ ] start-dev.sh script created
 - [ ] stop-dev.sh script created
 - [ ] restart-dev.sh script created
@@ -1142,34 +1241,45 @@ Create scripts to help with local development (start, stop, restart services).
 - [ ] Scripts documented
 
 ## Technical Details
+
 Create scripts in scripts/ directory:
+
 - start-dev.sh: Start all services (docker-compose up)
 - stop-dev.sh: Stop all services (docker-compose down)
 - restart-dev.sh: Restart all services
-- Make scripts executable: chmod +x scripts/*.sh
+- Make scripts executable: chmod +x scripts/\*.sh
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-6: Create environment variable templates
 ```
+
 Title: TASK-1-2-6: Create environment variable templates
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create .env.example files for all services with required environment variables.
 
 ## Acceptance Criteria
+
 - [ ] .env.example for root directory
 - [ ] .env.example for each backend service
 - [ ] .env.example for frontend
@@ -1177,7 +1287,9 @@ Create .env.example files for all services with required environment variables.
 - [ ] .env files in .gitignore
 
 ## Technical Details
+
 Create .env.example files with:
+
 - MongoDB connection string
 - Redis connection string
 - JWT secret keys
@@ -1186,27 +1298,36 @@ Create .env.example files with:
 - Document each variable
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-7: Test local development environment
 ```
+
 Title: TASK-1-2-7: Test local development environment
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Test that the local development environment works correctly.
 
 ## Acceptance Criteria
+
 - [ ] Docker Compose starts successfully
 - [ ] MongoDB accessible
 - [ ] Redis accessible
@@ -1214,7 +1335,9 @@ Test that the local development environment works correctly.
 - [ ] Environment variables loaded correctly
 
 ## Technical Details
+
 Test steps:
+
 1. Run: docker-compose up -d
 2. Verify MongoDB: docker exec -it battle-arena-mongodb mongosh
 3. Verify Redis: docker exec -it battle-arena-redis redis-cli ping
@@ -1222,27 +1345,36 @@ Test steps:
 5. Test connectivity from services
 
 ## Labels
+
 epic:foundation, infrastructure, testing, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-8: Create Nginx API Gateway configuration
 ```
+
 Title: TASK-1-2-8: Create Nginx API Gateway configuration
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create Nginx configuration file for API Gateway that routes requests to backend services, handles load balancing, and manages WebSocket connections. The Nginx configuration must support all services and follow the system architecture specification.
 
 ## Acceptance Criteria
+
 - [ ] Nginx configuration file created (deployments/nginx/nginx.conf)
 - [ ] Request routing configured for all backend services
 - [ ] WebSocket support configured (upgrade headers)
@@ -1256,6 +1388,7 @@ Create Nginx configuration file for API Gateway that routes requests to backend 
 ## Technical Details
 
 ### Nginx Configuration Structure
+
 Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) section 5.1 and [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md):
 
 **File Location:** `deployments/nginx/nginx.conf`
@@ -1263,6 +1396,7 @@ Based on [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM
 ### Required Configuration
 
 **1. Upstream Services (Backend Services):**
+
 ```nginx
 upstream auth-service {
     server auth-service:8081;
@@ -1286,6 +1420,7 @@ upstream game-engine-service {
 ```
 
 **2. HTTP Server Block:**
+
 ```nginx
 server {
     listen 80;
@@ -1347,14 +1482,15 @@ server {
 ```
 
 **3. HTTPS Server Block (Placeholder for Future):**
+
 ```nginx
 # server {
 #     listen 443 ssl;
 #     server_name localhost;
-#     
+#
 #     ssl_certificate /etc/nginx/ssl/cert.pem;
 #     ssl_certificate_key /etc/nginx/ssl/key.pem;
-#     
+#
 #     # Same location blocks as HTTP
 # }
 ```
@@ -1362,6 +1498,7 @@ server {
 ### Key Features
 
 **Request Routing:**
+
 - `/api/auth/*` → Auth Service (8081)
 - `/api/profile/*` → Profile Service (8082)
 - `/api/leaderboard/*` → Leaderboard Service (8083)
@@ -1369,55 +1506,70 @@ server {
 - `/ws/game` → Game Engine Service (5002) - WebSocket
 
 **WebSocket Support:**
+
 - Upgrade headers configured
 - Connection upgrade handling
 - WebSocket-specific proxy settings
 
 **Load Balancing:**
+
 - Round-robin (default)
 - Can be extended to least connections, IP hash for WebSocket
 
 **CORS Configuration:**
+
 - Allow all origins (development)
 - Allow common HTTP methods
 - Allow Authorization and Content-Type headers
 
 **Health Checks:**
+
 - `/health` endpoint for gateway health
 - Backend service health checks (future)
 
 ### Service Discovery
+
 - Services referenced by Docker service names (e.g., `auth-service:8081`)
 - Works within Docker Compose network
 - No hardcoded IPs or localhost
 
 ## Related Documentation
+
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - API Gateway requirements (section 5.1-5.2)
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Nginx configuration (section 1.1)
 - [Communication Patterns](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/05-COMMUNICATION_PATTERNS.md) - REST and WebSocket patterns
 
 ## Labels
+
 epic:foundation, infrastructure, api-gateway, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-2-9: Document local setup process
 ```
+
 Title: TASK-1-2-9: Document local setup process
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-2 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create comprehensive documentation for setting up and running the local development environment.
 
 ## Acceptance Criteria
+
 - [ ] Local setup guide created
 - [ ] Prerequisites documented (Docker, Docker Compose)
 - [ ] Step-by-step setup instructions
@@ -1428,9 +1580,11 @@ Create comprehensive documentation for setting up and running the local developm
 ## Technical Details
 
 ### Documentation Location
+
 Create or update: `docs/01-GETTING_STARTED/README.md` or `docs/01-GETTING_STARTED/LOCAL_SETUP.md`
 
 ### Documentation Sections
+
 1. **Prerequisites**
    - Docker Desktop/Engine installation
    - Docker Compose installation
@@ -1464,14 +1618,18 @@ Create or update: `docs/01-GETTING_STARTED/README.md` or `docs/01-GETTING_STARTE
    - Debugging
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Development environment setup (section 1.1)
 - [System Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service ports and communication (sections 2.1-2.5)
 
 ## Labels
+
 epic:foundation, documentation, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 ---
@@ -1480,16 +1638,21 @@ Phase 1: Foundation
 
 #### Issue Template:
 ```
+
 Title: STORY-1-3: Set up CI/CD pipeline with GitHub Actions
 
 Description:
+
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create comprehensive GitHub Actions workflows for automated testing, building, code quality checks, security scanning, and deployment following the CI/CD requirements. The workflows must enforce code quality standards, run tests with coverage reporting, perform security scanning, and verify builds before merging.
 
 ## Acceptance Criteria
+
 - [ ] CI pipeline runs on PRs and pushes to main/develop
 - [ ] Backend CI workflow created (includes testing, code quality, coverage, security scanning)
 - [ ] Frontend CI workflow created (includes testing, code quality, coverage)
@@ -1503,9 +1666,11 @@ Create comprehensive GitHub Actions workflows for automated testing, building, c
 ## Technical Details
 
 ### CI/CD Pipeline Requirements
+
 Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) section 5.1:
 
 **Continuous Integration Steps:**
+
 1. **Code Quality Checks:**
    - ESLint for Node.js/Angular
    - Checkstyle for Java services
@@ -1535,7 +1700,9 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
    - Image vulnerability scanning
 
 ### Workflow Structure
+
 **Backend CI Workflow (.github/workflows/backend-ci.yml):**
+
 - Matrix strategy for multiple services
 - Java services: Setup Java 17, Maven test, Maven build, Checkstyle
 - Node.js services: Setup Node.js, npm test, npm build, ESLint
@@ -1543,6 +1710,7 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
 - Security scanning
 
 **Frontend CI Workflow (.github/workflows/frontend-ci.yml):**
+
 - Setup Node.js
 - Install dependencies
 - Run ESLint
@@ -1551,11 +1719,13 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
 - Coverage reporting
 
 **Security Workflow (.github/workflows/security.yml):**
+
 - Dependency scanning
 - SAST scanning
 - License compliance checking
 
 **SonarCloud Analysis Workflow (.github/workflows/sonarcloud.yml):**
+
 - Code quality analysis for all services (Java, Node.js, Frontend)
 - Security vulnerability scanning (SAST)
 - Code coverage aggregation and reporting
@@ -1564,32 +1734,42 @@ Based on [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DE
 - PR comments with quality gate status
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - CI/CD requirements (section 5.1)
 - [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing approach and coverage targets
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Code quality and testing requirements (section 5.2)
 
 ## Labels
+
 epic:foundation, infrastructure, feature, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-3-1: Create GitHub Actions workflow for backend services
 ```
+
 Title: TASK-1-3-1: Create GitHub Actions workflow for backend services
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-3 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create GitHub Actions workflow for Spring Boot and Node.js backend services. The workflow must include automated testing (unit and integration), code quality checks (Checkstyle, ESLint), code coverage reporting (80%+ target), security scanning, and build verification.
 
 ## Acceptance Criteria
+
 - [ ] Workflow file created (.github/workflows/backend-ci.yml)
 - [ ] Triggers configured (PR and push to main/develop)
 - [ ] Java 17 setup for Spring Boot services
@@ -1605,13 +1785,16 @@ Create GitHub Actions workflow for Spring Boot and Node.js backend services. The
 ## Technical Details
 
 ### Workflow Configuration
+
 **File:** `.github/workflows/backend-ci.yml`
 
 **Triggers:**
+
 - `pull_request` to main/develop
 - `push` to main/develop
 
 **Jobs Structure:**
+
 ```yaml
 name: Backend CI
 
@@ -1630,7 +1813,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: "17"
       - name: Run tests
         run: mvn test
       - name: Run Checkstyle
@@ -1648,7 +1831,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
@@ -1662,6 +1845,7 @@ jobs:
 ```
 
 ### Required Checks
+
 - Tests must pass
 - Code quality checks must pass
 - Coverage threshold must be met (80%+)
@@ -1669,27 +1853,36 @@ jobs:
 - Build must succeed
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-3-2: Create GitHub Actions workflow for frontend
 ```
+
 Title: TASK-1-3-2: Create GitHub Actions workflow for frontend
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-3 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create GitHub Actions workflow for Angular frontend. The workflow must include automated testing, code quality checks (ESLint, Prettier), code coverage reporting (80%+ target), and build verification.
 
 ## Acceptance Criteria
+
 - [ ] Workflow file created (.github/workflows/frontend-ci.yml)
 - [ ] Triggers configured (PR and push to main/develop)
 - [ ] Node.js 18 setup
@@ -1703,13 +1896,16 @@ Create GitHub Actions workflow for Angular frontend. The workflow must include a
 ## Technical Details
 
 ### Workflow Configuration
+
 **File:** `.github/workflows/frontend-ci.yml`
 
 **Triggers:**
+
 - `pull_request` to main/develop
 - `push` to main/develop
 
 **Jobs Structure:**
+
 ```yaml
 name: Frontend CI
 
@@ -1725,7 +1921,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
@@ -1743,6 +1939,7 @@ jobs:
 ```
 
 ### Required Checks
+
 - ESLint must pass
 - Prettier formatting must be correct
 - Tests must pass
@@ -1750,27 +1947,36 @@ jobs:
 - Build must succeed
 
 ## Labels
+
 epic:foundation, infrastructure, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-3-3: Create security scanning workflow
 ```
+
 Title: TASK-1-3-3: Create security scanning workflow
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-3 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create dedicated GitHub Actions workflow for security scanning including dependency vulnerability scanning, SAST (Static Application Security Testing), and license compliance checking.
 
 ## Acceptance Criteria
+
 - [ ] Security workflow file created (.github/workflows/security.yml)
 - [ ] Dependency vulnerability scanning configured (npm audit, Maven dependency check)
 - [ ] SAST scanning configured (CodeQL or similar)
@@ -1782,14 +1988,17 @@ Create dedicated GitHub Actions workflow for security scanning including depende
 ## Technical Details
 
 ### Security Workflow Structure
+
 **File:** `.github/workflows/security.yml`
 
 **Triggers:**
+
 - `pull_request` to main/develop
 - `push` to main/develop
 - `schedule` (weekly scans)
 
 **Jobs:**
+
 ```yaml
 name: Security Scanning
 
@@ -1799,7 +2008,7 @@ on:
   push:
     branches: [main, develop]
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
+    - cron: "0 0 * * 0" # Weekly on Sunday
 
 jobs:
   dependency-scanning:
@@ -1841,24 +2050,30 @@ jobs:
 ```
 
 ### Security Scanning Tools
+
 - **Dependency Scanning:** npm audit, OWASP Dependency Check (Maven)
 - **SAST:** GitHub CodeQL, SonarCloud/SonarQube (integrated in CI/CD pipeline)
 - **License Compliance:** license-checker (npm), license-maven-plugin (Maven)
 
 ### Failure Criteria
+
 - Critical vulnerabilities fail the build
 - High vulnerabilities warn but don't fail (can be configured)
 - License violations fail the build
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Security scanning requirements (section 5.1)
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Security requirements
 
 ## Labels
+
 epic:foundation, infrastructure, security, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 ---
@@ -1867,16 +2082,21 @@ Phase 1: Foundation
 
 #### Issue Template:
 ```
+
 Title: STORY-1-4: Set up development tooling and code quality infrastructure
 
 Description:
+
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Set up foundational development tooling, code quality tools, testing frameworks, and automation infrastructure to enforce code quality standards and enable efficient development workflow. This includes linters, formatters, pre-commit hooks, code coverage tools, and development scripts. **Note:** API documentation tools (Swagger/OpenAPI) will be configured in Phase 2 when REST APIs are implemented.
 
 ## Acceptance Criteria
+
 - [ ] Testing frameworks configured (JUnit, Jest, Jasmine)
 - [ ] Code quality tools configured (ESLint, Prettier, Checkstyle)
 - [ ] Pre-commit hooks configured (Husky, lint-staged)
@@ -1890,98 +2110,121 @@ Set up foundational development tooling, code quality tools, testing frameworks,
 ## Technical Details
 
 ### Testing Framework Setup
+
 Based on [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md):
 
 **Java Services (Spring Boot):**
+
 - JUnit 5 for unit testing
 - Spring Boot Test for integration testing
 - Mockito for mocking
 - JaCoCo for code coverage (80%+ target)
 
 **Node.js Services:**
+
 - Jest for unit and integration testing
 - Supertest for API testing
 - Istanbul/NYC for code coverage (80%+ target)
 
 **Angular Frontend:**
+
 - Jasmine for unit testing
 - Karma for test runner
 - Angular Testing Utilities
 - Code coverage (80%+ target)
 
 ### Code Quality Tools
+
 Based on [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) and [Project Description](../../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md):
 
 **Java Services:**
+
 - Checkstyle for code style enforcement
 - SpotBugs for static analysis
 - PMD for code quality (optional)
 
 **Node.js Services:**
+
 - ESLint for JavaScript/TypeScript linting
 - Prettier for code formatting
 - TypeScript strict mode
 
 **Angular Frontend:**
+
 - ESLint for TypeScript linting
 - Prettier for code formatting
 - Angular ESLint rules
 
 ### Pre-commit Hooks
+
 - Husky for Git hooks
 - lint-staged for running linters on staged files
 - Pre-commit checks: linting, formatting, tests (optional)
 
 ### Code Coverage Tools
+
 - JaCoCo (Java) - 80%+ coverage target
 - Istanbul/NYC (Node.js) - 80%+ coverage target
 - Karma coverage (Angular) - 80%+ coverage target
 - Coverage reports in CI/CD
 
 ### Editor/IDE Configuration
+
 - .editorconfig for consistent code style
 - IDE-specific settings (VSCode, IntelliJ IDEA)
 - Recommended extensions/plugins
 
 ### Dependency Management
+
 - Dependabot for dependency updates
 - npm audit / Maven dependency check
 - Security vulnerability scanning
 - License compliance checking
 
 ### Development Scripts
+
 - Scripts for common tasks (test, lint, format, build)
 - Scripts for database operations
 - Scripts for service management
 
 ## Related Documentation
+
 - [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing approach and tools (sections 5.1-5.4)
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Code quality requirements (section 5.2)
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - CI/CD requirements (section 5.1)
 - [Project Description](../../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md) - Technology stack (section 6)
 
 ## Labels
+
 epic:foundation, infrastructure, tooling, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-1: Configure testing frameworks
 ```
+
 Title: TASK-1-4-1: Configure testing frameworks
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure testing frameworks for all services (JUnit for Java, Jest for Node.js, Jasmine/Karma for Angular) following the testing strategy specification. Set up test directory structures and basic test configuration files.
 
 ## Acceptance Criteria
+
 - [ ] JUnit 5 configured for Spring Boot services (auth, profile, leaderboard)
 - [ ] Jest configured for Node.js services (matchmaking, game-engine)
 - [ ] Jasmine/Karma configured for Angular frontend
@@ -1992,9 +2235,11 @@ Configure testing frameworks for all services (JUnit for Java, Jest for Node.js,
 ## Technical Details
 
 ### Spring Boot Services (Java)
+
 Based on [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) section 5.1:
 
 **Dependencies (pom.xml):**
+
 ```xml
 <dependencies>
   <!-- JUnit 5 -->
@@ -2024,6 +2269,7 @@ Based on [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTIN
 ```
 
 **Test Structure:**
+
 ```
 src/test/java/
   - unit/              # Unit tests
@@ -2032,7 +2278,9 @@ src/test/java/
 ```
 
 ### Node.js Services
+
 **Dependencies (package.json):**
+
 ```json
 {
   "devDependencies": {
@@ -2049,6 +2297,7 @@ src/test/java/
 ```
 
 **Test Structure:**
+
 ```
 src/
   - __tests__/         # Test files
@@ -2056,42 +2305,55 @@ src/
 ```
 
 ### Angular Frontend
+
 **Dependencies (package.json):**
+
 - Jasmine (included with Angular CLI)
 - Karma (included with Angular CLI)
 - Angular Testing Utilities
 
 **Test Structure:**
+
 ```
 src/app/
   - *.spec.ts         # Component/service tests
 ```
 
 ## Related Documentation
+
 - [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing tools and frameworks (sections 5.1-5.4)
 
 ## Labels
+
 epic:foundation, testing, tooling, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-2: Configure code quality tools (linters and formatters)
 ```
+
 Title: TASK-1-4-2: Configure code quality tools (linters and formatters)
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure code quality tools (ESLint, Prettier, Checkstyle) for all services to enforce code quality standards and maintain consistent code style across the project.
 
 ## Acceptance Criteria
+
 - [ ] ESLint configured for Node.js services and Angular frontend
 - [ ] Prettier configured for all JavaScript/TypeScript code
 - [ ] Checkstyle configured for Java services
@@ -2102,9 +2364,11 @@ Configure code quality tools (ESLint, Prettier, Checkstyle) for all services to 
 ## Technical Details
 
 ### Java Services (Checkstyle)
+
 **Configuration:** `checkstyle.xml` in each service root
 **Rules:** Google Java Style Guide or Sun Code Conventions
 **Maven Plugin:**
+
 ```xml
 <plugin>
   <groupId>org.apache.maven.plugins</groupId>
@@ -2113,48 +2377,63 @@ Configure code quality tools (ESLint, Prettier, Checkstyle) for all services to 
 ```
 
 ### Node.js Services (ESLint + Prettier)
+
 **Configuration Files:**
+
 - `.eslintrc.js` - ESLint rules
 - `.prettierrc` - Prettier formatting rules
 - `.prettierignore` - Files to ignore
 
 **ESLint Rules:**
+
 - TypeScript recommended rules
 - Node.js best practices
 - Security rules
 
 ### Angular Frontend (ESLint + Prettier)
+
 **Configuration Files:**
+
 - `.eslintrc.json` - Angular ESLint rules
 - `.prettierrc` - Prettier formatting rules
 - `angular.json` - ESLint integration
 
 ## Related Documentation
+
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Code quality standards (section 2)
 - [Project Description](../../00-PROJECT_DEFINITION/PROJECT_DESCRIPTION.md) - Code quality tools (section 6)
 
 ## Labels
+
 epic:foundation, code-quality, tooling, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-3: Configure pre-commit hooks
 ```
+
 Title: TASK-1-4-3: Configure pre-commit hooks
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure pre-commit hooks using Husky and lint-staged to automatically run linters and formatters before commits, ensuring code quality standards are enforced at the commit level.
 
 ## Acceptance Criteria
+
 - [ ] Husky installed and configured
 - [ ] lint-staged configured
 - [ ] Pre-commit hook runs ESLint/Checkstyle
@@ -2165,13 +2444,16 @@ Configure pre-commit hooks using Husky and lint-staged to automatically run lint
 ## Technical Details
 
 ### Husky Setup
+
 **Installation:**
+
 ```bash
 npm install --save-dev husky lint-staged
 npx husky install
 ```
 
 **Configuration (package.json):**
+
 ```json
 {
   "lint-staged": {
@@ -2183,6 +2465,7 @@ npx husky install
 ```
 
 **Pre-commit Hook (.husky/pre-commit):**
+
 ```bash
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
@@ -2190,36 +2473,47 @@ npx lint-staged
 ```
 
 ### Hook Behavior
+
 - Run linters on staged files
 - Auto-fix issues where possible
 - Prevent commit if critical errors remain
 - Format code automatically
 
 ## Related Documentation
+
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Code quality enforcement
 
 ## Labels
+
 epic:foundation, tooling, automation, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-4: Configure code coverage tools
 ```
+
 Title: TASK-1-4-4: Configure code coverage tools
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure code coverage tools (JaCoCo for Java, Istanbul/NYC for Node.js, Karma for Angular) to track and enforce 80%+ code coverage target as specified in the testing strategy.
 
 ## Acceptance Criteria
+
 - [ ] JaCoCo configured for Spring Boot services
 - [ ] Istanbul/NYC configured for Node.js services
 - [ ] Karma coverage configured for Angular
@@ -2230,7 +2524,9 @@ Configure code coverage tools (JaCoCo for Java, Istanbul/NYC for Node.js, Karma 
 ## Technical Details
 
 ### Java Services (JaCoCo)
+
 **Maven Plugin:**
+
 ```xml
 <plugin>
   <groupId>org.jacoco</groupId>
@@ -2254,7 +2550,9 @@ Configure code coverage tools (JaCoCo for Java, Istanbul/NYC for Node.js, Karma 
 **Coverage Target:** 80%+ line coverage
 
 ### Node.js Services (Istanbul/NYC)
+
 **Jest Configuration (jest.config.js):**
+
 ```javascript
 module.exports = {
   collectCoverage: true,
@@ -2263,44 +2561,56 @@ module.exports = {
       branches: 80,
       functions: 80,
       lines: 80,
-      statements: 80
-    }
-  }
+      statements: 80,
+    },
+  },
 };
 ```
 
 ### Angular (Karma)
+
 **Coverage Configuration (karma.conf.js):**
+
 - Coverage reporter configured
 - Coverage thresholds set
 - HTML reports generated
 
 ## Related Documentation
+
 - [Testing Strategy](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Coverage targets (sections 5.1-5.2)
 - [Design Principles](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Testing requirements (section 5.2)
 
 ## Labels
+
 epic:foundation, testing, tooling, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-5: Configure editor and IDE settings
 ```
+
 Title: TASK-1-4-5: Configure editor and IDE settings
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create editor and IDE configuration files (.editorconfig, IDE-specific settings) to ensure consistent code formatting and development experience across all team members.
 
 ## Acceptance Criteria
+
 - [ ] .editorconfig file created
 - [ ] VSCode settings configured (.vscode/settings.json)
 - [ ] IntelliJ IDEA settings configured (optional)
@@ -2310,7 +2620,9 @@ Create editor and IDE configuration files (.editorconfig, IDE-specific settings)
 ## Technical Details
 
 ### .editorconfig
+
 **Configuration:**
+
 ```ini
 root = true
 
@@ -2329,7 +2641,9 @@ indent_size = 4
 ```
 
 ### VSCode Settings
+
 **Recommended Extensions:**
+
 - ESLint
 - Prettier
 - Java Extension Pack
@@ -2338,32 +2652,42 @@ indent_size = 4
 - GitLens
 
 ### IDE Settings
+
 - Code formatting on save
 - Import organization
 - Code style enforcement
 
 ## Labels
+
 epic:foundation, tooling, task, priority:low
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-6: Configure dependency management and security scanning
 ```
+
 Title: TASK-1-4-6: Configure dependency management and security scanning
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure dependency management tools (Dependabot, npm audit, Maven dependency check) and security vulnerability scanning to ensure dependencies are up-to-date and secure.
 
 ## Acceptance Criteria
+
 - [ ] Dependabot configured for GitHub
 - [ ] npm audit configured for Node.js services
 - [ ] Maven dependency check configured for Java services
@@ -2374,7 +2698,9 @@ Configure dependency management tools (Dependabot, npm audit, Maven dependency c
 ## Technical Details
 
 ### Dependabot Configuration
+
 **File:** `.github/dependabot.yml`
+
 ```yaml
 version: 2
 updates:
@@ -2389,43 +2715,57 @@ updates:
 ```
 
 ### Security Scanning
+
 **Maven (Java):**
+
 - OWASP Dependency Check plugin
 - Maven dependency plugin
 
 **npm (Node.js):**
+
 - `npm audit` for vulnerability scanning
 - `npm audit fix` for automatic fixes
 
 **CI/CD Integration:**
+
 - Security scanning in GitHub Actions
 - Fail build on critical vulnerabilities
 
 ## Related Documentation
+
 - [Deployment Architecture](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Security scanning (section 5.1)
 
 ## Labels
+
 epic:foundation, security, tooling, task, priority:high
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-7: Create comprehensive development scripts
 ```
+
 Title: TASK-1-4-7: Create comprehensive development scripts
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Create comprehensive development scripts for common tasks (test, lint, format, build, coverage) to streamline development workflow and ensure consistency across all services.
 
 ## Acceptance Criteria
+
 - [ ] Root-level scripts for common tasks
 - [ ] Service-specific scripts
 - [ ] Scripts for testing (unit, integration, coverage)
@@ -2436,7 +2776,9 @@ Create comprehensive development scripts for common tasks (test, lint, format, b
 ## Technical Details
 
 ### Root-Level Scripts
+
 **scripts/dev-tools.sh:**
+
 ```bash
 #!/bin/bash
 # Common development tasks
@@ -2469,34 +2811,45 @@ coverage-all() {
 ```
 
 ### Service-Specific Scripts
+
 Each service should have:
+
 - `npm run test` or `mvn test`
 - `npm run lint` or `mvn checkstyle:check`
 - `npm run format` or `mvn formatter:format`
 - `npm run coverage` or `mvn jacoco:report`
 
 ## Labels
+
 epic:foundation, tooling, scripts, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 #### Subtask: TASK-1-4-8: Configure GitHub branch protection and PR templates
 ```
+
 Title: TASK-1-4-8: Configure GitHub branch protection and PR templates
 
 Description:
+
 ## Story
+
 Related to #X (STORY-1-4 issue number)
 
 ## Epic
+
 Related to #X (EPIC-1 issue number)
 
 ## Description
+
 Configure GitHub branch protection rules for main/develop branches and create PR templates to ensure code quality and proper review process.
 
 ## Acceptance Criteria
+
 - [ ] Branch protection rules configured for main branch
 - [ ] Branch protection rules configured for develop branch
 - [ ] PR template created
@@ -2507,7 +2860,9 @@ Configure GitHub branch protection rules for main/develop branches and create PR
 ## Technical Details
 
 ### Branch Protection Rules
+
 **Main Branch:**
+
 - Require pull request reviews
 - Require status checks to pass (CI, tests, linting)
 - Require branches to be up to date
@@ -2515,30 +2870,38 @@ Configure GitHub branch protection rules for main/develop branches and create PR
 - Do not allow force pushes
 
 **Develop Branch:**
+
 - Require status checks to pass
 - Allow force pushes (for hotfixes)
 
 ### PR Template
+
 **File:** `.github/pull_request_template.md`
+
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Related Issues
+
 Closes #X
 Related to #X
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Comments added for complex code
@@ -2546,10 +2909,13 @@ Related to #X
 ```
 
 ## Labels
+
 epic:foundation, tooling, github, task, priority:medium
 
 ## Milestone
+
 Phase 1: Foundation
+
 ```
 
 ---
@@ -2559,10 +2925,11 @@ Phase 1: Foundation
 1. **Create Epic Issue:** Copy the Epic template and create issue (e.g., #X)
 2. **Create Story Issues:** Copy story templates, replace `#X` with Epic issue number, replace `#X` with story issue numbers
 3. **Create Subtask Issues:** Copy subtask templates, replace `#X` with Story issue number, replace `#X` with Epic issue number
-4. **Create Branches:** 
+4. **Create Branches:**
    - **Recommended:** Use manual branch naming: `feature/epic-1-story-1-description`
    - **Or:** Use issue number: `feature/#X-description`
    - **Auto-generated:** Will be `epic-1-title`, `story-1-1-title`, `task-1-1-1-title` (clear hierarchy)
 5. **Link in Commits:** Use `Related to #X` or `Closes #X` in commit messages
 6. **Link in PRs:** Use `Closes #X` and `Related to #X` in PR descriptions
 
+```
