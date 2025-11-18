@@ -6,16 +6,19 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
   - package-ecosystem: "maven"
     directory: "/backend-services/profile-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
   - package-ecosystem: "maven"
     directory: "/backend-services/leaderboard-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
 
   # npm dependencies for Node.js services
   - package-ecosystem: "npm"
@@ -23,11 +26,13 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
   - package-ecosystem: "npm"
     directory: "/backend-services/game-engine"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
 
   # npm dependencies for Angular frontend
   - package-ecosystem: "npm"
@@ -35,9 +40,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    target-branch: "develop"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    target-branch: "develop"
