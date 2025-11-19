@@ -97,7 +97,7 @@ This epic references Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Fron
 
 ## Stories (Player Experience)
 
-### VS-4-1: Player can view their profile with statistics
+### VS-4-1: Implement player profile view with statistics and rank tier display
 
 **User Story:** As a player, I want to view my profile with my statistics so that I can see my progress and how I'm performing.
 
@@ -134,54 +134,57 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 
 **Technical Details:**
 
-**Project Structure:**
-```
+**Reference Documentation:**
+- [Profile Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md) - Complete service architecture and component design
+- [System Architecture - Profile Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#22-profile-service) - Service integration and communication patterns
+- [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure and dependencies
 
-src/main/java/com/battlearena/profile/
-├── Application.java
-├── controller/
-│ └── ProfileController.java
-├── service/
-│ ├── ProfileService.java
-│ ├── ScoreCalculator.java
-│ └── RankTierCalculator.java
-├── repository/
-│ └── ProfileRepository.java
-├── model/
-│ ├── Profile.java
-│ └── RankTier.java
-├── dto/
-│ ├── ProfileResponse.java
-│ ├── UpdateProfileRequest.java
-│ └── ScoreUpdateRequest.java
-├── config/
-│ ├── RedisConfig.java
-│ └── SwaggerConfig.java
-├── cache/
-│ └── RedisCache.java
-└── exception/
-└── GlobalExceptionHandler.java
+**Project Structure Setup:**
+- Create Maven project structure in `backend-services/profile-service/` directory
+- Set up standard Maven directory layout (src/main/java, src/main/resources, src/test/java)
+- Create package structure following clean architecture principles:
+  - `com.battlearena.profile` - Main package
+  - `com.battlearena.profile.controller` - REST API endpoints
+  - `com.battlearena.profile.service` - Business logic layer (ProfileService, ScoreCalculator, RankTierCalculator)
+  - `com.battlearena.profile.repository` - Data access layer
+  - `com.battlearena.profile.model` - Domain entities (Profile, RankTier)
+  - `com.battlearena.profile.dto` - Data Transfer Objects (ProfileResponse, UpdateProfileRequest, ScoreUpdateRequest)
+  - `com.battlearena.profile.config` - Configuration classes (RedisConfig, SwaggerConfig)
+  - `com.battlearena.profile.cache` - Caching layer (RedisCache)
+  - `com.battlearena.profile.exception` - Exception handlers
+- Create test package structure mirroring main package structure
+- Add `checkstyle.xml` configuration file for code quality checks
+- Create `README.md` file documenting service overview, technology stack, endpoints, and environment variables
 
-````
+**Maven Dependencies (pom.xml):**
+- Configure Spring Boot parent POM version 3.3.6
+- Set Java version to 17 in properties section
+- Add Spring Boot starter dependencies:
+  - spring-boot-starter-web (REST API support)
+  - spring-boot-starter-data-mongodb (MongoDB integration)
+  - spring-boot-starter-data-redis (Redis integration)
+  - spring-boot-starter-actuator (Health checks and monitoring)
+  - spring-boot-starter-validation (Input validation)
+- Add JWT libraries (io.jsonwebtoken:jjwt-api, jjwt-impl, jjwt-jackson version 0.12.3)
+- Add SpringDoc OpenAPI dependency (springdoc-openapi-starter-webmvc-ui version 2.3.0) for Swagger documentation
+- Add Lombok dependency (optional, for reducing boilerplate code)
+- Add testing dependencies (spring-boot-starter-test)
+- Configure Maven compiler plugin for Java 17 source and target
+- Configure Spring Boot Maven plugin with Lombok exclusion
+- Add JaCoCo Maven plugin for code coverage with 80% minimum requirement
+- Add Maven Checkstyle plugin for code quality enforcement
 
-**Required Dependencies (pom.xml):**
-- spring-boot-starter-web
-- spring-boot-starter-data-mongodb
-- spring-boot-starter-data-redis
-- io.jsonwebtoken:jjwt-api, jjwt-impl, jjwt-jackson
-- spring-boot-starter-validation
-- springdoc-openapi-starter-webmvc-ui
-- spring-boot-starter-test
-
-**Application Properties:**
-```properties
-server.port=8082
-spring.application.name=profile-service
-spring.data.mongodb.uri=${MONGODB_URI:mongodb://mongodb:27017/battlearena}
-spring.data.redis.host=${REDIS_HOST:redis}
-spring.data.redis.port=${REDIS_PORT:6379}
-jwt.secret=${JWT_SECRET:your-secret-key-change-in-production}
-````
+**Application Configuration (application.yaml):**
+- Configure server port (default 8082, configurable via SERVER_PORT environment variable)
+- Set Spring application name to "profile-service"
+- Configure MongoDB connection URI (default mongodb://mongodb:27017/battlearena, configurable via MONGODB_URI)
+- Configure Redis connection:
+  - Redis host (default redis, configurable via REDIS_HOST environment variable)
+  - Redis port (default 6379, configurable via REDIS_PORT environment variable)
+- Set JWT secret key (configurable via JWT_SECRET environment variable, with production warning)
+- Configure SpringDoc OpenAPI settings for Swagger documentation
+- Configure Spring Boot Actuator for health checks
+- Configure logging levels with environment variable support
 
 ---
 
@@ -219,146 +222,130 @@ Implement complete view profile feature including database model, backend API, a
 **Backend - Database & Model:**
 **File:** `com.battlearena.profile.model.Profile`
 
-```java
-@Document(collection = "profiles")
-public class Profile {
-    @Id
-    private String id;
-
-    @Indexed(unique = true)
-    private String userId; // Links to Users collection
-
-    private String displayName;
-    private String avatarUrl;
-
-    private Integer globalScore = 0; // Infinite, no level cap
-    private RankTier rankTier = RankTier.IRON;
-
-    private Integer wins = 0;
-    private Integer losses = 0;
-    private Integer matchesPlayed = 0;
-    private Double winRate = 0.0; // Calculated: wins / matchesPlayed * 100
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-}
-```
+**Profile Entity Implementation Requirements:**
+- Create Profile class in `com.battlearena.profile.model` package
+- Add `@Document(collection = "profiles")` annotation to map to MongoDB collection
+- Add `@Id` annotation to id field (String type for MongoDB ObjectId)
+- Add `@Indexed(unique = true)` to userId field for database uniqueness and performance
+- Add userId field (String) - Links to Users collection in Auth Service
+- Add displayName field (String) - Player's display name
+- Add avatarUrl field (String) - URL to player's avatar image
+- Add globalScore field (Integer, default 0) - Infinite score, no level cap
+- Add rankTier field (RankTier enum, default IRON) - Player's current rank tier
+- Add wins field (Integer, default 0) - Number of matches won
+- Add losses field (Integer, default 0) - Number of matches lost
+- Add matchesPlayed field (Integer, default 0) - Total matches played
+- Add winRate field (Double, default 0.0) - Calculated as wins / matchesPlayed * 100
+- Add createdAt field (LocalDateTime) - Profile creation timestamp
+- Add updatedAt field (LocalDateTime) - Profile last update timestamp
+- Implement getters and setters (or use Lombok @Data annotation)
 
 **Backend - Rank Tier Enum:**
 **File:** `com.battlearena.profile.model.RankTier`
 
-```java
-public enum RankTier {
-    IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER
-}
-```
+**RankTier Enum Implementation Requirements:**
+- Create RankTier enum in `com.battlearena.profile.model` package
+- Define enum values in order: IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER
+- Enum represents Valorant-style rank tier system
+- Used for rank tier calculation based on global score ranges
 
 **Backend - Repository:**
 **File:** `com.battlearena.profile.repository.ProfileRepository`
 
-```java
-@Repository
-public interface ProfileRepository extends MongoRepository<Profile, String> {
-    Optional<Profile> findByUserId(String userId);
-    boolean existsByUserId(String userId);
-}
-```
+**ProfileRepository Implementation Requirements:**
+- Create ProfileRepository interface in `com.battlearena.profile.repository` package
+- Extend MongoRepository interface with Profile entity and String ID type
+- Add `@Repository` annotation for Spring component scanning
+- Define custom query methods that Spring Data MongoDB will auto-implement:
+  - `findByUserId(String userId)` - Returns Optional<Profile>, empty if not found
+  - `existsByUserId(String userId)` - Returns boolean indicating if profile exists for user
+- Spring Data MongoDB will automatically generate implementation based on method names
+- Use Optional return type for find method to handle null cases safely
 
 **Backend - Service:**
 **File:** `com.battlearena.profile.service.ProfileService`
 
-```java
-public ProfileResponse getProfileByUserId(String userId) {
-    // 1. Get profile from cache (Redis) or database
-    // 2. Calculate win rate if needed
-    // 3. Return ProfileResponse DTO
-}
-```
+**ProfileService.getProfileByUserId() Implementation Requirements:**
+- Create ProfileService class in `com.battlearena.profile.service` package
+- Add `@Service` annotation for Spring service component
+- Use constructor injection for dependencies (ProfileRepository, RedisCache)
+- Implement `getProfileByUserId(String userId)` method:
+  - Check Redis cache first for profile data (key: "profile:{userId}")
+  - If found in cache, return cached ProfileResponse
+  - If not in cache, retrieve profile from database using ProfileRepository.findByUserId()
+  - If profile not found, create new profile with default values (or throw exception)
+  - Calculate win rate if matchesPlayed > 0 (wins / matchesPlayed * 100)
+  - Map Profile entity to ProfileResponse DTO
+  - Cache ProfileResponse in Redis for future requests
+  - Return ProfileResponse DTO
+- Handle errors gracefully and throw appropriate exceptions
 
 **Backend - DTO:**
-**ProfileResponse:**
-
-```java
-public class ProfileResponse {
-    private String userId;
-    private String displayName;
-    private String avatarUrl;
-    private Integer globalScore;
-    private RankTier rankTier;
-    private Integer wins;
-    private Integer losses;
-    private Integer matchesPlayed;
-    private Double winRate;
-}
-```
+**ProfileResponse Implementation Requirements:**
+- Create ProfileResponse class in `com.battlearena.profile.dto` package
+- Add userId field (String) - User ID from Auth Service
+- Add displayName field (String) - Player's display name
+- Add avatarUrl field (String) - URL to player's avatar image
+- Add globalScore field (Integer) - Player's global score
+- Add rankTier field (RankTier) - Player's current rank tier
+- Add wins field (Integer) - Number of matches won
+- Add losses field (Integer) - Number of matches lost
+- Add matchesPlayed field (Integer) - Total matches played
+- Add winRate field (Double) - Win percentage (calculated)
+- Implement getters and setters (or use Lombok @Data annotation)
 
 **Backend - Controller:**
 **File:** `com.battlearena.profile.controller.ProfileController`
 
-```java
-@RestController
-@RequestMapping("/api/profile")
-public class ProfileController {
-    @GetMapping("/{userId}")
-    @Operation(summary = "Get user profile")
-    public ResponseEntity<ProfileResponse> getProfileByUserId(
-        @PathVariable String userId,
-        @RequestHeader("Authorization") String token) {
-        ProfileResponse profile = profileService.getProfileByUserId(userId);
-        return ResponseEntity.ok(profile);
-    }
-}
-```
+**ProfileController.getProfileByUserId() Implementation Requirements:**
+- Create ProfileController class in `com.battlearena.profile.controller` package
+- Add `@RestController` annotation for REST API controller
+- Add `@RequestMapping("/api/profile")` annotation to set base path for all endpoints
+- Use constructor injection for ProfileService dependency (Dependency Inversion Principle)
+- Implement `getProfileByUserId(@PathVariable String userId, @RequestHeader("Authorization") String token)` endpoint:
+  - Add `@GetMapping("/{userId}")` annotation
+  - Add `@Operation` annotation for Swagger documentation (summary: "Get user profile")
+  - Extract JWT token from Authorization header
+  - Validate JWT token (optional: verify user can access this profile)
+  - Call ProfileService.getProfileByUserId() to get profile data
+  - Return ResponseEntity with HTTP 200 OK status and ProfileResponse body
+  - Exception handling delegated to GlobalExceptionHandler
 
 **Frontend - Profile Component:**
 **File:** `src/app/profile/components/profile-view/profile-view.component.ts`
 
-```typescript
-@Component({
-  selector: "app-profile-view",
-  templateUrl: "./profile-view.component.html",
-})
-export class ProfileViewComponent implements OnInit {
-  profile: Profile | null = null;
-  loading = false;
-
-  constructor(
-    private profileService: ProfileService,
-    private authService: AuthService,
-  ) {}
-
-  ngOnInit(): void {
-    this.loadProfile();
-  }
-
-  loadProfile(): void {
-    this.loading = true;
-    const userId = this.authService.getUserId();
-    this.profileService.getProfileByUserId(userId).subscribe({
-      next: (profile) => {
-        this.profile = profile;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error("Failed to load profile", error);
-        this.loading = false;
-      },
-    });
-  }
-}
-```
+**ProfileViewComponent Implementation Requirements:**
+- Create ProfileViewComponent class in `src/app/profile/components/profile-view/` directory
+- Add `@Component` decorator with selector "app-profile-view" and template URL
+- Implement OnInit interface
+- Add profile property (Profile | null) to store profile data
+- Add loading property (boolean) for showing loading state during API call
+- Inject ProfileService and AuthService via constructor
+- Implement `ngOnInit()` method:
+  - Call loadProfile() method to fetch profile data
+- Implement `loadProfile()` method:
+  - Set loading to true
+  - Get userId from AuthService.getUserId()
+  - Call ProfileService.getProfileByUserId() with userId
+  - Subscribe to Observable response
+  - On success: Update profile property and set loading to false
+  - On error: Log error, set loading to false, display error message
+- Display profile data in template (display name, avatar, score, rank tier, statistics)
+- Display rank tier badge/icon
+- Format statistics correctly (percentages, numbers)
 
 **Frontend - ProfileService:**
 **File:** `src/app/services/profile.service.ts`
 
-```typescript
-@Injectable()
-export class ProfileService {
-  getProfileByUserId(userId: string): Observable<ProfileResponse> {
-    return this.http.get<ProfileResponse>(`${this.apiUrl}/${userId}`);
-  }
-}
-```
+**ProfileService.getProfileByUserId() Implementation Requirements:**
+- Create ProfileService class in `src/app/services/` directory
+- Add `@Injectable()` decorator for Angular dependency injection
+- Inject HttpClient for making HTTP requests
+- Implement `getProfileByUserId(userId)` method:
+  - Make HTTP GET request to `${apiUrl}/profile/${userId}` endpoint
+  - Include JWT token in Authorization header
+  - Return Observable<ProfileResponse>
+  - Handle errors in component subscription
 
 **End-to-End Test Scenario:**
 
@@ -378,7 +365,7 @@ export class ProfileService {
 
 ---
 
-### VS-4-2: Player can update their profile
+### VS-4-2: Implement player profile update with display name and avatar
 
 **User Story:** As a player, I want to update my profile (display name, avatar) so that I can personalize my account.
 
@@ -425,90 +412,66 @@ Implement complete profile update feature including backend update endpoint and 
 **Technical Details:**
 
 **Backend - DTO:**
-**UpdateProfileRequest:**
-
-```java
-public class UpdateProfileRequest {
-    @Size(min = 1, max = 50, message = "Display name must be between 1 and 50 characters")
-    private String displayName;
-
-    @Pattern(regexp = "^https?://.*", message = "Avatar URL must be a valid HTTP/HTTPS URL")
-    private String avatarUrl;
-}
-```
+**UpdateProfileRequest Implementation Requirements:**
+- Create UpdateProfileRequest class in `com.battlearena.profile.dto` package
+- Add displayName field (String) with validation:
+  - `@Size(min = 1, max = 50)` annotation with message "Display name must be between 1 and 50 characters"
+- Add avatarUrl field (String) with validation:
+  - `@Pattern(regexp = "^https?://.*")` annotation with message "Avatar URL must be a valid HTTP/HTTPS URL"
+- Implement getters and setters (or use Lombok @Data annotation)
 
 **Backend - Service:**
 **File:** `com.battlearena.profile.service.ProfileService`
 
-```java
-public ProfileResponse updateProfile(String userId, UpdateProfileRequest request) {
-    // 1. Get profile from database
-    // 2. Update display name and avatar
-    // 3. Save to MongoDB
-    // 4. Invalidate Redis cache
-    // 5. Return updated ProfileResponse
-}
-```
+**ProfileService.updateProfile() Implementation Requirements:**
+- Add `updateProfile(String userId, UpdateProfileRequest request)` method to ProfileService
+- Retrieve profile from database using ProfileRepository.findByUserId()
+- If profile not found, throw appropriate exception
+- Update displayName from request if provided
+- Update avatarUrl from request if provided
+- Set updatedAt timestamp to current time
+- Save updated profile to MongoDB using ProfileRepository.save()
+- Invalidate Redis cache for this profile (delete key "profile:{userId}")
+- Map updated Profile entity to ProfileResponse DTO
+- Return ProfileResponse DTO
+- Handle errors gracefully and throw appropriate exceptions
 
 **Backend - Controller:**
 **File:** `com.battlearena.profile.controller.ProfileController`
 
-```java
-@PutMapping("/{userId}")
-@Operation(summary = "Update user profile")
-public ResponseEntity<ProfileResponse> updateProfile(
-    @PathVariable String userId,
-    @Valid @RequestBody UpdateProfileRequest request,
-    @RequestHeader("Authorization") String token) {
-    // 1. Validate JWT token
-    // 2. Verify user can only update own profile
-    // 3. Update profile via ProfileService
-    // 4. Return updated ProfileResponse
-}
-```
+**ProfileController.updateProfile() Implementation Requirements:**
+- Add `updateProfile(@PathVariable String userId, @Valid @RequestBody UpdateProfileRequest request, @RequestHeader("Authorization") String token)` method to ProfileController
+- Add `@PutMapping("/{userId}")` annotation
+- Add `@Operation` annotation for Swagger documentation (summary: "Update user profile")
+- Add `@Valid` annotation to request parameter for automatic validation
+- Extract JWT token from Authorization header
+- Validate JWT token and extract user ID
+- Verify user can only update their own profile (compare token userId with path userId)
+- If authorization fails, return HTTP 403 Forbidden
+- Call ProfileService.updateProfile() to update profile
+- Return ResponseEntity with HTTP 200 OK status and updated ProfileResponse body
+- Exception handling delegated to GlobalExceptionHandler
 
 **Frontend - Profile Update Component:**
 **File:** `src/app/profile/components/profile-update/profile-update.component.ts`
 
-```typescript
-@Component({
-  selector: "app-profile-update",
-  templateUrl: "./profile-update.component.html",
-})
-export class ProfileUpdateComponent {
-  updateForm: FormGroup;
-  loading = false;
-
-  constructor(
-    private fb: FormBuilder,
-    private profileService: ProfileService,
-    private authService: AuthService,
-  ) {
-    this.updateForm = this.fb.group({
-      displayName: ["", [Validators.required, Validators.minLength(1), Validators.maxLength(50)]],
-      avatarUrl: ["", [Validators.pattern(/^https?:\/\/.*/)]],
-    });
-  }
-
-  onSubmit(): void {
-    if (this.updateForm.valid) {
-      this.loading = true;
-      const userId = this.authService.getUserId();
-      this.profileService.updateProfile(userId, this.updateForm.value).subscribe({
-        next: (updatedProfile) => {
-          // Show success message
-          // Refresh profile view
-          this.loading = false;
-        },
-        error: (error) => {
-          // Show error message
-          this.loading = false;
-        },
-      });
-    }
-  }
-}
-```
+**ProfileUpdateComponent Implementation Requirements:**
+- Create ProfileUpdateComponent class in `src/app/profile/components/profile-update/` directory
+- Add `@Component` decorator with selector "app-profile-update" and template URL
+- Create reactive form using FormBuilder with two form controls:
+  - displayName: Required, minimum length 1, maximum length 50
+  - avatarUrl: Optional, must match HTTP/HTTPS URL pattern
+- Add loading property (boolean) for showing loading state during API call
+- Inject FormBuilder, ProfileService, and AuthService via constructor
+- Implement `onSubmit()` method:
+  - Check if form is valid
+  - Set loading to true
+  - Get userId from AuthService.getUserId()
+  - Call ProfileService.updateProfile() with userId and form values
+  - Subscribe to Observable response
+  - On success: Display success message, refresh profile view, set loading to false
+  - On error: Display error message, set loading to false
+- Display form in template with validation error messages
 
 **End-to-End Test Scenario:**
 
@@ -530,7 +493,7 @@ export class ProfileUpdateComponent {
 
 ---
 
-### VS-4-3: Player can view global leaderboard
+### VS-4-3: Implement global leaderboard view with top players ranking
 
 **User Story:** As a player, I want to view the global leaderboard so that I can see how I rank against other players.
 
@@ -569,44 +532,53 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 
 **Technical Details:**
 
-**Project Structure:**
+**Reference Documentation:**
+- [Leaderboard Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/LEADERBOARD_SERVICE.md) - Complete service architecture and component design
+- [System Architecture - Leaderboard Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#23-leaderboard-service) - Service integration and communication patterns
+- [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure and dependencies
 
-```
-src/main/java/com/battlearena/leaderboard/
-├── Application.java
-├── controller/
-│   └── LeaderboardController.java
-├── service/
-│   ├── LeaderboardService.java
-│   └── strategy/
-│       ├── RankingStrategy.java
-│       └── FilterStrategy.java
-├── repository/
-│   └── LeaderboardRepository.java
-├── dto/
-│   ├── LeaderboardResponse.java
-│   └── FilterCriteria.java
-└── config/
-    ├── SwaggerConfig.java
-    └── SecurityConfig.java
-```
+**Project Structure Setup:**
+- Create Maven project structure in `backend-services/leaderboard-service/` directory
+- Set up standard Maven directory layout (src/main/java, src/main/resources, src/test/java)
+- Create package structure following clean architecture principles:
+  - `com.battlearena.leaderboard` - Main package
+  - `com.battlearena.leaderboard.controller` - REST API endpoints
+  - `com.battlearena.leaderboard.service` - Business logic layer (LeaderboardService)
+  - `com.battlearena.leaderboard.service.strategy` - Strategy pattern implementations (RankingStrategy, FilterStrategy)
+  - `com.battlearena.leaderboard.repository` - Data access layer
+  - `com.battlearena.leaderboard.dto` - Data Transfer Objects (LeaderboardResponse, FilterCriteria)
+  - `com.battlearena.leaderboard.config` - Configuration classes (SwaggerConfig, SecurityConfig)
+  - `com.battlearena.leaderboard.exception` - Exception handlers
+- Create test package structure mirroring main package structure
+- Add `checkstyle.xml` configuration file for code quality checks
+- Create `README.md` file documenting service overview, technology stack, endpoints, and environment variables
 
-**Required Dependencies (pom.xml):**
+**Maven Dependencies (pom.xml):**
+- Configure Spring Boot parent POM version 3.3.6
+- Set Java version to 17 in properties section
+- Add Spring Boot starter dependencies:
+  - spring-boot-starter-web (REST API support)
+  - spring-boot-starter-data-mongodb (MongoDB integration)
+  - spring-boot-starter-security (Security framework)
+  - spring-boot-starter-actuator (Health checks and monitoring)
+  - spring-boot-starter-validation (Input validation)
+- Add JWT libraries (io.jsonwebtoken:jjwt-api, jjwt-impl, jjwt-jackson version 0.12.3)
+- Add SpringDoc OpenAPI dependency (springdoc-openapi-starter-webmvc-ui version 2.3.0) for Swagger documentation
+- Add Lombok dependency (optional, for reducing boilerplate code)
+- Add testing dependencies (spring-boot-starter-test)
+- Configure Maven compiler plugin for Java 17 source and target
+- Configure Spring Boot Maven plugin with Lombok exclusion
+- Add JaCoCo Maven plugin for code coverage with 80% minimum requirement
+- Add Maven Checkstyle plugin for code quality enforcement
 
-- spring-boot-starter-web
-- spring-boot-starter-data-mongodb
-- spring-boot-starter-security
-- springdoc-openapi-starter-webmvc-ui
-- spring-boot-starter-test
-
-**Application Properties:**
-
-```properties
-server.port=8083
-spring.application.name=leaderboard-service
-spring.data.mongodb.uri=${MONGODB_URI:mongodb://mongodb:27017/battlearena}
-jwt.secret=${JWT_SECRET:your-secret-key-change-in-production}
-```
+**Application Configuration (application.yaml):**
+- Configure server port (default 8083, configurable via SERVER_PORT environment variable)
+- Set Spring application name to "leaderboard-service"
+- Configure MongoDB connection URI (default mongodb://mongodb:27017/battlearena, configurable via MONGODB_URI)
+- Set JWT secret key (configurable via JWT_SECRET environment variable, with production warning)
+- Configure SpringDoc OpenAPI settings for Swagger documentation
+- Configure Spring Boot Actuator for health checks
+- Configure logging levels with environment variable support
 
 ---
 
@@ -643,134 +615,113 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **Backend - Repository:**
 **File:** `com.battlearena.leaderboard.repository.LeaderboardRepository`
 
-```java
-@Repository
-public interface LeaderboardRepository extends MongoRepository<Profile, String> {
-    @Aggregation(pipeline = {
-        "{ $sort: { globalScore: -1 } }",
-        "{ $skip: ?0 }",
-        "{ $limit: ?1 }"
-    })
-    List<LeaderboardEntry> findTopPlayers(int skip, int limit);
-}
-```
+**LeaderboardRepository Implementation Requirements:**
+- Create LeaderboardRepository interface in `com.battlearena.leaderboard.repository` package
+- Extend MongoRepository interface with Profile entity and String ID type
+- Add `@Repository` annotation for Spring component scanning
+- Implement `findTopPlayers(int skip, int limit)` method using MongoDB aggregation:
+  - Use `@Aggregation` annotation with pipeline stages
+  - Sort by globalScore in descending order (-1)
+  - Skip records based on offset (skip parameter)
+  - Limit results based on size (limit parameter)
+  - Return List<LeaderboardEntry> with ranked players
+- Ensure MongoDB collection has index on globalScore for optimal query performance
 
 **Backend - Service:**
 **File:** `com.battlearena.leaderboard.service.LeaderboardService`
 
-```java
-public LeaderboardResponse getTopPlayers(int page, int size) {
-    int offset = (page - 1) * size;
-    List<LeaderboardEntry> entries = repository.findTopPlayers(offset, size);
-    long totalCount = repository.count();
-    int totalPages = (int) Math.ceil((double) totalCount / size);
-
-    return LeaderboardResponse.builder()
-        .entries(entries)
-        .page(page)
-        .size(size)
-        .totalPages(totalPages)
-        .totalCount(totalCount)
-        .build();
-}
-```
+**LeaderboardService.getTopPlayers() Implementation Requirements:**
+- Create LeaderboardService class in `com.battlearena.leaderboard.service` package
+- Add `@Service` annotation for Spring service component
+- Use constructor injection for LeaderboardRepository dependency
+- Implement `getTopPlayers(int page, int size)` method:
+  - Calculate offset based on page and size: (page - 1) * size
+  - Call repository.findTopPlayers() with offset and size
+  - Get total count of players using repository.count()
+  - Calculate total pages: Math.ceil(totalCount / size)
+  - Build LeaderboardResponse with entries, page, size, totalPages, and totalCount
+  - Return LeaderboardResponse DTO
+- Handle errors gracefully and throw appropriate exceptions
 
 **Backend - DTO:**
-**LeaderboardResponse:**
+**LeaderboardResponse Implementation Requirements:**
+- Create LeaderboardResponse class in `com.battlearena.leaderboard.dto` package
+- Add entries field (List<LeaderboardEntry>) - List of leaderboard entries
+- Add totalPlayers field (Integer) - Total number of players in leaderboard
+- Implement getters and setters (or use Lombok @Data annotation)
 
-```java
-public class LeaderboardResponse {
-    private List<LeaderboardEntry> entries;
-    private Integer totalPlayers;
-}
-
-public class LeaderboardEntry {
-    private Integer rank;
-    private String playerId;
-    private String displayName;
-    private RankTier rankTier;
-    private Integer globalScore;
-    private Integer wins;
-    private Integer losses;
-    private Integer matchesPlayed;
-    private Double winRate;
-}
-```
+**LeaderboardEntry Implementation Requirements:**
+- Create LeaderboardEntry class in `com.battlearena.leaderboard.dto` package
+- Add rank field (Integer) - Player's rank position
+- Add playerId field (String) - User ID from Auth Service
+- Add displayName field (String) - Player's display name
+- Add rankTier field (RankTier) - Player's rank tier
+- Add globalScore field (Integer) - Player's global score
+- Add wins field (Integer) - Number of matches won
+- Add losses field (Integer) - Number of matches lost
+- Add matchesPlayed field (Integer) - Total matches played
+- Add winRate field (Double) - Win percentage
+- Implement getters and setters (or use Lombok @Data annotation)
 
 **Backend - Controller:**
 **File:** `com.battlearena.leaderboard.controller.LeaderboardController`
 
-```java
-@RestController
-@RequestMapping("/api/leaderboard")
-public class LeaderboardController {
-    @GetMapping
-    @Operation(summary = "Get global leaderboard")
-    public ResponseEntity<LeaderboardResponse> getTopPlayers(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size) {
-        LeaderboardResponse response = leaderboardService.getTopPlayers(page, size);
-        return ResponseEntity.ok(response);
-    }
-}
-```
+**LeaderboardController.getTopPlayers() Implementation Requirements:**
+- Create LeaderboardController class in `com.battlearena.leaderboard.controller` package
+- Add `@RestController` annotation for REST API controller
+- Add `@RequestMapping("/api/leaderboard")` annotation to set base path
+- Use constructor injection for LeaderboardService dependency
+- Implement `getTopPlayers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size)` endpoint:
+  - Add `@GetMapping` annotation
+  - Add `@Operation` annotation for Swagger documentation (summary: "Get global leaderboard")
+  - Set default values: page = 0, size = 10
+  - Call LeaderboardService.getTopPlayers() with page and size
+  - Return ResponseEntity with HTTP 200 OK status and LeaderboardResponse body
+  - Exception handling delegated to GlobalExceptionHandler
 
 **Frontend - Leaderboard Component:**
 **File:** `src/app/leaderboard/components/leaderboard/leaderboard.component.ts`
 
-```typescript
-@Component({
-  selector: "app-leaderboard",
-  templateUrl: "./leaderboard.component.html",
-})
-export class LeaderboardComponent implements OnInit {
-  leaderboard: LeaderboardEntry[] = [];
-  loading = false;
-
-  constructor(private leaderboardService: LeaderboardService) {}
-
-  ngOnInit(): void {
-    this.loadLeaderboard();
-  }
-
-  loadLeaderboard(): void {
-    this.loading = true;
-    this.leaderboardService.getTopPlayers(this.currentPage, this.pageSize).subscribe({
-      next: (response) => {
-        this.leaderboard = response.entries;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error("Failed to load leaderboard", error);
-        this.loading = false;
-      },
-    });
-  }
-}
-```
+**LeaderboardComponent Implementation Requirements:**
+- Create LeaderboardComponent class in `src/app/leaderboard/components/leaderboard/` directory
+- Add `@Component` decorator with selector "app-leaderboard" and template URL
+- Implement OnInit interface
+- Add leaderboard property (LeaderboardEntry[]) to store leaderboard entries
+- Add loading property (boolean) for showing loading state during API call
+- Add currentPage and pageSize properties for pagination
+- Inject LeaderboardService via constructor
+- Implement `ngOnInit()` method:
+  - Call loadLeaderboard() method to fetch leaderboard data
+- Implement `loadLeaderboard()` method:
+  - Set loading to true
+  - Call LeaderboardService.getTopPlayers() with currentPage and pageSize
+  - Subscribe to Observable response
+  - On success: Update leaderboard property and set loading to false
+  - On error: Log error, set loading to false, display error message
+- Display leaderboard in template (table or list format)
+- Display rank, player name, rank tier badge, global score, wins, losses, win percentage, matches played
+- Format statistics correctly (percentages, numbers)
 
 **Frontend - LeaderboardService:**
 **File:** `src/app/services/leaderboard.service.ts`
 
-```typescript
-@Injectable()
-export class LeaderboardService {
-  getTopPlayers(page: number = 0, size: number = 10): Observable<LeaderboardResponse> {
-    return this.http.get<LeaderboardResponse>(`${this.apiUrl}?page=${page}&size=${size}`);
-  }
-
-  getFilteredLeaderboard(filters: FilterCriteria, page: number = 0, size: number = 10): Observable<LeaderboardResponse> {
-    let params = new HttpParams().set("page", page.toString()).set("size", size.toString());
-    if (filters.rankTier) {
-      params = params.set("rankTier", filters.rankTier);
-    }
-    if (filters.region) {
-      params = params.set("region", filters.region);
-    }
-    return this.http.get<LeaderboardResponse>(`${this.apiUrl}`, { params });
-  }
-}
-```
+**LeaderboardService Implementation Requirements:**
+- Create LeaderboardService class in `src/app/services/` directory
+- Add `@Injectable()` decorator for Angular dependency injection
+- Inject HttpClient for making HTTP requests
+- Implement `getTopPlayers(page, size)` method:
+  - Make HTTP GET request to `${apiUrl}/leaderboard?page=${page}&size=${size}` endpoint
+  - Include JWT token in Authorization header
+  - Return Observable<LeaderboardResponse>
+  - Handle errors in component subscription
+- Implement `getFilteredLeaderboard(filters, page, size)` method:
+  - Create HttpParams with page and size parameters
+  - Add rankTier to params if provided in filters
+  - Add region to params if provided in filters
+  - Make HTTP GET request with query parameters
+  - Include JWT token in Authorization header
+  - Return Observable<LeaderboardResponse>
+  - Handle errors in component subscription
 
 **End-to-End Test Scenario:**
 
@@ -790,7 +741,7 @@ export class LeaderboardService {
 
 ---
 
-### VS-4-4: Player can filter leaderboard
+### VS-4-4: Implement leaderboard filtering by rank tier and region
 
 **User Story:** As a player, I want to filter the leaderboard by rank tier and region so that I can see rankings for specific criteria.
 
@@ -832,90 +783,59 @@ Implement leaderboard filtering feature including backend filter logic and front
 **Technical Details:**
 
 **Backend - DTO:**
-**FilterCriteria:**
-
-```java
-public class FilterCriteria {
-    private RankTier rankTier;
-    private String region;
-    // Future: heroType, winRate, weapons
-}
-```
+**FilterCriteria Implementation Requirements:**
+- Create FilterCriteria class in `com.battlearena.leaderboard.dto` package
+- Add rankTier field (RankTier, nullable) - Filter by rank tier
+- Add region field (String, nullable) - Filter by region
+- Add comments indicating future filter options (heroType, winRate, weapons)
+- Implement getters and setters (or use Lombok @Data annotation)
 
 **Backend - Repository:**
 **File:** `com.battlearena.leaderboard.repository.LeaderboardRepository`
 
-```java
-@Aggregation(pipeline = {
-    "{ $match: { $and: [ { 'rankTier': ?0 }, { 'region': ?1 } ] } }",
-    "{ $sort: { globalScore: -1 } }",
-    "{ $skip: ?2 }",
-    "{ $limit: ?3 }"
-})
-List<LeaderboardEntry> findByFilters(RankTier rankTier, String region, int skip, int limit);
-```
+**LeaderboardRepository.findByFilters() Implementation Requirements:**
+- Add `findByFilters(RankTier rankTier, String region, int skip, int limit)` method to LeaderboardRepository
+- Use `@Aggregation` annotation with MongoDB aggregation pipeline:
+  - Match stage: Filter documents where rankTier and region match criteria (use $and operator)
+  - Sort stage: Sort by globalScore in descending order (-1)
+  - Skip stage: Skip records based on offset (skip parameter)
+  - Limit stage: Limit results based on size (limit parameter)
+- Return List<LeaderboardEntry> with filtered and ranked players
+- Handle null filter values (apply filter only if not null)
 
 **Backend - Service:**
 **File:** `com.battlearena.leaderboard.service.LeaderboardService`
 
-```java
-public LeaderboardResponse getFilteredLeaderboard(FilterCriteria filters, int page, int size) {
-    int offset = (page - 1) * size;
-    List<LeaderboardEntry> entries = repository.findByFilters(
-        filters.getRankTier(),
-        filters.getRegion(),
-        offset,
-        size
-    );
-    long totalCount = repository.count(); // Count with same filters
-    int totalPages = (int) Math.ceil((double) totalCount / size);
-
-    return LeaderboardResponse.builder()
-        .entries(entries)
-        .page(page)
-        .size(size)
-        .totalPages(totalPages)
-        .totalCount(totalCount)
-        .build();
-}
-```
+**LeaderboardService.getFilteredLeaderboard() Implementation Requirements:**
+- Add `getFilteredLeaderboard(FilterCriteria filters, int page, int size)` method to LeaderboardService
+- Calculate offset based on page and size: (page - 1) * size
+- Call repository.findByFilters() with rankTier, region, offset, and size from FilterCriteria
+- Get total count of players matching filters (implement count method with same filter criteria)
+- Calculate total pages: Math.ceil(totalCount / size)
+- Build LeaderboardResponse with entries, page, size, totalPages, and totalCount
+- Return LeaderboardResponse DTO
+- Handle errors gracefully and throw appropriate exceptions
 
 **Frontend - Filter Controls:**
 **File:** `src/app/leaderboard/components/leaderboard-filters/leaderboard-filters.component.ts`
 
-```typescript
-@Component({
-  selector: "app-leaderboard-filters",
-  templateUrl: "./leaderboard-filters.component.html",
-})
-export class LeaderboardFiltersComponent {
-  filterForm: FormGroup;
-  rankTiers = Object.values(RankTier);
-  regions = ["NA", "EU", "ASIA", "GLOBAL"]; // Example regions
-
-  constructor(
-    private fb: FormBuilder,
-    private leaderboardService: LeaderboardService,
-  ) {
-    this.filterForm = this.fb.group({
-      rankTier: [null],
-      region: [null],
-    });
-
-    this.filterForm.valueChanges.subscribe((filters) => {
-      this.applyFilters(filters);
-    });
-  }
-
-  applyFilters(filters: FilterCriteria): void {
-    this.leaderboardService.getFilteredLeaderboard(filters, this.currentPage, this.pageSize).subscribe({
-      next: (response) => {
-        // Update leaderboard display
-      },
-    });
-  }
-}
-```
+**LeaderboardFiltersComponent Implementation Requirements:**
+- Create LeaderboardFiltersComponent class in `src/app/leaderboard/components/leaderboard-filters/` directory
+- Add `@Component` decorator with selector "app-leaderboard-filters" and template URL
+- Create reactive form using FormBuilder with two form controls:
+  - rankTier: Optional dropdown (null by default)
+  - region: Optional dropdown (null by default)
+- Add rankTiers property with all RankTier enum values for dropdown options
+- Add regions property with available regions (e.g., ["NA", "EU", "ASIA", "GLOBAL"])
+- Inject FormBuilder and LeaderboardService via constructor
+- Subscribe to form valueChanges to automatically apply filters when changed
+- Implement `applyFilters(filters)` method:
+  - Call LeaderboardService.getFilteredLeaderboard() with filters, currentPage, and pageSize
+  - Subscribe to Observable response
+  - On success: Emit event or update parent component with filtered leaderboard data
+  - Handle errors and display error messages
+- Display filter controls in template (rank tier dropdown, region dropdown)
+- Allow clearing filters (reset to null values)
 
 **End-to-End Test Scenario:**
 
@@ -935,7 +855,7 @@ export class LeaderboardFiltersComponent {
 
 ---
 
-### VS-4-5: Match results update profile and leaderboard
+### VS-4-5: Implement post-match score tracking and rank tier calculation
 
 **User Story:** As a player, I want my match results to automatically update my profile and leaderboard position so that my progress is tracked accurately.
 
@@ -982,55 +902,58 @@ Implement global score tracking and rank tier calculation system. This includes 
 **Backend - Score Calculator:**
 **File:** `com.battlearena.profile.service.ScoreCalculator`
 
-```java
-public class ScoreCalculator {
-    public int calculateScoreUpdate(MatchResult matchResult, boolean isWinner) {
-        // MVP: Simple scoring
-        // Win = +25 points
-        // Loss = -10 points
-        // Future: Complex scoring based on performance
-        return isWinner ? 25 : -10;
-    }
-}
-```
+**ScoreCalculator Implementation Requirements:**
+- Create ScoreCalculator class in `com.battlearena.profile.service` package
+- Add `@Component` or `@Service` annotation for Spring dependency injection
+- Implement `calculateScoreUpdate(MatchResult matchResult, boolean isWinner)` method:
+  - For MVP: Use simple scoring system
+  - If player is winner: Return +25 points
+  - If player is loser: Return -10 points
+  - Future enhancement: Complex scoring based on match performance (damage dealt, accuracy, etc.)
+  - Return integer score change (positive for win, negative for loss)
+- Design for extensibility (Strategy Pattern) to support future complex scoring algorithms
 
 **Backend - Rank Tier Calculator:**
 **File:** `com.battlearena.profile.service.RankTierCalculator`
 
-```java
-public class RankTierCalculator {
-    public RankTier calculateRankTier(int globalScore) {
-        // Valorant-style rank tiers
-        if (globalScore < 100) return RankTier.IRON;
-        if (globalScore < 300) return RankTier.BRONZE;
-        if (globalScore < 600) return RankTier.SILVER;
-        if (globalScore < 1000) return RankTier.GOLD;
-        if (globalScore < 1500) return RankTier.PLATINUM;
-        if (globalScore < 2000) return RankTier.DIAMOND;
-        if (globalScore < 3000) return RankTier.MASTER;
-        return RankTier.GRANDMASTER;
-    }
-}
-```
+**RankTierCalculator Implementation Requirements:**
+- Create RankTierCalculator class in `com.battlearena.profile.service` package
+- Add `@Component` or `@Service` annotation for Spring dependency injection
+- Implement `calculateRankTier(int globalScore)` method with Valorant-style rank tiers:
+  - If globalScore < 100: Return RankTier.IRON
+  - If globalScore < 300: Return RankTier.BRONZE
+  - If globalScore < 600: Return RankTier.SILVER
+  - If globalScore < 1000: Return RankTier.GOLD
+  - If globalScore < 1500: Return RankTier.PLATINUM
+  - If globalScore < 2000: Return RankTier.DIAMOND
+  - If globalScore < 3000: Return RankTier.MASTER
+  - Otherwise: Return RankTier.GRANDMASTER
+- Make score ranges configurable (via application.yaml) for future adjustments
+- Return RankTier enum value based on score range
 
 **Backend - Service:**
 **File:** `com.battlearena.profile.service.ProfileService`
 
-```java
-@Transactional
-public ProfileResponse updateScore(String userId, MatchResult matchResult) {
-    // 1. Get profile from database
-    // 2. Calculate score update via ScoreCalculator
-    // 3. Update global score
-    // 4. Update wins/losses/matches played
-    // 5. Calculate win rate
-    // 6. Calculate new rank tier via RankTierCalculator
-    // 7. Update rank tier if changed
-    // 8. Save to MongoDB (atomic)
-    // 9. Invalidate Redis cache
-    // 10. Return updated ProfileResponse
-}
-```
+**ProfileService.updateScore() Implementation Requirements:**
+- Add `updateScore(String userId, MatchResult matchResult)` method to ProfileService
+- Add `@Transactional` annotation to ensure atomic database operations
+- Retrieve profile from database using ProfileRepository.findByUserId()
+- If profile not found, create new profile with default values
+- Calculate score update using ScoreCalculator.calculateScoreUpdate() with matchResult and winner status
+- Update global score: Add score change to current globalScore
+- Update match statistics:
+  - Increment matchesPlayed by 1
+  - If winner: Increment wins by 1
+  - If loser: Increment losses by 1
+  - Calculate win rate: (wins / matchesPlayed) * 100
+- Calculate new rank tier using RankTierCalculator.calculateRankTier() with updated globalScore
+- Update rankTier if it changed from previous value
+- Set updatedAt timestamp to current time
+- Save updated profile to MongoDB using ProfileRepository.save() (atomic operation)
+- Invalidate Redis cache for this profile (delete key "profile:{userId}")
+- Map updated Profile entity to ProfileResponse DTO
+- Return ProfileResponse DTO
+- Handle errors gracefully and throw appropriate exceptions
 
 **End-to-End Test Scenario:**
 
@@ -1079,74 +1002,60 @@ Implement post-match integration between Game Engine Service and Profile Service
 **Backend - Game Engine Integration:**
 **File:** `src/service/MatchResultProcessor.ts` (Game Engine Service)
 
-```typescript
-export class MatchResultProcessor {
-  async processMatchResult(matchId: string, matchResult: MatchResult): Promise<void> {
-    // 1. Store match result in MongoDB
-    // 2. Send match result to Profile Service for both players
-    // 3. Update player 1 profile
-    // 4. Update player 2 profile
-    // 5. Return updated profiles
-  }
-
-  private async updatePlayerProfile(playerId: string, matchResult: MatchResult, isWinner: boolean): Promise<void> {
-    // Call Profile Service API
-    await this.profileServiceClient.updateScore(playerId, {
-      matchResult,
-      isWinner,
-    });
-  }
-}
-```
+**MatchResultProcessor Implementation Requirements:**
+- Create MatchResultProcessor class in `src/service/` directory (Game Engine Service)
+- Implement `processMatchResult(matchId, matchResult)` method:
+  - Store match result in MongoDB (match history collection)
+  - Determine winner and loser from matchResult
+  - Call updatePlayerProfile() for player 1 with matchResult and winner status
+  - Call updatePlayerProfile() for player 2 with matchResult and winner status
+  - Wait for both profile updates to complete
+  - Return updated profiles or confirmation
+- Implement private `updatePlayerProfile(playerId, matchResult, isWinner)` method:
+  - Create ScoreUpdateRequest object with matchResult and isWinner flag
+  - Call Profile Service API endpoint POST /api/profile/{userId}/score
+  - Send ScoreUpdateRequest in request body
+  - Handle HTTP errors and retry logic if needed
+  - Return updated profile or confirmation
+- Use HTTP client or service client to communicate with Profile Service
+- Handle service communication errors gracefully
 
 **Backend - Profile Service Endpoint:**
 **File:** `com.battlearena.profile.controller.ProfileController`
 
-```java
-@PostMapping("/{userId}/score")
-@Operation(summary = "Update player score after match")
-public ResponseEntity<ProfileResponse> updateScore(
-    @PathVariable String userId,
-    @RequestBody ScoreUpdateRequest request) {
-    // 1. Update score via ProfileService
-    // 2. Return updated ProfileResponse
-}
-```
+**ProfileController.updateScore() Implementation Requirements:**
+- Add `updateScore(@PathVariable String userId, @RequestBody ScoreUpdateRequest request)` method to ProfileController
+- Add `@PostMapping("/{userId}/score")` annotation
+- Add `@Operation` annotation for Swagger documentation (summary: "Update player score after match")
+- Extract userId from path variable
+- Extract ScoreUpdateRequest from request body
+- Call ProfileService.updateScore() with userId and matchResult from request
+- Return ResponseEntity with HTTP 200 OK status and updated ProfileResponse body
+- Exception handling delegated to GlobalExceptionHandler
 
 **Frontend - Match Result Component:**
 **File:** `src/app/arena/components/match-result/match-result.component.ts`
 
-```typescript
-@Component({
-  selector: "app-match-result",
-  templateUrl: "./match-result.component.html",
-})
-export class MatchResultComponent implements OnInit {
-  matchResult: MatchResult | null = null;
-  updatedProfile: Profile | null = null;
-  rankTierChanged = false;
-
-  constructor(
-    private gameService: GameService,
-    private profileService: ProfileService,
-  ) {}
-
-  ngOnInit(): void {
-    this.gameService.getMatchResult().subscribe((result) => {
-      this.matchResult = result;
-      this.loadUpdatedProfile();
-    });
-  }
-
-  loadUpdatedProfile(): void {
-    this.profileService.getProfileByUserId(this.playerId).subscribe((profile) => {
-      this.updatedProfile = profile;
-      // Check if rank tier changed
-      // Show rank tier change animation if applicable
-    });
-  }
-}
-```
+**MatchResultComponent Implementation Requirements:**
+- Create MatchResultComponent class in `src/app/arena/components/match-result/` directory
+- Add `@Component` decorator with selector "app-match-result" and template URL
+- Implement OnInit interface
+- Add matchResult property (MatchResult | null) to store match result data
+- Add updatedProfile property (Profile | null) to store updated profile after match
+- Add rankTierChanged property (boolean) to track if rank tier changed
+- Add previousRankTier property to compare with new rank tier
+- Inject GameService and ProfileService via constructor
+- Implement `ngOnInit()` method:
+  - Subscribe to GameService.getMatchResult() Observable
+  - On result received: Update matchResult and call loadUpdatedProfile()
+- Implement `loadUpdatedProfile()` method:
+  - Get playerId from AuthService
+  - Call ProfileService.getProfileByUserId() with playerId
+  - Subscribe to Observable response
+  - On success: Update updatedProfile, compare rankTier with previousRankTier, set rankTierChanged flag if changed
+  - Display rank tier change animation if rankTierChanged is true
+  - Handle errors and display error messages
+- Display match result in template with updated score and rank tier change indicator
 
 **End-to-End Test Scenario:**
 
@@ -1178,6 +1087,7 @@ export class MatchResultComponent implements OnInit {
 ### End-to-End Test Scenario
 
 ```
+
 1. Player plays a match (VS-3)
 2. Match ends with result
 3. Profile Service receives match result
@@ -1193,6 +1103,7 @@ export class MatchResultComponent implements OnInit {
 13. Filtered leaderboard displayed
 14. Player updates profile (display name, avatar)
 15. Profile updated and displayed
+
 ```
 
 **Test should pass:** ✅ All steps complete without errors
@@ -1313,11 +1224,14 @@ VS-4: Profile & Progression
 ---
 
 **This template demonstrates how to:**
+
 1. Structure vertical slice epics with player focus
 2. Reference Phase documents for technical details
 3. Break down into player-focused stories
 4. Pull tasks from Phase documents
 5. Define clear acceptance criteria and definitions of done
 6. Consolidate BE + FE tasks for end-to-end testing
+
+```
 
 ```
