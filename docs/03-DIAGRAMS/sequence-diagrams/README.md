@@ -288,6 +288,63 @@ This directory contains all sequence diagrams for the Battle Arena project. Sequ
 
 ---
 
+## Sequence Diagrams by Vertical Slice
+
+Sequence diagrams are organized by vertical slice (VS) for easy reference during epic implementation:
+
+### VS-1: Foundation & Infrastructure Setup
+
+- **No sequence diagrams** - Infrastructure setup, no user flows
+
+### VS-2: Player Authentication & Identity
+
+- `authentication-flow.puml` - Registration, login, logout flows
+- `session-timeout-flow.puml` - JWT token expiration handling
+- **EPIC Reference:** [EPIC-VS-2: Authentication](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_2_AUTHENTICATION.md)
+
+### VS-3: First Playable Match
+
+- `matchmaking-flow.puml` - Join queue, match found (bot opponent)
+- `gameplay-flow.puml` - Complete gameplay flow
+- `movement-flow.puml` - Hero movement system
+- `post-match-flow.puml` - Match result processing
+- **EPIC Reference:** [EPIC-VS-3: First Playable Match](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_3_FIRST_PLAYABLE_MATCH.md)
+
+### VS-4: Profile & Progression
+
+- `profile-view-flow.puml` - View user profile
+- `profile-update-flow.puml` - Update profile (display name, avatar)
+- `leaderboard-view-flow.puml` - View leaderboard with filtering
+- `post-match-flow.puml` - Score/rank updates after match
+- `post-match-result-screen-flow.puml` - Result screen with rank changes
+- **EPIC Reference:** [EPIC-VS-4: Profile & Progression](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_4_PROFILE_AND_PROGRESSION.md)
+
+### VS-5: Full Game Features
+
+- `hero-selection-flow.puml` - Multiple hero selection
+- `matchmaking-flow.puml` - Real player matching (not bot)
+- `arena-selection-flow.puml` - Arena voting/elimination
+- `weapon-selection-flow.puml` - Weapon drafting
+- `arena-selection-timeout-flow.puml` - Arena selection timeout handling
+- `weapon-selection-timeout-flow.puml` - Weapon selection timeout handling
+- `match-acceptance-timeout-flow.puml` - Match acceptance timeout
+- `match-rejection-flow.puml` - Match rejection handling
+- `matchmaking-timeout-flow.puml` - Matchmaking timeout
+- `queue-cancellation-flow.puml` - Leave queue
+- **EPIC Reference:** [EPIC-VS-5: Full Game Features](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_5_FULL_GAME_FEATURES.md)
+
+### VS-6: Content Complete
+
+- **No sequence diagrams** - Deployment, testing, documentation (no user flows)
+
+### VS-7: Gold Master
+
+- **No sequence diagrams** - Monitoring, logging, production readiness (no user flows)
+
+**Note:** VS-6 and VS-7 focus on infrastructure, deployment, and operations rather than user-facing flows, so they don't require sequence diagrams.
+
+---
+
 ## Related Documentation
 
 ### Primary References
@@ -295,6 +352,17 @@ This directory contains all sequence diagrams for the Battle Arena project. Sequ
 - **[HLD Data Flow](../../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/04-DATA_FLOW.md)** - Complete data flow documentation with all sequence diagram references
 - **[Use Case Service Mapping](../../../05-PROJECT_MANAGEMENT/USE_CASE_SERVICE_MAPPING.md)** - Service involvement mapping
 - **[Project Scope](../../../00-PROJECT_DEFINITION/PROJECT_SCOPE.md)** - All use cases and user stories
+- **[Game Development Planning](../../../05-PROJECT_MANAGEMENT/EPICS/CORE_IDEA_GAME_DEVELOPMENT_PLANNING.md)** - Vertical slice planning guide
+
+### EPIC Documentation
+
+- **[EPIC-VS-1: Foundation](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_1_FOUNDATION.md)** - Foundation & Infrastructure Setup
+- **[EPIC-VS-2: Authentication](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_2_AUTHENTICATION.md)** - Player Authentication & Identity
+- **[EPIC-VS-3: First Playable Match](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_3_FIRST_PLAYABLE_MATCH.md)** - First Playable Match
+- **[EPIC-VS-4: Profile & Progression](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_4_PROFILE_AND_PROGRESSION.md)** - Profile & Progression
+- **[EPIC-VS-5: Full Game Features](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_5_FULL_GAME_FEATURES.md)** - Full Game Features
+- **[EPIC-VS-6: Content Complete](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_6_CONTENT_COMPLETE.md)** - Content Complete
+- **[EPIC-VS-7: Gold Master](../../../05-PROJECT_MANAGEMENT/EPICS/EPIC_VS_7_GOLD_MASTER.md)** - Gold Master
 
 ### Supporting Documentation
 
