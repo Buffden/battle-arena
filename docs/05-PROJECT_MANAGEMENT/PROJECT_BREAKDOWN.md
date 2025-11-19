@@ -38,6 +38,7 @@ This project uses **two complementary breakdown approaches**:
 
 **Purpose:** Organize work by technical services and implementation phases
 **Use When:** Implementing specific services, technical task breakdown, service-level planning
+
 **Structure:** Phase 1-9 (Foundation → Auth → Profile → Leaderboard → Matchmaking → Game Engine → Frontend → Deployment → QA)
 
 **📁 Phase Files:** See [ISSUE_TEMPLATES directory](./ISSUE_TEMPLATES/) for Phase documentation:
@@ -56,6 +57,7 @@ This project uses **two complementary breakdown approaches**:
 
 - **VS Epics** = **What** to build and **in what order** (player experience)
 - **Phase Documents** = **How** to build it (technical implementation)
+
 - **VS Epics reference Phase Documents** for technical details
 - **One VS Epic may span multiple Phases** (e.g., VS-3 uses Phase 5, 6, and 7)
 
@@ -74,8 +76,9 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-1: Foundation & Infrastructure Setup
 
-**Milestone:** Vertical Slice  
-**Priority:** High  
+**Milestone:** Vertical Slice
+
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `infrastructure`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-1: Foundation](./EPICS/EPIC_VS_1_FOUNDATION.md)
@@ -90,8 +93,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-2: Player Authentication & Identity
 
-**Milestone:** Vertical Slice  
-**Priority:** High  
+**Milestone:** Vertical Slice
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `epic:auth`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-2: Authentication](./EPICS/EPIC_VS_2_AUTHENTICATION.md)
@@ -108,8 +111,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-3: First Playable Match
 
-**Milestone:** Vertical Slice  
-**Priority:** High  
+**Milestone:** Vertical Slice
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `epic:gameplay`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-3: First Playable Match](./EPICS/EPIC_VS_3_FIRST_PLAYABLE_MATCH.md)
@@ -128,8 +131,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-4: Profile & Progression
 
-**Milestone:** Alpha  
-**Priority:** High  
+**Milestone:** Alpha
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `epic:progression`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-4: Profile & Progression](./EPICS/EPIC_VS_4_PROFILE_AND_PROGRESSION.md)
@@ -146,8 +149,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-5: Full Game Features
 
-**Milestone:** Beta  
-**Priority:** High  
+**Milestone:** Beta
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `epic:features`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-5: Full Game Features](./EPICS/EPIC_VS_5_FULL_GAME_FEATURES.md)
@@ -157,6 +160,7 @@ This project uses **two complementary breakdown approaches**:
 - Story 1: Player can select heroes
 - Story 2: Player can select weapons
 - Story 3: Player can vote on arenas
+
 - Story 4: Player can match with real players
 
 **Technical Reference:** Phase 5 (Matchmaking - selection systems), Phase 6 (Game Engine - integration), Phase 7 (Frontend - selection UIs)
@@ -165,8 +169,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-6: Content Complete
 
-**Milestone:** Content Complete  
-**Priority:** Medium  
+**Milestone:** Content Complete
+**Priority:** Medium
 **Labels:** `epic:vertical-slice`, `epic:deployment`, `priority:medium`
 
 **Complete EPIC:** [EPIC-VS-6: Content Complete](./EPICS/EPIC_VS_6_CONTENT_COMPLETE.md)
@@ -183,8 +187,8 @@ This project uses **two complementary breakdown approaches**:
 
 ### VS-7: Gold Master
 
-**Milestone:** Gold Master  
-**Priority:** High  
+**Milestone:** Gold Master
+**Priority:** High
 **Labels:** `epic:vertical-slice`, `epic:production`, `priority:high`
 
 **Complete EPIC:** [EPIC-VS-7: Gold Master](./EPICS/EPIC_VS_7_GOLD_MASTER.md)
@@ -193,6 +197,7 @@ This project uses **two complementary breakdown approaches**:
 
 - Story 1: Application is fully monitored
 - Story 2: Application has centralized logging
+
 - Story 3: Application is production-ready
 
 **Technical Reference:** Phase 8 (Deployment Architecture - monitoring/logging)
@@ -207,8 +212,8 @@ This project uses **two complementary breakdown approaches**:
 
 ## 🎯 EPIC 1: Foundation & Infrastructure Setup
 
-**Milestone:** Phase 1: Foundation  
-**Priority:** High  
+**Milestone:** Phase 1: Foundation
+**Priority:** High
 **Labels:** `infrastructure`, `priority:high`
 
 ### Story 1.1: Project Structure & Repository Setup
@@ -224,6 +229,7 @@ Set up the complete project structure with all microservices, frontend, and infr
 - [ ] All service directories initialized
 - [ ] README files created for each service
 - [ ] .gitignore configured
+
 - [ ] Basic documentation structure in place
 
 **Subtasks:**
@@ -235,7 +241,9 @@ Set up the complete project structure with all microservices, frontend, and infr
   - [ ] Create leaderboard-service directory
   - [ ] Create matchmaking-service directory
   - [ ] Create game-engine directory
+
 - [ ] Initialize frontend-service directory
+
 - [ ] Create deployments directory structure
 - [ ] Create database directory for init scripts
 - [ ] Create scripts directory
@@ -277,18 +285,21 @@ Configure development environment with Docker, Docker Compose, and all necessary
 **Issue Title:** `[EPIC-1] Set up CI/CD pipeline with GitHub Actions`
 
 **Description:**
+
 Create GitHub Actions workflows for automated testing, building, and deployment.
 
 **Acceptance Criteria:**
 
 - [ ] CI pipeline runs on PRs
 - [ ] Tests run automatically
+
 - [ ] Build verification works
 - [ ] Deployment pipeline configured
 
 **Subtasks:**
 
 - [ ] Create GitHub Actions workflow for backend services
+
 - [ ] Create GitHub Actions workflow for frontend
 - [ ] Configure automated testing
 - [ ] Configure build verification
@@ -300,8 +311,9 @@ Create GitHub Actions workflows for automated testing, building, and deployment.
 
 ## 🔐 EPIC 2: Authentication & User Management
 
-**Milestone:** Phase 2: Authentication  
-**Priority:** High  
+**Milestone:** Phase 2: Authentication
+
+**Priority:** High
 **Labels:** `backend:auth`, `priority:high`
 
 ### Story 2.1: Auth Service - Spring Boot Setup
@@ -316,6 +328,7 @@ Initialize Spring Boot project for Auth Service with all necessary dependencies 
 - [ ] Spring Boot project created
 - [ ] Dependencies configured (Spring Security, MongoDB, JWT)
 - [ ] Application properties configured
+
 - [ ] Basic project structure follows clean architecture
 
 **Subtasks:**
@@ -345,6 +358,7 @@ As a user, I want to register with username and email so that I can create an ac
 - [ ] Duplicate username/email check
 - [ ] Password hashing with BCrypt (12 rounds)
 - [ ] User saved to MongoDB
+
 - [ ] Success response returned
 - [ ] Unit tests with 80%+ coverage
 
@@ -359,6 +373,7 @@ As a user, I want to register with username and email so that I can create an ac
 - [ ] Implement password hashing
 - [ ] Create UserDTO for request/response
 - [ ] Write unit tests for UserService
+
 - [ ] Write integration tests for endpoint
 - [ ] Update API documentation
 
@@ -388,6 +403,7 @@ As a user, I want to login with my credentials so that I can access the game.
 - [ ] Create login method in UserService
 - [ ] Create /login endpoint in AuthController
 - [ ] Create LoginRequest and LoginResponse DTOs
+
 - [ ] Implement error handling
 - [ ] Write unit tests
 - [ ] Write integration tests
@@ -416,6 +432,7 @@ As a user, I want my password to be securely hashed so that my account is protec
 - [ ] Implement password hashing in registration
 - [ ] Implement password verification in login
 - [ ] Add password strength validation (optional)
+
 - [ ] Write security tests
 - [ ] Document password security practices
 
@@ -433,6 +450,7 @@ As a user, I want to logout so that I can securely end my session.
 - [ ] POST /api/auth/logout endpoint
 - [ ] Token invalidation (if using token blacklist)
 - [ ] Session cleanup
+
 - [ ] Success response
 
 **Subtasks:**
@@ -466,6 +484,7 @@ Create middleware to validate JWT tokens on protected endpoints across all servi
 - [ ] Create JwtTokenProvider utility
 - [ ] Configure Spring Security
 - [ ] Add token validation logic
+
 - [ ] Handle expired tokens
 - [ ] Handle invalid tokens
 - [ ] Write unit tests
@@ -483,6 +502,7 @@ As a user, I want to login with my Google account so that I can quickly access t
 
 - [ ] Google OAuth 2.0 client configured
 - [ ] POST /api/auth/google endpoint created
+
 - [ ] Google OAuth token validation
 - [ ] User creation/authentication via Google account
 - [ ] JWT token generation after Google authentication
@@ -496,6 +516,7 @@ As a user, I want to login with my Google account so that I can quickly access t
 - [ ] Create Google OAuth Service
 - [ ] Implement Google OAuth endpoint
 - [ ] Update UserRepository for OAuth queries
+
 - [ ] Add Google OAuth configuration
 - [ ] Frontend Google login integration
 - [ ] Document JWT usage
@@ -504,8 +525,8 @@ As a user, I want to login with my Google account so that I can quickly access t
 
 ## 👤 EPIC 3: Profile Service
 
-**Milestone:** Phase 3: Profile Management  
-**Priority:** High  
+**Milestone:** Phase 3: Profile Management
+**Priority:** High
 **Labels:** `backend:profile`, `priority:high`
 
 ### Story 3.1: Profile Service - Spring Boot Setup
@@ -539,12 +560,14 @@ Initialize Spring Boot project for Profile Service with MongoDB integration.
 **Issue Title:** `[EPIC-3] Implement view profile endpoint`
 
 **Description:**
+
 As a user, I want to view my profile so that I can see my statistics.
 
 **Acceptance Criteria:**
 
 - [ ] GET /api/profile/me endpoint
 - [ ] Returns user profile with statistics
+
 - [ ] JWT authentication required
 - [ ] Profile data from MongoDB
 - [ ] Unit tests with 80%+ coverage
@@ -556,6 +579,7 @@ As a user, I want to view my profile so that I can see my statistics.
 - [ ] Create ProfileService
 - [ ] Create ProfileController
 - [ ] Implement JWT authentication
+
 - [ ] Create ProfileResponse DTO
 - [ ] Write unit tests
 - [ ] Write integration tests
@@ -582,6 +606,7 @@ As a user, I want to update my profile so that I can customize my display name a
 
 - [ ] Create UpdateProfileRequest DTO
 - [ ] Implement update logic in ProfileService
+
 - [ ] Create PUT endpoint in ProfileController
 - [ ] Add input validation
 - [ ] Handle avatar upload (if file upload)
@@ -595,6 +620,7 @@ As a user, I want to update my profile so that I can customize my display name a
 **Issue Title:** `[EPIC-3] Implement global score tracking system`
 
 **Description:**
+
 As a user, I want to see my XP and level so that I can track my progression.
 
 **Acceptance Criteria:**
@@ -612,6 +638,7 @@ As a user, I want to see my XP and level so that I can track my progression.
 - [ ] Create score update endpoint (or internal service call)
 - [ ] Add score to profile response
 - [ ] Write tests
+
 - [ ] Document score system
 
 ---
@@ -628,12 +655,14 @@ Calculate and display rank tiers based on global score ranges (like Valorant ran
 - [ ] Rank tiers defined (Iron, Bronze, Silver, Gold, Platinum, Diamond, etc.)
 - [ ] Score ranges for each tier
 - [ ] Rank calculation based on score
+
 - [ ] Rank displayed in profile
 - [ ] Rank change tracking
 
 **Subtasks:**
 
 - [ ] Define rank tier structure
+
 - [ ] Create RankTier enum/class
 - [ ] Define score ranges for each tier
 - [ ] Implement rank calculation logic
@@ -641,6 +670,7 @@ Calculate and display rank tiers based on global score ranges (like Valorant ran
 - [ ] Create rank update method
 - [ ] Add rank to profile response
 - [ ] Write tests
+
 - [ ] Document rank system
 
 ---
@@ -667,6 +697,7 @@ As a user, I want to see my win/loss statistics so that I can track my performan
 - [ ] Implement win/loss tracking
 - [ ] Calculate win percentage
 - [ ] Add statistics to profile response
+
 - [ ] Write tests
 - [ ] Update API documentation
 
@@ -674,8 +705,8 @@ As a user, I want to see my win/loss statistics so that I can track my performan
 
 ## 🏆 EPIC 4: Leaderboard Service
 
-**Milestone:** Phase 4: Leaderboard  
-**Priority:** Medium  
+**Milestone:** Phase 4: Leaderboard
+**Priority:** Medium
 **Labels:** `backend:leaderboard`, `priority:medium`
 
 ### Story 4.1: Leaderboard Service - Spring Boot Setup
@@ -691,6 +722,7 @@ Initialize Spring Boot project for Leaderboard Service.
 - [ ] Add Maven dependencies
 - [ ] Configure MongoDB connection
 - [ ] Set up package structure
+
 - [ ] Create Application.java
 - [ ] Configure application.properties
 
@@ -706,6 +738,7 @@ As a user, I want to view the global leaderboard so that I can see top players.
 **Acceptance Criteria:**
 
 - [ ] GET /api/leaderboard endpoint
+
 - [ ] Returns top players by global score
 - [ ] Pagination support
 - [ ] Sorted by score (descending)
@@ -734,6 +767,7 @@ As a user, I want to filter leaderboard by region, hero type, winning percentage
 **Acceptance Criteria:**
 
 - [ ] Filter by region
+
 - [ ] Filter by hero type
 - [ ] Filter by winning percentage range
 - [ ] Filter by weapons used
@@ -804,8 +838,8 @@ As a user, I want to see player statistics on the leaderboard so that I can comp
 
 ## 🎮 EPIC 5: Matchmaking Service
 
-**Milestone:** Phase 5: Matchmaking  
-**Priority:** High  
+**Milestone:** Phase 5: Matchmaking
+**Priority:** High
 **Labels:** `backend:matchmaking`, `priority:high`
 
 ### Story 5.1: Matchmaking Service - Node.js Setup
@@ -813,6 +847,7 @@ As a user, I want to see player statistics on the leaderboard so that I can comp
 **Issue Title:** `[EPIC-5] Set up Matchmaking Service with Node.js and Socket.io`
 
 **Description:**
+
 Initialize Node.js project for Matchmaking Service with Express and Socket.io.
 
 **Acceptance Criteria:**
@@ -828,12 +863,14 @@ Initialize Node.js project for Matchmaking Service with Express and Socket.io.
 - [ ] Create Node.js project structure
 - [ ] Initialize package.json
 - [ ] Install dependencies (express, socket.io, ioredis, jsonwebtoken)
+
 - [ ] Create server.js/index.js
 - [ ] Configure Express
 - [ ] Configure Socket.io
 - [ ] Configure Redis connection
 - [ ] Set up package structure (routes, services, models, middleware)
 - [ ] Create environment configuration
+
 - [ ] Add health check endpoint
 
 ---
@@ -851,11 +888,13 @@ As a user, I want to select multiple heroes before matchmaking so that I can inc
 - [ ] Hero selection stored with priority order
 - [ ] Hero selection used for matchmaking
 - [ ] Selected hero displayed before match starts
+
 - [ ] Random hero selection from matched heroes
 
 **Subtasks:**
 
 - [ ] Create Hero model
+
 - [ ] Create hero selection endpoint/event
 - [ ] Store hero selection in Redis
 - [ ] Implement hero selection validation
@@ -896,12 +935,14 @@ As a user, I want to join the matchmaking queue so that I can find a match.
 **Issue Title:** `[EPIC-5] Implement leave matchmaking queue`
 
 **Description:**
+
 As a user, I want to leave the matchmaking queue so that I can cancel my search.
 
 **Acceptance Criteria:**
 
 - [ ] Socket.io event: leave-queue
 - [ ] User removed from queue
+
 - [ ] Success response
 
 **Subtasks:**
@@ -959,6 +1000,7 @@ As a user, I want to see my queue status so that I know my position and estimate
 - [ ] Calculate estimated wait time
 - [ ] Create queue-status Socket.io event
 - [ ] Send periodic updates
+
 - [ ] Write tests
 - [ ] Update documentation
 
@@ -985,6 +1027,7 @@ As a user, I want to accept or reject a match so that I can control when I play.
 - [ ] Create accept-match event handler
 - [ ] Create reject-match event handler
 - [ ] Implement timeout logic
+
 - [ ] Implement both-players-accept logic
 - [ ] Write tests
 - [ ] Document match acceptance flow
@@ -1003,6 +1046,7 @@ As a player, I want to select arenas using voting/elimination system so that I c
 - [ ] Voting/elimination system
 - [ ] Arena previews displayed
 - [ ] Real-time opponent elimination visibility
+
 - [ ] Final arena selected
 
 **Subtasks:**
@@ -1010,6 +1054,7 @@ As a player, I want to select arenas using voting/elimination system so that I c
 - [ ] Create Arena model
 - [ ] Create arena selection service
 - [ ] Implement voting/elimination logic
+
 - [ ] Create eliminate-arena Socket.io event
 - [ ] Store arena selection in Redis
 - [ ] Create arena preview system
@@ -1023,12 +1068,14 @@ As a player, I want to select arenas using voting/elimination system so that I c
 **Issue Title:** `[EPIC-5] Implement alternating weapon selection (10 weapons, 30s timer)`
 
 **Description:**
+
 As a player, I want to select 10 weapons one by one, alternating with my opponent so that I can plan my strategy.
 
 **Acceptance Criteria:**
 
 - [ ] 10 weapons selected per match
 - [ ] Alternating selection (Player 1, Player 2, Player 1, ...)
+
 - [ ] 30-second timer per selection
 - [ ] Real-time opponent selection visibility
 - [ ] Random selection if timeout
@@ -1049,8 +1096,8 @@ As a player, I want to select 10 weapons one by one, alternating with my opponen
 
 ## 🎯 EPIC 6: Game Engine Service
 
-**Milestone:** Phase 6: Game Engine  
-**Priority:** High  
+**Milestone:** Phase 6: Game Engine
+**Priority:** High
 **Labels:** `backend:game-engine`, `priority:high`
 
 ### Story 6.1: Game Engine Service - Node.js Setup
@@ -1075,6 +1122,7 @@ Initialize Node.js project for Game Engine Service with Express, Socket.io, and 
 - [ ] Install dependencies (express, socket.io, matter-js, ioredis)
 - [ ] Create server.js/index.js
 - [ ] Configure Express
+
 - [ ] Configure Socket.io
 - [ ] Configure Matter.js
 - [ ] Configure Redis connection
@@ -1105,6 +1153,7 @@ Create and manage game rooms for matches with proper state management.
 - [ ] Implement room state storage (Redis)
 - [ ] Implement player assignment
 - [ ] Implement room cleanup
+
 - [ ] Write tests
 - [ ] Document room system
 
@@ -1122,12 +1171,14 @@ As a player, I want to know when it's my turn (15 seconds per turn) so that I ca
 - [ ] Turn-based gameplay
 - [ ] 15 seconds per turn
 - [ ] Turn timer countdown
+
 - [ ] Turn switching logic
 - [ ] Match ends after 4-5 minutes OR 10 turns per player
 
 **Subtasks:**
 
 - [ ] Create turn management service
+
 - [ ] Implement turn timer (15 seconds)
 - [ ] Implement turn switching
 - [ ] Implement match duration tracking
@@ -1135,6 +1186,7 @@ As a player, I want to know when it's my turn (15 seconds per turn) so that I ca
 - [ ] Create turn-start Socket.io event
 - [ ] Create turn-end Socket.io event
 - [ ] Write tests
+
 - [ ] Document turn system
 
 ---
@@ -1161,6 +1213,7 @@ As a player, I want to move my hero within the arena (4 moves per game, left/rig
 - [ ] Implement movement validation
 - [ ] Create move-hero Socket.io event
 - [ ] Update game state on movement
+
 - [ ] Broadcast position to opponent
 - [ ] Write tests
 - [ ] Document movement system
@@ -1188,6 +1241,7 @@ As a player, I want to aim and fire projectiles so that I can attack my opponent
 - [ ] Create physics world per arena
 - [ ] Implement projectile creation
 - [ ] Implement gravity system (arena-specific)
+
 - [ ] Implement collision detection
 - [ ] Implement hit detection
 - [ ] Create fire-projectile Socket.io event
@@ -1207,6 +1261,7 @@ As a player, I want to see the game state in real-time so that I can make inform
 **Acceptance Criteria:**
 
 - [ ] Game state stored in Redis
+
 - [ ] Real-time state updates via Socket.io
 - [ ] State synchronization between players
 - [ ] State persistence
@@ -1220,6 +1275,7 @@ As a player, I want to see the game state in real-time so that I can make inform
 - [ ] Broadcast state updates
 - [ ] Implement state persistence
 - [ ] Write tests
+
 - [ ] Document state sync
 
 ---
@@ -1234,6 +1290,7 @@ Implement health system with different HP per hero type, balanced when matched.
 **Acceptance Criteria:**
 
 - [ ] Hero-specific HP values
+
 - [ ] HP reduction on hit
 - [ ] HP display in game
 - [ ] HP sync between players
@@ -1263,18 +1320,21 @@ As a player, I want to earn score based on accuracy (closer to center = more sco
 - [ ] Back-to-back hit bonus
 - [ ] Repositioning save bonus
 - [ ] Score calculation per turn
+
 - [ ] Score displayed in game
 
 **Subtasks:**
 
 - [ ] Design scoring formulas
 - [ ] Implement accuracy calculation
+
 - [ ] Implement back-to-back hit detection
 - [ ] Implement repositioning save detection
 - [ ] Create scoring service
 - [ ] Calculate score per turn
 - [ ] Broadcast score updates
 - [ ] Write tests
+
 - [ ] Document scoring system
 
 ---
@@ -1292,6 +1352,7 @@ As a player, I want to see the match results so that I know if I won or lost.
 - [ ] Win by more HP at match end
 - [ ] Draw condition (same HP AND same score)
 - [ ] Match result calculation
+
 - [ ] Result broadcast to players
 
 **Subtasks:**
@@ -1299,6 +1360,7 @@ As a player, I want to see the match results so that I know if I won or lost.
 - [ ] Implement HP = 0 check (instant win)
 - [ ] Implement end-of-match HP comparison
 - [ ] Implement draw condition
+
 - [ ] Create match result service
 - [ ] Calculate final scores
 - [ ] Create match-end Socket.io event
@@ -1340,8 +1402,8 @@ Handle player disconnections with rejoin window and configurable penalties.
 
 ## 🎨 EPIC 7: Frontend Development
 
-**Milestone:** Phase 7: Frontend  
-**Priority:** High  
+**Milestone:** Phase 7: Frontend
+**Priority:** High
 **Labels:** `frontend`, `priority:high`
 
 ### Story 7.1: Angular Project Setup
@@ -1365,6 +1427,7 @@ Initialize Angular 17+ project with TailwindCSS for styling and Phaser 3 for gam
 - [ ] Install Angular dependencies
 - [ ] Configure TailwindCSS
 - [ ] Install and configure Phaser 3
+
 - [ ] Set up project structure (components, services, models, guards)
 - [ ] Configure routing
 - [ ] Create environment files
@@ -1379,6 +1442,7 @@ Initialize Angular 17+ project with TailwindCSS for styling and Phaser 3 for gam
 **Issue Title:** `[EPIC-7] Create authentication UI (login, register, logout)`
 
 **Description:**
+
 Create user interface for registration, login, and logout functionality.
 
 **Acceptance Criteria:**
@@ -1393,12 +1457,14 @@ Create user interface for registration, login, and logout functionality.
 **Subtasks:**
 
 - [ ] Create registration component
+
 - [ ] Create login component
 - [ ] Create auth service
 - [ ] Implement JWT token storage
 - [ ] Implement form validation
 - [ ] Implement error handling
 - [ ] Create auth guard
+
 - [ ] Implement logout
 - [ ] Style with TailwindCSS
 - [ ] Write component tests
@@ -1427,6 +1493,7 @@ Create main dashboard page with navigation to all game features.
 - [ ] Create layout component
 - [ ] Implement routing
 - [ ] Style with TailwindCSS
+
 - [ ] Write tests
 - [ ] Update documentation
 
@@ -1454,6 +1521,7 @@ As a user, I want to select multiple heroes before matchmaking so that I can inc
 - [ ] Implement multiple selection
 - [ ] Create hero service
 - [ ] Integrate with Matchmaking Service (Socket.io)
+
 - [ ] Style with TailwindCSS
 - [ ] Write tests
 - [ ] Update documentation
@@ -1504,6 +1572,7 @@ As a player, I want to select arenas using voting/elimination system so that I c
 - [ ] Arena previews
 - [ ] Elimination buttons
 - [ ] Real-time opponent elimination visibility
+
 - [ ] Final arena display
 
 **Subtasks:**
@@ -1533,6 +1602,7 @@ As a player, I want to select 10 weapons one by one, alternating with my opponen
 - [ ] Weapon cards
 - [ ] Alternating selection display
 - [ ] 30-second timer
+
 - [ ] Real-time opponent selection visibility
 - [ ] Random selection on timeout
 
@@ -1547,6 +1617,7 @@ As a player, I want to select 10 weapons one by one, alternating with my opponen
 - [ ] Handle timeout
 - [ ] Style with TailwindCSS
 - [ ] Write tests
+
 - [ ] Update documentation
 
 ---
@@ -1577,12 +1648,14 @@ As a player, I want to play turn-based 2D artillery battles so that I can compet
 - [ ] Integrate with Game Engine Service (Socket.io)
 - [ ] Implement hero rendering
 - [ ] Implement movement controls
+
 - [ ] Implement aim and fire controls
 - [ ] Implement projectile rendering
 - [ ] Implement turn timer display
 - [ ] Implement game state display
 - [ ] Real-time updates via Socket.io
 - [ ] Style with TailwindCSS
+
 - [ ] Write tests
 - [ ] Update documentation
 
@@ -1610,6 +1683,7 @@ As a user, I want to view my profile so that I can see my statistics.
 - [ ] Integrate with Profile Service API
 - [ ] Display profile information
 - [ ] Display statistics
+
 - [ ] Display rank tier
 - [ ] Implement profile update
 - [ ] Style with TailwindCSS
@@ -1629,6 +1703,7 @@ As a user, I want to view the global leaderboard so that I can see top players.
 
 - [ ] Leaderboard page
 - [ ] Top players display
+
 - [ ] Filtering options (region, hero, win%, weapons)
 - [ ] Rank tier display
 - [ ] Player statistics display
@@ -1641,6 +1716,7 @@ As a user, I want to view the global leaderboard so that I can see top players.
 - [ ] Integrate with Leaderboard Service API
 - [ ] Implement filtering UI
 - [ ] Display rank tiers
+
 - [ ] Display player statistics
 - [ ] Implement pagination
 - [ ] Style with TailwindCSS
@@ -1651,8 +1727,8 @@ As a user, I want to view the global leaderboard so that I can see top players.
 
 ## 🐳 EPIC 8: Infrastructure & Deployment
 
-**Milestone:** Phase 8: Deployment  
-**Priority:** Medium  
+**Milestone:** Phase 8: Deployment
+**Priority:** Medium
 **Labels:** `infrastructure`, `priority:medium`
 
 ### Story 8.1: Docker Configuration
@@ -1666,6 +1742,7 @@ Create Dockerfiles for all backend services and frontend for containerization.
 
 - [ ] Dockerfile for Auth Service
 - [ ] Dockerfile for Profile Service
+
 - [ ] Dockerfile for Leaderboard Service
 - [ ] Dockerfile for Matchmaking Service
 - [ ] Dockerfile for Game Engine Service
@@ -1698,6 +1775,7 @@ Create Docker Compose configuration for running all services locally.
 **Acceptance Criteria:**
 
 - [ ] docker-compose.yml created
+
 - [ ] All services defined
 - [ ] MongoDB container
 - [ ] Redis container
@@ -1713,6 +1791,7 @@ Create Docker Compose configuration for running all services locally.
 - [ ] Configure Redis container
 - [ ] Configure Nginx container (optional)
 - [ ] Set up networking
+
 - [ ] Configure volumes
 - [ ] Set up environment variables
 - [ ] Test docker-compose up
@@ -1740,6 +1819,7 @@ Configure Nginx as reverse proxy and API gateway for routing requests.
 - [ ] Create nginx.conf
 - [ ] Configure routing rules
 - [ ] Configure load balancing
+
 - [ ] Set up health check endpoints
 - [ ] Configure CORS
 - [ ] Test routing
@@ -1749,8 +1829,8 @@ Configure Nginx as reverse proxy and API gateway for routing requests.
 
 ## 📚 EPIC 9: Documentation & Testing
 
-**Milestone:** Phase 9: Quality Assurance  
-**Priority:** Medium  
+**Milestone:** Phase 9: Quality Assurance
+**Priority:** Medium
 **Labels:** `documentation`, `testing`, `priority:medium`
 
 ### Story 9.1: API Documentation
