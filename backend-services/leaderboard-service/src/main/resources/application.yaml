@@ -1,3 +1,10 @@
+server:
+  port: ${SERVER_PORT:8083}
+
 spring:
   application:
     name: leaderboard-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongodb:27017/battlearena}
+      database: ${MONGODB_DATABASE:battlearena}
