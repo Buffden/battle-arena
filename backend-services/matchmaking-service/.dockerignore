@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.git/
+.gitignore
+.env
+*.log
+.DS_Store
+README.md
+coverage/
+.vscode/
+.idea/
+*.md
+test/
+__tests__/
+
