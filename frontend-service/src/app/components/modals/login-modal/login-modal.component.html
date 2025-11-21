@@ -1,0 +1,92 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="pixel-card modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2 class="pixel-title modal-title">Login</h2>
+          <button class="modal-close" (click)="close()" type="button">×</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <!-- Username Field -->
+            <div class="form-group">
+              <label class="pixel-text form-label">Username</label>
+              <input
+                type="text"
+                formControlName="username"
+                class="pixel-input"
+                placeholder="Enter your username"
+                [class.error]="username?.invalid && username?.touched"
+              />
+              @if (username?.invalid && username?.touched) {
+                <div class="error-message">
+                  @if (username?.errors?.['required']) {
+                    <span class="pixel-text error-text">Username is required</span>
+                  }
+                  @if (username?.errors?.['minlength']) {
+                    <span class="pixel-text error-text"
+                      >Username must be at least 3 characters</span
+                    >
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+              <label class="pixel-text form-label">Password</label>
+              <input
+                type="password"
+                formControlName="password"
+                class="pixel-input"
+                placeholder="Enter your password"
+                [class.error]="password?.invalid && password?.touched"
+              />
+              @if (password?.invalid && password?.touched) {
+                <div class="error-message">
+                  @if (password?.errors?.['required']) {
+                    <span class="pixel-text error-text">Password is required</span>
+                  }
+                  @if (password?.errors?.['minlength']) {
+                    <span class="pixel-text error-text"
+                      >Password must be at least 8 characters</span
+                    >
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Error Message -->
+            @if (errorMessage) {
+              <div class="error-message general-error">
+                <span class="pixel-text error-text">{{ errorMessage }}</span>
+              </div>
+            }
+
+            <!-- Submit Button -->
+            <button type="submit" class="pixel-button" [disabled]="loginForm.invalid || loading">
+              @if (loading) {
+                <span>Logging in...</span>
+              } @else {
+                <span>Login</span>
+              }
+            </button>
+          </form>
+
+          <!-- Switch to Register -->
+          <div class="modal-footer">
+            <p class="pixel-text footer-text">
+              Don't have an account?
+              <button class="link-button" (click)="switchToRegister()" type="button">
+                Register
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
