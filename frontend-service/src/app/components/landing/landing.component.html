@@ -1,0 +1,96 @@
+<div class="landing-page">
+  <!-- Pixel Art Header -->
+  <header class="pixel-header">
+    <div class="pixel-container">
+      <h1 class="logo">{{ title }}</h1>
+      <nav class="pixel-nav">
+        <button (click)="openLogin()" class="pixel-button secondary">Login</button>
+        <button (click)="openRegister()" class="pixel-button">Register</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="pixel-container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h2 class="pixel-title hero-title">{{ subtitle }}</h2>
+          <p class="pixel-text hero-description">
+            Join the ultimate battle arena where strategy meets action. Compete against players
+            worldwide, climb the leaderboards, and become the champion!
+          </p>
+          <div class="hero-buttons">
+            <button (click)="openRegister()" class="pixel-button">Start Battle</button>
+            <button (click)="openLogin()" class="pixel-button secondary">Continue Quest</button>
+          </div>
+        </div>
+        <div class="hero-art">
+          <div class="pixel-warrior">
+            <div class="warrior-head"></div>
+            <div class="warrior-body"></div>
+            <div class="warrior-shield"></div>
+            <div class="warrior-sword"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="pixel-container">
+      <h2 class="pixel-title section-title">Features</h2>
+      <div class="pixel-grid features-grid">
+        <div class="pixel-card feature-card">
+          <div class="feature-icon">⚔️</div>
+          <h3 class="feature-title">Epic Battles</h3>
+          <p class="pixel-text">
+            Engage in intense real-time combat with players from around the world.
+          </p>
+        </div>
+        <div class="pixel-card feature-card">
+          <div class="feature-icon">🏆</div>
+          <h3 class="feature-title">Leaderboards</h3>
+          <p class="pixel-text">Climb the ranks and prove you're the best warrior in the arena.</p>
+        </div>
+        <div class="pixel-card feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3 class="feature-title">Matchmaking</h3>
+          <p class="pixel-text">Smart matchmaking ensures fair and balanced battles every time.</p>
+        </div>
+        <div class="pixel-card feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Stats & Progress</h3>
+          <p class="pixel-text">Track your performance and watch your skills improve over time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="pixel-container">
+      <div class="pixel-card cta-card">
+        <h2 class="pixel-title">Ready to Enter the Arena?</h2>
+        <p class="pixel-text cta-text">
+          Join thousands of warriors competing for glory. Create your account now!
+        </p>
+        <div class="cta-buttons">
+          <button (click)="openRegister()" class="pixel-button">Join Now</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="pixel-footer">
+    <div class="pixel-container">
+      <p class="pixel-text footer-text">© 2024 Battle Arena. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Modals -->
+  <app-login-modal></app-login-modal>
+  <app-register-modal></app-register-modal>
+</div>
