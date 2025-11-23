@@ -6,5 +6,19 @@ spring:
     name: leaderboard-service
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://mongodb:27017/battlearena}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/battlearena}
       database: ${MONGODB_DATABASE:battlearena}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    mongo:
+      enabled: true
+    defaults:
+      enabled: true

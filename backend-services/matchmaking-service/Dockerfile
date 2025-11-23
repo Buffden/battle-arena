@@ -2,11 +2,15 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Copy source code
+COPY . .
+
+# Build step (if needed in future)
+RUN npm run build || echo "No build step for this service"
 
 # Stage 2: Runtime
 FROM node:20-alpine
@@ -19,9 +23,14 @@ RUN apk add --no-cache wget
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy dependencies and source code from build stage
-COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --chown=nodejs:nodejs . .
+# Copy dependencies and source from build stage
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/server.js ./
+COPY --from=build /app/src ./src
+
+# Change ownership to non-root user
+RUN chown -R nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs
@@ -34,5 +43,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 EXPOSE 3002
 
 # Run application
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
 
