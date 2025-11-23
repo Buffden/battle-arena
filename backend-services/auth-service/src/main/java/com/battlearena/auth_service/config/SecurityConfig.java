@@ -43,8 +43,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for API (stateless)
-            .csrf(csrf -> csrf.disable())
+            // Enable CSRF protection, but ignore stateless API endpoints
+            // CSRF is not needed for stateless JWT-based API authentication
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**"))
 
             // CORS configuration
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
