@@ -33,7 +33,8 @@ import com.battlearena.auth_service.service.UserService;
 class AuthControllerTest {
 
     // Test data constants (clearly marked as test-only, not real credentials)
-    private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password // NOSONAR
+    @SuppressWarnings("squid:S2068") // Suppress hard-coded password warning - test-only data
+    private static final String TEST_VALID_PASSWORD = "TestPassword123";
     private static final String TEST_VALID_USERNAME = "testuser";
     private static final String TEST_VALID_EMAIL = "test@example.com";
 
