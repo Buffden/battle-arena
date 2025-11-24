@@ -33,6 +33,7 @@ import com.battlearena.auth_service.service.UserService;
 class AuthControllerTest {
 
     // Test data constants (clearly marked as test-only, not real credentials)
+    // NOSONAR - This is a test-only password, not a real credential. Suppressing security hotspot.
     private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password for validation testing
     private static final String TEST_VALID_USERNAME = "testuser";
     private static final String TEST_VALID_EMAIL = "test@example.com";

@@ -47,6 +47,7 @@ class SecurityConfigTest {
     void passwordEncoderIsBCrypt() {
         // Test that password encoder is BCrypt by encoding a password
         // Test data constant (clearly marked as test-only, not real credentials)
+        // NOSONAR - This is a test-only password, not a real credential. Suppressing security hotspot.
         final String TEST_PASSWORD = "testPassword123"; // Test-only password for validation testing
         String encoded = passwordEncoder.encode(TEST_PASSWORD);
 
