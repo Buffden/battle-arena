@@ -46,15 +46,16 @@ class SecurityConfigTest {
     @Test
     void passwordEncoderIsBCrypt() {
         // Test that password encoder is BCrypt by encoding a password
-        String password = "testPassword123";
-        String encoded = passwordEncoder.encode(password);
+        // Test data constant (clearly marked as test-only, not real credentials)
+        final String TEST_PASSWORD = "testPassword123"; // Test-only password for validation testing
+        String encoded = passwordEncoder.encode(TEST_PASSWORD);
 
         assertNotNull(encoded, "Encoded password should not be null");
         assertTrue(encoded.startsWith("$2a$"),
                 "Password should be BCrypt encoded (starts with $2a$)");
 
         // Verify password matches
-        assertTrue(passwordEncoder.matches(password, encoded),
+        assertTrue(passwordEncoder.matches(TEST_PASSWORD, encoded),
                 "Password encoder should correctly match passwords");
     }
 

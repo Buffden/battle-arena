@@ -35,6 +35,15 @@ import com.battlearena.auth_service.util.JwtTokenUtil;
 @DisplayName("UserService Unit Tests")
 class UserServiceTest {
 
+    // Test data constants (clearly marked as test-only, not real credentials)
+    private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password for
+                                                                         // validation testing
+    private static final String TEST_VALID_USERNAME = "testuser";
+    private static final String TEST_VALID_EMAIL = "test@example.com";
+    private static final String TEST_ANOTHER_PASSWORD = "SamePassword123"; // Another test password
+                                                                           // for unique hash
+                                                                           // testing
+
     @Mock
     private UserRepository userRepository;
 
@@ -57,16 +66,16 @@ class UserServiceTest {
 
         // Setup valid registration request
         validRegisterRequest = new RegisterRequest();
-        validRegisterRequest.setUsername("testuser");
-        validRegisterRequest.setEmail("test@example.com");
-        validRegisterRequest.setPassword("TestPassword123");
+        validRegisterRequest.setUsername(TEST_VALID_USERNAME);
+        validRegisterRequest.setEmail(TEST_VALID_EMAIL);
+        validRegisterRequest.setPassword(TEST_VALID_PASSWORD);
 
         // Setup saved user (simulating repository save)
         savedUser = new User();
         savedUser.setId("507f1f77bcf86cd799439011");
-        savedUser.setUsername("testuser");
-        savedUser.setEmail("test@example.com");
-        savedUser.setPasswordHash(passwordEncoder.encode("TestPassword123"));
+        savedUser.setUsername(TEST_VALID_USERNAME);
+        savedUser.setEmail(TEST_VALID_EMAIL);
+        savedUser.setPasswordHash(passwordEncoder.encode(TEST_VALID_PASSWORD));
         savedUser.setCreatedAt(LocalDateTime.now());
         savedUser.setUpdatedAt(LocalDateTime.now());
     }
@@ -84,10 +93,10 @@ class UserServiceTest {
 
         // Then: User should be created
         assertNotNull(result);
-        assertEquals("testuser", result.getUsername());
-        assertEquals("test@example.com", result.getEmail());
+        assertEquals(TEST_VALID_USERNAME, result.getUsername());
+        assertEquals(TEST_VALID_EMAIL, result.getEmail());
         assertNotNull(result.getPasswordHash());
-        assertNotEquals("TestPassword123", result.getPasswordHash(), "Password should be hashed");
+        assertNotEquals(TEST_VALID_PASSWORD, result.getPasswordHash(), "Password should be hashed");
         assertTrue(result.getPasswordHash().startsWith("$2a$"), "Should use BCrypt format");
         assertNotNull(result.getCreatedAt());
         assertNotNull(result.getUpdatedAt());
@@ -121,7 +130,7 @@ class UserServiceTest {
 
         // Verify password can be matched (BCrypt verification)
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-        assertTrue(encoder.matches("TestPassword123", result.getPasswordHash()),
+        assertTrue(encoder.matches(TEST_VALID_PASSWORD, result.getPasswordHash()),
                 "Hashed password should match original password");
     }
 
@@ -230,9 +239,9 @@ class UserServiceTest {
 
         // When: Register two users with same password
         RegisterRequest request1 =
-                new RegisterRequest("user1", "user1@test.com", "SamePassword123");
+                new RegisterRequest("user1", "user1@test.com", TEST_ANOTHER_PASSWORD);
         RegisterRequest request2 =
-                new RegisterRequest("user2", "user2@test.com", "SamePassword123");
+                new RegisterRequest("user2", "user2@test.com", TEST_ANOTHER_PASSWORD);
 
         User user1 = userService.registerUser(request1);
         User user2 = userService.registerUser(request2);
