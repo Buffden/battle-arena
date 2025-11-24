@@ -32,6 +32,11 @@ import com.battlearena.auth_service.service.UserService;
 @DisplayName("AuthController Unit Tests")
 class AuthControllerTest {
 
+    // Test data constants (clearly marked as test-only, not real credentials)
+    private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password for validation testing
+    private static final String TEST_VALID_USERNAME = "testuser";
+    private static final String TEST_VALID_EMAIL = "test@example.com";
+
     @Mock
     private UserService userService;
 
@@ -45,15 +50,15 @@ class AuthControllerTest {
     void setUp() {
         // Setup valid registration request
         validRegisterRequest = new RegisterRequest();
-        validRegisterRequest.setUsername("testuser");
-        validRegisterRequest.setEmail("test@example.com");
-        validRegisterRequest.setPassword("TestPassword123");
+        validRegisterRequest.setUsername(TEST_VALID_USERNAME);
+        validRegisterRequest.setEmail(TEST_VALID_EMAIL);
+        validRegisterRequest.setPassword(TEST_VALID_PASSWORD);
 
         // Setup created user (returned by service)
         createdUser = new User();
         createdUser.setId("507f1f77bcf86cd799439011");
-        createdUser.setUsername("testuser");
-        createdUser.setEmail("test@example.com");
+        createdUser.setUsername(TEST_VALID_USERNAME);
+        createdUser.setEmail(TEST_VALID_EMAIL);
         createdUser.setPasswordHash("$2a$10$hashedPassword1234567890123456789");
     }
 

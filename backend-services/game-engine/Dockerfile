@@ -3,11 +3,14 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy package files and install dependencies
+# Security: --ignore-scripts prevents execution of package scripts during installation
+# This mitigates risk of malicious scripts in dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts
 
-# Copy source code
-COPY . .
+# Copy source code explicitly (avoiding COPY . . to prevent copying sensitive/unnecessary files)
+COPY server.js ./
+COPY src ./src
 
 # Build step (if needed in future)
 RUN npm run build || echo "No build step for this service"

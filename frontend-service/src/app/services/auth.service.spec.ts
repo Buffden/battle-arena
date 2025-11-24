@@ -15,6 +15,11 @@ describe('AuthService', () => {
   let httpMock: HttpTestingController;
   const apiUrl = '/api/auth';
 
+  // Test data constants (clearly marked as test-only, not real credentials)
+  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing
+  const TEST_VALID_USERNAME = 'testuser';
+  const TEST_VALID_EMAIL = 'test@example.com';
+
   const mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
   beforeEach(() => {
@@ -34,9 +39,9 @@ describe('AuthService', () => {
 
   describe('register()', () => {
     const registerRequest: RegisterRequest = {
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'TestPassword123'
+      username: TEST_VALID_USERNAME,
+      email: TEST_VALID_EMAIL,
+      password: TEST_VALID_PASSWORD
     };
 
     const mockRegisterResponse: RegisterResponse = {
@@ -169,8 +174,8 @@ describe('AuthService', () => {
   describe('Token Management', () => {
     it('should store token in localStorage after login', () => {
       const loginRequest: LoginRequest = {
-        username: 'testuser',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        password: TEST_VALID_PASSWORD
       };
       const mockAuthResponse: AuthResponse = {
         token: 'mock-jwt-token-123',
@@ -211,17 +216,17 @@ describe('AuthService', () => {
   describe('Registration Request Interface', () => {
     it('should accept RegisterRequest with username, email, and password', () => {
       const request: RegisterRequest = {
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       };
 
       service.register(request).subscribe();
 
       const req = httpMock.expectOne(`${apiUrl}/register`);
-      expect(req.request.body.username).toBe('testuser');
-      expect(req.request.body.email).toBe('test@example.com');
-      expect(req.request.body.password).toBe('TestPassword123');
+      expect(req.request.body.username).toBe(TEST_VALID_USERNAME);
+      expect(req.request.body.email).toBe(TEST_VALID_EMAIL);
+      expect(req.request.body.password).toBe(TEST_VALID_PASSWORD);
       req.flush({} as RegisterResponse);
     });
   });

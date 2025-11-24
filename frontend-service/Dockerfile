@@ -3,8 +3,10 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy package files and install dependencies
+# Security: --ignore-scripts prevents execution of package scripts during installation
+# This mitigates risk of malicious scripts in dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Copy source code and configuration files
 COPY angular.json tsconfig*.json ./
@@ -16,6 +18,14 @@ RUN npm run build -- --configuration production
 
 # Stage 2: Runtime with Nginx
 FROM nginx:1.25-alpine
+
+# Security Note: Nginx runs as root by default in the official image.
+# This is acceptable for this use case because:
+# 1. The container only serves static files (Angular SPA) with read-only access
+# 2. No sensitive operations are performed
+# 3. The container is isolated and runs in a controlled environment
+# 4. Nginx requires root privileges to bind to port 80
+# Alternative: Use a non-root user with a non-privileged port (>1024) if stricter security is required
 
 # Install wget for health checks
 RUN apk add --no-cache wget
