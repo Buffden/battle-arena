@@ -1,4 +1,17 @@
+# ============================================================
+# Docker-Only Deployment Configuration
+# ============================================================
+# This service runs in Docker containers with NO host ports exposed.
+# Services communicate internally via Docker network using service names.
+# Access is only through Nginx API Gateway (port 80/443 on host).
+#
+# Internal container port: 8081 (not exposed to host)
+# MongoDB connection: Uses Docker service name "mongodb" (not localhost)
+# ============================================================
+
 server:
+  # Internal container port - NOT exposed to host machine
+  # Service accessed via Nginx API Gateway only
   port: ${SERVER_PORT:8081}
 
 spring:
@@ -6,19 +19,49 @@ spring:
     name: auth-service
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/battlearena}
+      # Uses Docker service name "mongodb" for inter-container communication
+      # NOT "localhost" - this is Docker-only deployment
+      uri: ${MONGODB_URI:mongodb://mongodb:27017/battlearena}
       database: ${MONGODB_DATABASE:battlearena}
+
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-in-production}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    try-it-out-enabled: true
+    default-consumes-media-type: application/json
+    default-produces-media-type: application/json
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when-authorized
-  health:
-    mongo:
-      enabled: true
-    defaults:
-      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${SPRING_PROFILES_ACTIVE:development}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.battlearena.auth_service: ${LOG_LEVEL:INFO}
+    org.springframework.web: ${LOG_LEVEL_SPRING_WEB:INFO}
+    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:WARN}
+    org.mongodb: ${LOG_LEVEL_MONGODB:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

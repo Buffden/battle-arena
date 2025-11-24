@@ -106,8 +106,6 @@ services:
       - SERVER_PORT=8081
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
       - MONGODB_DATABASE=battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - JWT_SECRET=${JWT_SECRET:-changeme}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
       - CORS_ALLOWED_ORIGINS=*
@@ -280,7 +278,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # Frontend Service (Angular) - Port 80 (nginx)
+  # Frontend Service (Angular) - Served via nginx on port 80 internally
   frontend-service:
     build:
       context: ./frontend-service
@@ -313,12 +311,12 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://127.0.0.1/",
+          "http://localhost:80",
         ]
       interval: 30s
       timeout: 3s
       retries: 3
-      start_period: 10s
+      start_period: 40s
 
 # ************************************************************
 # Volumes - Persistent data storage
