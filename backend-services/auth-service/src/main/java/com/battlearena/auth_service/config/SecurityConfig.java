@@ -30,7 +30,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF for stateless JWT authentication
+        http
+                // Enable CSRF protection, but ignore stateless API endpoints
+                // CSRF is not needed for stateless JWT-based API authentication
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**", "/actuator/**"))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -41,8 +44,6 @@ public class SecurityConfig {
                                                                                                 // auth
                                                                                                 // endpoints
                         .requestMatchers("/actuator/health").permitAll() // Allow health check
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**")
-                        .permitAll() // Allow Swagger
                         .anyRequest().authenticated() // All other requests require authentication
                 );
 

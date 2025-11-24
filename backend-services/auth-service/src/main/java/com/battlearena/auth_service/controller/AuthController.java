@@ -9,8 +9,6 @@ import com.battlearena.auth_service.exception.InvalidCredentialsException;
 import com.battlearena.auth_service.exception.UserAlreadyExistsException;
 import com.battlearena.auth_service.model.User;
 import com.battlearena.auth_service.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "Authentication API endpoints")
 public class AuthController {
 
     private final UserService userService;
@@ -75,8 +72,6 @@ public class AuthController {
      *         GlobalExceptionHandler)
      */
     @PostMapping("/register")
-    @Operation(summary = "Register a new user",
-            description = "Creates a new user account with username, email, and password")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request)
             throws UserAlreadyExistsException {
         User user = userService.registerUser(request);
@@ -107,7 +102,6 @@ public class AuthController {
      *         GlobalExceptionHandler)
      */
     @PostMapping("/login")
-    @Operation(summary = "Login user", description = "Authenticates user and returns JWT token")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
             throws InvalidCredentialsException {
         User user = userService.loginUser(request);
@@ -136,9 +130,9 @@ public class AuthController {
      * @return ResponseEntity with LogoutResponse containing success message
      */
     @PostMapping("/logout")
-    @Operation(summary = "Logout user", description = "Logs out the current user")
     public ResponseEntity<LogoutResponse> logout() {
-        // JWT is stateless - logout is primarily client-side. This endpoint provides API consistency.
+        // JWT is stateless - logout is primarily client-side. This endpoint provides API
+        // consistency.
         // Future: Token blacklisting could be implemented here for enhanced security.
         LogoutResponse response = new LogoutResponse("Logout successful");
         return ResponseEntity.ok(response);
