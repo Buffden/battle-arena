@@ -19,9 +19,8 @@ describe('RegisterModalComponent', () => {
   const MODAL_SWITCH_DELAY_MS = 2000;
 
   // Test data constants (clearly marked as test-only, not real credentials)
-  // NOSONAR - These are test-only passwords, not real credentials. Suppressing security hotspot.
-  const TEST_INVALID_PASSWORD_SHORT = 'short'; // Intentionally short for validation testing
-  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing
+  const TEST_INVALID_PASSWORD_SHORT = 'short'; // Intentionally short for validation testing // NOSONAR
+  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing // NOSONAR
   const TEST_INVALID_USERNAME_SHORT = 'ab'; // Intentionally short for validation testing
   const TEST_INVALID_EMAIL = 'invalid-email'; // Invalid format for validation testing
   const TEST_VALID_USERNAME = 'testuser123';
