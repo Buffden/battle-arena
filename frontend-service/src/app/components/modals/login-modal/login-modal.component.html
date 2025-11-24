@@ -1,10 +1,21 @@
 @if (isOpen) {
-  <div class="modal-overlay" (click)="close()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
+  <div
+    class="modal-overlay"
+    (click)="close()"
+    (keydown.escape)="close()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="login-modal-title"
+  >
+    <div
+      class="modal-container"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+    >
       <div class="pixel-card modal-card">
         <!-- Modal Header -->
         <div class="modal-header">
-          <h2 class="pixel-title modal-title">Login</h2>
+          <h2 id="login-modal-title" class="pixel-title modal-title">Login</h2>
           <button class="modal-close" (click)="close()" type="button">×</button>
         </div>
 
@@ -13,8 +24,9 @@
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <!-- Username Field -->
             <div class="form-group">
-              <label class="pixel-text form-label">Username</label>
+              <label for="login-username" class="pixel-text form-label">Username</label>
               <input
+                id="login-username"
                 type="text"
                 formControlName="username"
                 class="pixel-input"
@@ -37,8 +49,9 @@
 
             <!-- Password Field -->
             <div class="form-group">
-              <label class="pixel-text form-label">Password</label>
+              <label for="login-password" class="pixel-text form-label">Password</label>
               <input
+                id="login-password"
                 type="password"
                 formControlName="password"
                 class="pixel-input"

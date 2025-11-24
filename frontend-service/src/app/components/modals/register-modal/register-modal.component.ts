@@ -1,4 +1,4 @@
-import { Component, OnInit, effect } from '@angular/core';
+import { Component, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ModalService } from '../../../services/modal.service';
@@ -11,7 +11,7 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './register-modal.component.html',
   styleUrl: './register-modal.component.css'
 })
-export class RegisterModalComponent implements OnInit {
+export class RegisterModalComponent {
   registerForm: FormGroup;
   errorMessage: string | null = null;
   successMessage: string | null = null;
@@ -19,9 +19,9 @@ export class RegisterModalComponent implements OnInit {
   isOpen = false;
 
   constructor(
-    private fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public modalService: ModalService,
-    private authService: AuthService
+    private readonly authService: AuthService
   ) {
     this.registerForm = this.fb.group({
       username: [
@@ -45,8 +45,6 @@ export class RegisterModalComponent implements OnInit {
       }
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit(): void {
     if (this.registerForm.valid) {

@@ -14,6 +14,18 @@ describe('RegisterModalComponent', () => {
   let modalService: ModalService;
   let authService: jasmine.SpyObj<AuthService>;
 
+  // Constants for test timeouts
+  const OBSERVABLE_DELAY_MS = 100;
+  const MODAL_SWITCH_DELAY_MS = 2000;
+
+  // Test data constants (clearly marked as test-only, not real credentials)
+  const TEST_INVALID_PASSWORD_SHORT = 'short'; // Intentionally short for validation testing
+  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing
+  const TEST_INVALID_USERNAME_SHORT = 'ab'; // Intentionally short for validation testing
+  const TEST_INVALID_EMAIL = 'invalid-email'; // Invalid format for validation testing
+  const TEST_VALID_USERNAME = 'testuser123';
+  const TEST_VALID_EMAIL = 'test@example.com';
+
   const mockAuthService = jasmine.createSpyObj('AuthService', ['register']);
   const mockRouter = jasmine.createSpyObj('Router', ['navigate']);
   const mockModalService = {
@@ -123,27 +135,27 @@ describe('RegisterModalComponent', () => {
 
     it('should validate password min length (8 characters)', () => {
       const passwordControl = component.registerForm.get('password');
-      passwordControl?.setValue('short');
+      passwordControl?.setValue(TEST_INVALID_PASSWORD_SHORT);
       expect(passwordControl?.hasError('minlength')).toBeTrue();
 
-      passwordControl?.setValue('password123');
+      passwordControl?.setValue(TEST_VALID_PASSWORD);
       expect(passwordControl?.hasError('minlength')).toBeFalse();
     });
 
     it('should mark form as invalid with invalid inputs', () => {
       component.registerForm.setValue({
-        username: 'ab', // too short
-        email: 'invalid-email', // invalid format
-        password: 'short' // too short
+        username: TEST_INVALID_USERNAME_SHORT,
+        email: TEST_INVALID_EMAIL,
+        password: TEST_INVALID_PASSWORD_SHORT
       });
       expect(component.registerForm.valid).toBeFalse();
     });
 
     it('should mark form as valid with valid inputs', () => {
       component.registerForm.setValue({
-        username: 'testuser123',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       expect(component.registerForm.valid).toBeTrue();
     });
@@ -152,9 +164,9 @@ describe('RegisterModalComponent', () => {
   describe('Form Submission', () => {
     it('should not submit if form is invalid', () => {
       component.registerForm.setValue({
-        username: 'ab', // invalid
-        email: 'invalid', // invalid
-        password: 'short' // invalid
+        username: TEST_INVALID_USERNAME_SHORT,
+        email: TEST_INVALID_EMAIL,
+        password: TEST_INVALID_PASSWORD_SHORT
       });
 
       component.onSubmit();
@@ -165,31 +177,35 @@ describe('RegisterModalComponent', () => {
 
     it('should call AuthService.register() with form data when form is valid', fakeAsync(() => {
       const registerData: RegisterRequest = {
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       };
       component.registerForm.setValue(registerData);
       // Use delayed observable to test loading state
-      authService.register.and.returnValue(of({} as RegisterResponse).pipe(delay(100)));
+      authService.register.and.returnValue(
+        of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
+      );
 
       component.onSubmit();
 
       expect(authService.register).toHaveBeenCalledWith(registerData);
       expect(component.loading).toBeTrue(); // Loading should be true before observable resolves
 
-      tick(100); // Let observable resolve
+      tick(OBSERVABLE_DELAY_MS); // Let observable resolve
       expect(component.loading).toBeFalse(); // Loading should be false after success
     }));
 
     it('should set loading to true when submitting', fakeAsync(() => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       // Use delayed observable to test loading state
-      authService.register.and.returnValue(of({} as RegisterResponse).pipe(delay(100)));
+      authService.register.and.returnValue(
+        of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
+      );
 
       component.onSubmit();
 
@@ -197,34 +213,35 @@ describe('RegisterModalComponent', () => {
       expect(component.loading).toBeTrue();
 
       // After observable resolves, loading should be false
-      tick(100);
+      tick(OBSERVABLE_DELAY_MS);
       expect(component.loading).toBeFalse();
     }));
 
-    it('should clear error message when submitting', done => {
+    it('should clear error message when submitting', () => {
       component.errorMessage = 'Previous error';
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       authService.register.and.returnValue(of({} as RegisterResponse));
 
       component.onSubmit();
 
       expect(component.errorMessage).toBeNull();
-      done();
     });
 
     it('should clear success message initially when submitting', fakeAsync(() => {
       component.successMessage = 'Previous success';
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       // Use delayed observable to test clearing before success
-      authService.register.and.returnValue(of({} as RegisterResponse).pipe(delay(100)));
+      authService.register.and.returnValue(
+        of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
+      );
 
       component.onSubmit();
 
@@ -232,7 +249,7 @@ describe('RegisterModalComponent', () => {
       expect(component.successMessage).toBeNull();
 
       // Wait for observable to resolve
-      tick(100);
+      tick(OBSERVABLE_DELAY_MS);
 
       // After success, message should be set
       expect(component.successMessage).toBe('Registration successful! Redirecting to login...');
@@ -240,36 +257,36 @@ describe('RegisterModalComponent', () => {
   });
 
   describe('Successful Registration', () => {
-    it('should set success message on successful registration', done => {
+    it('should set success message on successful registration', fakeAsync(() => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       authService.register.and.returnValue(
         of({
           id: '123',
-          username: 'testuser',
-          email: 'test@example.com',
+          username: TEST_VALID_USERNAME,
+          email: TEST_VALID_EMAIL,
           message: 'Registration successful'
         } as RegisterResponse)
       );
 
       component.onSubmit();
 
-      setTimeout(() => {
-        expect(component.loading).toBeFalse();
-        expect(component.successMessage).toBe('Registration successful! Redirecting to login...');
-        expect(component.errorMessage).toBeNull();
-        done();
-      }, 100);
-    });
+      // Wait for observable to resolve
+      tick();
+
+      expect(component.loading).toBeFalse();
+      expect(component.successMessage).toBe('Registration successful! Redirecting to login...');
+      expect(component.errorMessage).toBeNull();
+    }));
 
     it('should switch to login modal after successful registration', fakeAsync(() => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       authService.register.and.returnValue(of({} as RegisterResponse));
 
@@ -278,8 +295,8 @@ describe('RegisterModalComponent', () => {
       // Wait for observable to resolve
       tick();
 
-      // Wait for 2 second timeout before switching modal
-      tick(2000);
+      // Wait for modal switch delay before switching modal
+      tick(MODAL_SWITCH_DELAY_MS);
 
       expect(modalService.switchModal).toHaveBeenCalledWith('register', 'login');
     }));
@@ -288,9 +305,9 @@ describe('RegisterModalComponent', () => {
   describe('Registration Errors', () => {
     it('should set error message on registration failure', () => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       const errorResponse = {
         error: { message: 'Username already exists: testuser' }
@@ -300,15 +317,15 @@ describe('RegisterModalComponent', () => {
       component.onSubmit();
 
       expect(component.loading).toBeFalse();
-      expect(component.errorMessage).toBe('Username already exists: testuser');
+      expect(component.errorMessage).toBe(`Username already exists: ${TEST_VALID_USERNAME}`);
       expect(component.successMessage).toBeNull();
     });
 
     it('should use default error message when error response has no message', () => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       authService.register.and.returnValue(throwError(() => ({})));
 
@@ -319,9 +336,9 @@ describe('RegisterModalComponent', () => {
 
     it('should set loading to false on error', () => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       authService.register.and.returnValue(throwError(() => ({})));
 
@@ -344,9 +361,9 @@ describe('RegisterModalComponent', () => {
 
     it('should reset form when modal is closed', () => {
       component.registerForm.setValue({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'TestPassword123'
+        username: TEST_VALID_USERNAME,
+        email: TEST_VALID_EMAIL,
+        password: TEST_VALID_PASSWORD
       });
       component.errorMessage = 'Some error';
       component.successMessage = 'Some success';

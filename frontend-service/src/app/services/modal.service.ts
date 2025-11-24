@@ -6,7 +6,7 @@ export type ModalType = 'login' | 'register' | null;
   providedIn: 'root'
 })
 export class ModalService {
-  private currentModal = signal<ModalType>(null);
+  private readonly currentModal = signal<ModalType>(null);
 
   isOpen(modalType: ModalType): boolean {
     return this.currentModal() === modalType;
