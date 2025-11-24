@@ -10,7 +10,7 @@
 
 ### Issue Template:
 
-````
+```
 Title: EPIC-VS-6: Content Complete
 
 Description:
@@ -82,7 +82,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 
 ## Stories (Player Experience)
 
-### VS-6-1: Application is containerized and deployable
+### VS-6-1: Containerize all services with Docker and Docker Compose
 
 **User Story:** As a developer, I want the application to be containerized with Docker so that I can deploy it consistently across environments.
 
@@ -114,508 +114,230 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **Backend - Spring Boot Dockerfile (Auth Service):**
 **File:** `backend-services/auth-service/Dockerfile`
 
-```dockerfile
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-17 AS build
-WORKDIR /app
-
-# Copy pom.xml and download dependencies (cached layer)
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source code and build
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-
-# Create non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-
-# Copy JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
-
-# Expose port
-EXPOSE 8081
-
-# Run application
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+**Spring Boot Dockerfile Implementation Requirements:**
+- Create multi-stage Dockerfile with two stages: Build and Runtime
+- **Build Stage:**
+  - Use base image: maven:3.9-eclipse-temurin-17
+  - Set working directory to /app
+  - Copy pom.xml file first (for dependency caching)
+  - Run mvn dependency:go-offline to download dependencies (creates cached layer)
+  - Copy source code (src directory)
+  - Run mvn clean package -DskipTests to build JAR file
+- **Runtime Stage:**
+  - Use base image: eclipse-temurin:17-jre-alpine (smaller runtime image)
+  - Set working directory to /app
+  - Create non-root user (spring:spring) for security
+  - Switch to non-root user
+  - Copy JAR file from build stage to app.jar
+  - Configure health check:
+    - Interval: 30 seconds
+    - Timeout: 3 seconds
+    - Start period: 40 seconds
+    - Retries: 3
+    - Command: wget to check /actuator/health endpoint
+  - Expose port 8081
+  - Set ENTRYPOINT to run Java application: java -jar app.jar
 
 **Backend - Node.js Dockerfile (Matchmaking Service):**
 **File:** `backend-services/matchmaking-service/Dockerfile`
 
-```dockerfile
-# Stage 1: Build
-FROM node:20-alpine AS build
-WORKDIR /app
-
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci && npm cache clean --force
-
-# Copy source code
-COPY . .
-
-# Build TypeScript
-RUN npm run build
-
-# Stage 2: Runtime
-FROM node:20-alpine
-WORKDIR /app
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-USER nodejs
-
-# Copy dependencies and built code
-COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=build --chown=nodejs:nodejs /app/package*.json ./
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
-
-# Expose port
-EXPOSE 3002
-
-# Run application
-CMD ["node", "dist/index.js"]
-```
+**Node.js Dockerfile Implementation Requirements:**
+- Create multi-stage Dockerfile with two stages: Build and Runtime
+- **Build Stage:**
+  - Use base image: node:20-alpine
+  - Set working directory to /app
+  - Copy package.json and package-lock.json files first (for dependency caching)
+  - Run npm ci to install dependencies (clean install for reproducible builds)
+  - Clean npm cache to reduce image size
+  - Copy all source code
+  - Run npm run build to compile TypeScript to JavaScript
+- **Runtime Stage:**
+  - Use base image: node:20-alpine (smaller runtime image)
+  - Set working directory to /app
+  - Create non-root user (nodejs:nodejs, UID 1001, GID 1001) for security
+  - Switch to non-root user
+  - Copy node_modules, dist directory, and package files from build stage
+  - Set ownership to nodejs:nodejs for all copied files
+  - Configure health check:
+    - Interval: 30 seconds
+    - Timeout: 3 seconds
+    - Start period: 10 seconds
+    - Retries: 3
+    - Command: Node.js HTTP request to /health endpoint
+  - Expose port 3002
+  - Set CMD to run Node.js application: node dist/index.js
 
 **Frontend - Angular Dockerfile:**
 **File:** `frontend-service/Dockerfile`
 
-```dockerfile
-# Stage 1: Build
-FROM node:20-alpine AS build
-WORKDIR /app
-
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci && npm cache clean --force
-
-# Copy source code
-COPY . .
-
-# Build Angular application
-RUN npm run build -- --configuration=production
-
-# Stage 2: Runtime
-FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
-
-# Remove default Nginx static assets
-RUN rm -rf ./*
-
-# Copy built Angular app
-COPY --from=build /app/dist/frontend-service/browser .
-
-# Copy Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
-
-# Expose port
-EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
-```
+**Angular Dockerfile Implementation Requirements:**
+- Create multi-stage Dockerfile with two stages: Build and Runtime
+- **Build Stage:**
+  - Use base image: node:20-alpine
+  - Set working directory to /app
+  - Copy package.json and package-lock.json files first (for dependency caching)
+  - Run npm ci to install dependencies
+  - Clean npm cache to reduce image size
+  - Copy all source code
+  - Run npm run build with production configuration to build Angular application
+- **Runtime Stage:**
+  - Use base image: nginx:alpine (lightweight web server)
+  - Set working directory to /usr/share/nginx/html
+  - Remove default Nginx static assets
+  - Copy built Angular application from build stage (dist/frontend-service/browser directory)
+  - Copy custom Nginx configuration file to /etc/nginx/conf.d/default.conf
+  - Configure health check:
+    - Interval: 30 seconds
+    - Timeout: 3 seconds
+    - Start period: 5 seconds
+    - Retries: 3
+    - Command: wget to check root endpoint
+  - Expose port 80
+  - Set CMD to start Nginx in foreground mode: nginx -g "daemon off;"
 
 **Frontend - Nginx Configuration (SPA Routing):**
 **File:** `frontend-service/nginx.conf`
 
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # SPA routing - all routes serve index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
+**Frontend Nginx Configuration Implementation Requirements:**
+- Create Nginx server block configuration file
+- Configure server to listen on port 80
+- Set server_name to localhost
+- Set root directory to /usr/share/nginx/html
+- Set index file to index.html
+- Configure SPA routing:
+  - Location block for root path (/)
+  - Use try_files directive to serve index.html for all routes (enables client-side routing)
+  - Pattern: try_files $uri $uri/ /index.html
+- Configure static asset caching:
+  - Location block matching static file extensions (js, css, png, jpg, jpeg, gif, ico, svg)
+  - Set expires to 1 year for long-term caching
+  - Add Cache-Control header with "public, immutable" for browser caching
 
 **API Gateway - Nginx Configuration:**
 **File:** `deployments/nginx/nginx.conf`
 
-```nginx
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-
-    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                    '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" "$http_x_forwarded_for"';
-
-    access_log /var/log/nginx/access.log main;
-
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
-    types_hash_max_size 2048;
-
-    # Upstream servers
-    upstream auth-service {
-        server auth-service:8081;
-    }
-
-    upstream profile-service {
-        server profile-service:8082;
-    }
-
-    upstream leaderboard-service {
-        server leaderboard-service:8083;
-    }
-
-    upstream matchmaking-service {
-        server matchmaking-service:3002;
-    }
-
-    upstream game-engine {
-        server game-engine:5002;
-    }
-
-    upstream frontend-service {
-        server frontend-service:80;
-    }
-
-    server {
-        listen 80;
-        server_name localhost;
-
-        # Health check endpoint
-        location /health {
-            access_log off;
-            return 200 "healthy\n";
-            add_header Content-Type text/plain;
-        }
-
-        # Auth Service
-        location /api/auth {
-            proxy_pass http://auth-service;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Profile Service
-        location /api/profile {
-            proxy_pass http://profile-service;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Leaderboard Service
-        location /api/leaderboard {
-            proxy_pass http://leaderboard-service;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Matchmaking WebSocket
-        location /ws/matchmaking {
-            proxy_pass http://matchmaking-service;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_read_timeout 86400;
-        }
-
-        # Game Engine WebSocket
-        location /ws/game {
-            proxy_pass http://game-engine;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_read_timeout 86400;
-        }
-
-        # Frontend
-        location / {
-            proxy_pass http://frontend-service;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-}
-```
+**API Gateway Nginx Configuration Implementation Requirements:**
+- Create main Nginx configuration file for API Gateway
+- Configure global settings:
+  - Set user to nginx
+  - Set worker_processes to auto (based on CPU cores)
+  - Configure error log location and log level (warn)
+  - Set PID file location
+- Configure events block:
+  - Set worker_connections to 1024
+- Configure http block:
+  - Include mime.types for content type detection
+  - Set default_type to application/octet-stream
+  - Define log format for access logs (include remote_addr, time, request, status, etc.)
+  - Configure access_log with main format
+  - Enable sendfile, tcp_nopush, tcp_nodelay for performance
+  - Set keepalive_timeout to 65 seconds
+  - Set types_hash_max_size to 2048
+- Configure upstream servers for each service:
+  - auth-service: server auth-service:8081
+  - profile-service: server profile-service:8082
+  - leaderboard-service: server leaderboard-service:8083
+  - matchmaking-service: server matchmaking-service:3002
+  - game-engine: server game-engine:5002
+  - frontend-service: server frontend-service:80
+- Configure server block:
+  - Listen on port 80
+  - Set server_name to localhost
+  - Configure health check endpoint (/health):
+    - Disable access logging
+    - Return HTTP 200 with "healthy" message
+    - Set Content-Type header to text/plain
+  - Configure REST API proxy locations:
+    - /api/auth → proxy to auth-service upstream
+    - /api/profile → proxy to profile-service upstream
+    - /api/leaderboard → proxy to leaderboard-service upstream
+    - Set proxy headers: Host, X-Real-IP, X-Forwarded-For, X-Forwarded-Proto
+  - Configure WebSocket proxy locations:
+    - /ws/matchmaking → proxy to matchmaking-service upstream
+    - /ws/game → proxy to game-engine upstream
+    - Set proxy_http_version to 1.1
+    - Set Upgrade and Connection headers for WebSocket upgrade
+    - Set proxy_read_timeout to 86400 (24 hours) for long-lived connections
+    - Set all standard proxy headers
+  - Configure frontend proxy location:
+    - / → proxy to frontend-service upstream
+    - Set all standard proxy headers
 
 **Docker Compose Configuration:**
 **File:** `docker-compose.yml`
 
-```yaml
-version: '3.8'
-
-services:
-  # Databases
-  mongodb:
-    image: mongo:6.0
-    container_name: battle-arena-mongodb
-    ports:
-      - "27017:27017" # Development only, remove in production
-    environment:
-      - MONGO_INITDB_DATABASE=battlearena
-    volumes:
-      - mongodb_data:/data/db
-      - ./database/init:/docker-entrypoint-initdb.d:ro
-    networks:
-      - battle-arena-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-
-  redis:
-    image: redis:7-alpine
-    container_name: battle-arena-redis
-    ports:
-      - "6379:6379" # Development only, remove in production
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - battle-arena-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend Services
-  auth-service:
-    build:
-      context: ./backend-services/auth-service
-      dockerfile: Dockerfile
-    container_name: battle-arena-auth-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET=${JWT_SECRET:-changeme}
-      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
-    networks:
-      - battle-arena-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-
-  profile-service:
-    build:
-      context: ./backend-services/profile-service
-      dockerfile: Dockerfile
-    container_name: battle-arena-profile-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    networks:
-      - battle-arena-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-
-  leaderboard-service:
-    build:
-      context: ./backend-services/leaderboard-service
-      dockerfile: Dockerfile
-    container_name: battle-arena-leaderboard-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    networks:
-      - battle-arena-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-
-  matchmaking-service:
-    build:
-      context: ./backend-services/matchmaking-service
-      dockerfile: Dockerfile
-    container_name: battle-arena-matchmaking-service
-    environment:
-      - NODE_ENV=production
-      - PORT=3002
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    networks:
-      - battle-arena-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
-
-  game-engine:
-    build:
-      context: ./backend-services/game-engine
-      dockerfile: Dockerfile
-    container_name: battle-arena-game-engine
-    environment:
-      - NODE_ENV=production
-      - PORT=5002
-      - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    networks:
-      - battle-arena-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
-
-  # Frontend
-  frontend-service:
-    build:
-      context: ./frontend-service
-      dockerfile: Dockerfile
-    container_name: battle-arena-frontend
-    environment:
-      - NODE_ENV=production
-      - API_URL=http://nginx/api
-      - WS_URL=ws://nginx/ws
-    networks:
-      - battle-arena-network
-    depends_on:
-      - nginx
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-
-  # API Gateway
-  nginx:
-    image: nginx:alpine
-    container_name: battle-arena-nginx
-    ports:
-      - "8080:80"
-    volumes:
-      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./deployments/nginx/conf.d:/etc/nginx/conf.d
-    depends_on:
-      - auth-service
-      - profile-service
-      - leaderboard-service
-      - matchmaking-service
-      - game-engine
-      - frontend-service
-    networks:
-      - battle-arena-network
-    restart: unless-stopped
-
-volumes:
-  mongodb_data:
-  redis_data:
-
-networks:
-  battle-arena-network:
-    driver: bridge
-```
+**Docker Compose Configuration Implementation Requirements:**
+- Create docker-compose.yml file with version 3.8
+- Configure database services:
+  - **mongodb:**
+    - Use image: mongo:6.0
+    - Set container name: battle-arena-mongodb
+    - Expose port 27017 (development only, remove in production)
+    - Set environment variable: MONGO_INITDB_DATABASE=battlearena
+    - Configure volumes: mongodb_data for persistence, init scripts directory
+    - Add to battle-arena-network
+    - Set restart policy: unless-stopped
+    - Configure health check: mongosh ping command, interval 10s, timeout 5s, retries 5, start period 40s
+  - **redis:**
+    - Use image: redis:7-alpine
+    - Set container name: battle-arena-redis
+    - Expose port 6379 (development only, remove in production)
+    - Configure command: redis-server --appendonly yes (for persistence)
+    - Configure volumes: redis_data for persistence
+    - Add to battle-arena-network
+    - Set restart policy: unless-stopped
+    - Configure health check: redis-cli ping, interval 10s, timeout 5s, retries 5
+- Configure backend services (auth-service, profile-service, leaderboard-service):
+  - Build from Dockerfile in respective service directories
+  - Set container names with battle-arena prefix
+  - Configure environment variables:
+    - SPRING_PROFILES_ACTIVE=docker
+    - MONGODB_URI=mongodb://mongodb:27017/battlearena
+    - REDIS_HOST=redis, REDIS_PORT=6379
+    - JWT_SECRET and JWT_EXPIRATION for auth-service (with defaults)
+  - Add to battle-arena-network
+  - Configure depends_on with health-based conditions for mongodb and redis
+  - Set restart policy: unless-stopped
+  - Configure health checks: wget to /actuator/health endpoint, interval 30s, timeout 3s, retries 3, start period 40s
+- Configure Node.js services (matchmaking-service, game-engine):
+  - Build from Dockerfile in respective service directories
+  - Set container names with battle-arena prefix
+  - Configure environment variables:
+    - NODE_ENV=production
+    - PORT (3002 for matchmaking, 5002 for game-engine)
+    - MONGODB_URI, REDIS_HOST, REDIS_PORT
+  - Add to battle-arena-network
+  - Configure depends_on with health-based conditions for mongodb and redis
+  - Set restart policy: unless-stopped
+  - Configure health checks: Node.js HTTP request to /health endpoint, interval 30s, timeout 3s, retries 3, start period 10s
+- Configure frontend-service:
+  - Build from Dockerfile in frontend-service directory
+  - Set container name: battle-arena-frontend
+  - Configure environment variables:
+    - NODE_ENV=production
+    - API_URL=http://nginx/api
+    - WS_URL=ws://nginx/ws
+  - Add to battle-arena-network
+  - Configure depends_on: nginx (no health condition)
+  - Set restart policy: unless-stopped
+  - Configure health check: wget to root endpoint, interval 30s, timeout 3s, retries 3, start period 5s
+- Configure nginx (API Gateway):
+  - Use image: nginx:alpine
+  - Set container name: battle-arena-nginx
+  - Expose port 8080:80 (map host 8080 to container 80)
+  - Mount volumes: nginx.conf and conf.d directory
+  - Configure depends_on: all backend and frontend services
+  - Add to battle-arena-network
+  - Set restart policy: unless-stopped
+- Configure volumes:
+  - mongodb_data: for MongoDB data persistence
+  - redis_data: for Redis data persistence
+- Configure networks:
+  - battle-arena-network: bridge driver for service communication
 
 ---
 
-### VS-6-2: Application is comprehensively tested
+### VS-6-2: Implement comprehensive testing with unit integration and E2E tests
 
 **User Story:** As a developer, I want comprehensive tests (unit, integration, E2E) so that I can ensure code quality and catch bugs early.
 
@@ -644,246 +366,105 @@ networks:
 **Backend - Unit Test Example (Java):**
 **File:** `backend-services/auth-service/src/test/java/com/battlearena/auth/service/UserServiceTests.java`
 
-```java
-package com.battlearena.auth.service;
-
-import com.battlearena.auth.model.User;
-import com.battlearena.auth.repository.UserRepository;
-import com.battlearena.auth.dto.RegisterRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
-class UserServiceTests {
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private UserService userService;
-
-    private RegisterRequest registerRequest;
-
-    @BeforeEach
-    void setUp() {
-        registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-    }
-
-    @Test
-    void registerUser_shouldCreateUser_whenValidRequest() throws Exception {
-        // Arrange
-        when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
-        when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
-            user.setId("user-id");
-            return user;
-        });
-
-        // Act
-        User result = userService.registerUser(registerRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("testuser", result.getUsername());
-        assertEquals("test@example.com", result.getEmail());
-        verify(userRepository).save(any(User.class));
-    }
-
-    @Test
-    void registerUser_shouldThrowException_whenUsernameExists() {
-        // Arrange
-        when(userRepository.existsByUsername("testuser")).thenReturn(true);
-
-        // Act & Assert
-        assertThrows(UserAlreadyExistsException.class, () -> {
-            userService.registerUser(registerRequest);
-        });
-    }
-}
-```
+**Java Unit Test Implementation Requirements:**
+- Create test class in test package mirroring main package structure
+- Use JUnit 5 and Mockito for testing
+- Add `@ExtendWith(MockitoExtension.class)` annotation to enable Mockito
+- Mock dependencies using `@Mock` annotation:
+  - UserRepository
+  - PasswordEncoder
+- Inject service under test using `@InjectMocks` annotation:
+  - UserService
+- Set up test data in `@BeforeEach` method:
+  - Create RegisterRequest object with test data (username, email, password)
+- Write test methods following Arrange-Act-Assert pattern:
+  - **Test: registerUser_shouldCreateUser_whenValidRequest**
+    - Arrange: Mock repository methods to return false for exists checks, mock password encoder to return hashed password, mock save to return user with ID
+    - Act: Call service method with RegisterRequest
+    - Assert: Verify result is not null, verify username and email match, verify repository.save() was called
+  - **Test: registerUser_shouldThrowException_whenUsernameExists**
+    - Arrange: Mock repository to return true for username exists check
+    - Act & Assert: Verify UserAlreadyExistsException is thrown when service method is called
+- Use descriptive test method names following pattern: methodName_shouldDoSomething_whenCondition
+- Achieve 80%+ code coverage for all service classes
 
 **Backend - Unit Test Example (Node.js):**
 **File:** `backend-services/matchmaking-service/src/__tests__/services/QueueManager.test.ts`
 
-```typescript
-import { QueueManager } from "../../services/QueueManager";
-import { getRedisClient } from "../../config/redis.config";
-import { QueueEntry } from "../../models/QueueEntry";
-
-jest.mock("../../config/redis.config");
-
-describe("QueueManager", () => {
-  let queueManager: QueueManager;
-  let mockRedis: any;
-
-  beforeEach(() => {
-    mockRedis = {
-      zadd: jest.fn(),
-      zrem: jest.fn(),
-      zcard: jest.fn(),
-      zrevrank: jest.fn(),
-      hset: jest.fn(),
-      expire: jest.fn(),
-    };
-    (getRedisClient as jest.Mock).mockReturnValue(mockRedis);
-    queueManager = new QueueManager();
-  });
-
-  describe("enqueuePlayer", () => {
-    it("should add player to queue", async () => {
-      // Arrange
-      const entry: QueueEntry = {
-        userId: "user1",
-        globalScore: 1000,
-        rankTier: "Gold",
-        heroIds: ["hero1"],
-        region: "NA",
-        joinedAt: new Date(),
-      };
-      mockRedis.zadd.mockResolvedValue(1);
-      mockRedis.hset.mockResolvedValue(1);
-      mockRedis.expire.mockResolvedValue(1);
-
-      // Act
-      await queueManager.enqueuePlayer(entry);
-
-      // Assert
-      expect(mockRedis.zadd).toHaveBeenCalledWith(
-        "matchmaking:queue:NA",
-        1000,
-        "user1"
-      );
-      expect(mockRedis.hset).toHaveBeenCalled();
-    });
-  });
-});
-```
+**Node.js Unit Test Implementation Requirements:**
+- Create test file in `__tests__` directory mirroring source structure
+- Use Jest testing framework
+- Mock external dependencies (Redis client) using jest.mock()
+- Set up test suite with describe() blocks:
+  - Main describe block for class being tested (QueueManager)
+  - Nested describe blocks for method groups
+- Set up test fixtures in beforeEach():
+  - Create mock Redis client object with all required methods (zadd, zrem, zcard, zrevrank, hset, expire)
+  - Mock getRedisClient() to return mock Redis client
+  - Instantiate service under test (QueueManager)
+- Write test cases following Arrange-Act-Assert pattern:
+  - **Test: should add player to queue**
+    - Arrange: Create QueueEntry object with test data (userId, globalScore, rankTier, heroIds, region, joinedAt), mock Redis methods to return resolved values
+    - Act: Call service method (enqueuePlayer) with test entry
+    - Assert: Verify Redis methods were called with correct parameters (zadd with queue key, score, userId), verify hset was called
+- Use descriptive test descriptions: "should [expected behavior]"
+- Achieve 80%+ code coverage for all service classes
 
 **Backend - Integration Test Example (Java):**
 **File:** `backend-services/auth-service/src/test/java/com/battlearena/auth/integration/AuthControllerIntegrationTests.java`
 
-```java
-package com.battlearena.auth.integration;
-
-import com.battlearena.auth.Application;
-import com.battlearena.auth.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@SpringBootTest(classes = Application.class)
-@AutoConfigureWebMvc
-@Testcontainers
-class AuthControllerIntegrationTests {
-    @Container
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
-    }
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-    }
-
-    @Test
-    void register_shouldCreateUser_whenValidRequest() throws Exception {
-        String requestBody = """
-            {
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "password123"
-            }
-            """;
-
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value("test@example.com"));
-    }
-}
-```
+**Java Integration Test Implementation Requirements:**
+- Create integration test class in integration test package
+- Use Spring Boot Test and Testcontainers for real database testing
+- Add `@SpringBootTest` annotation with Application class
+- Add `@AutoConfigureWebMvc` annotation to enable MockMvc
+- Add `@Testcontainers` annotation to enable Testcontainers support
+- Set up MongoDB container using `@Container` annotation:
+  - Use MongoDBContainer with mongo:6.0 image
+  - Configure as static container
+- Configure dynamic properties using `@DynamicPropertySource`:
+  - Set MongoDB URI from container's replica set URL
+- Autowire dependencies:
+  - MockMvc for HTTP request testing
+  - UserRepository for database cleanup
+- Set up test data in `@BeforeEach` method:
+  - Delete all users from repository to ensure clean state
+- Write integration test methods:
+  - **Test: register_shouldCreateUser_whenValidRequest**
+    - Create JSON request body with test user data (username, email, password)
+    - Perform POST request to /api/auth/register endpoint
+    - Set Content-Type to APPLICATION_JSON
+    - Assert HTTP status is 201 Created
+    - Assert response JSON contains correct username and email
+- Test all critical API endpoints end-to-end
+- Use real database containers (Testcontainers) for integration testing
 
 **Frontend - E2E Test Example (Cypress):**
 **File:** `frontend-service/e2e/auth.cy.ts`
 
-```typescript
-describe("Authentication Flow", () => {
-  beforeEach(() => {
-    cy.visit("/auth/login");
-  });
-
-  it("should login successfully with valid credentials", () => {
-    // Arrange
-    cy.get("[data-cy=username-input]").type("testuser");
-    cy.get("[data-cy=password-input]").type("password123");
-
-    // Act
-    cy.get("[data-cy=login-button]").click();
-
-    // Assert
-    cy.url().should("include", "/dashboard");
-    cy.get("[data-cy=user-menu]").should("be.visible");
-  });
-
-  it("should show error message with invalid credentials", () => {
-    // Arrange
-    cy.get("[data-cy=username-input]").type("invalid");
-    cy.get("[data-cy=password-input]").type("wrong");
-
-    // Act
-    cy.get("[data-cy=login-button]").click();
-
-    // Assert
-    cy.get("[data-cy=error-message]").should("be.visible");
-    cy.get("[data-cy=error-message]").should("contain", "Invalid credentials");
-  });
-});
-```
+**Cypress E2E Test Implementation Requirements:**
+- Create E2E test file in e2e directory
+- Use Cypress testing framework
+- Set up test suite with describe() block:
+  - Describe block for "Authentication Flow"
+- Set up test fixtures in beforeEach():
+  - Visit login page (/auth/login) before each test
+- Write E2E test cases following Arrange-Act-Assert pattern:
+  - **Test: should login successfully with valid credentials**
+    - Arrange: Type username and password into input fields using data-cy selectors
+    - Act: Click login button
+    - Assert: Verify URL includes /dashboard, verify user menu is visible
+  - **Test: should show error message with invalid credentials**
+    - Arrange: Type invalid username and password
+    - Act: Click login button
+    - Assert: Verify error message is visible and contains "Invalid credentials"
+- Use data-cy attributes for reliable element selection
+- Test complete user journeys end-to-end (registration, login, matchmaking, gameplay)
+- Ensure all critical user flows are covered
 
 ---
 
-### VS-6-3: Application is fully documented
+### VS-6-3: Generate API documentation with Swagger and OpenAPI
 
 **User Story:** As a developer, I want comprehensive API documentation so that I can understand and integrate with the APIs easily.
 
@@ -911,120 +492,62 @@ describe("Authentication Flow", () => {
 **Backend - Swagger Configuration (Spring Boot):**
 **File:** `backend-services/auth-service/src/main/java/com/battlearena/auth/config/SwaggerConfig.java`
 
-```java
-package com.battlearena.auth.config;
-
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.Contact;
-import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.servers.Server;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-
-@Configuration
-public class SwaggerConfig {
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-            .info(new Info()
-                .title("Battle Arena Auth Service API")
-                .version("1.0.0")
-                .description("API documentation for Battle Arena Authentication Service")
-                .contact(new Contact()
-                    .name("Battle Arena Team")
-                    .email("team@battlearena.com"))
-                .license(new License()
-                    .name("MIT License")
-                    .url("https://opensource.org/licenses/MIT")))
-            .servers(List.of(
-                new Server().url("http://localhost:8081").description("Local Development"),
-                new Server().url("https://api.battlearena.com").description("Production")
-            ));
-    }
-}
-```
+**SwaggerConfig Implementation Requirements:**
+- Create SwaggerConfig class in config package
+- Add `@Configuration` annotation for Spring configuration class
+- Create `customOpenAPI()` method with `@Bean` annotation
+- Configure OpenAPI object with:
+  - Info section:
+    - Title: "Battle Arena Auth Service API"
+    - Version: "1.0.0"
+    - Description: "API documentation for Battle Arena Authentication Service"
+    - Contact: Name "Battle Arena Team", Email "team@battlearena.com"
+    - License: Name "MIT License", URL to MIT license page
+  - Servers list:
+    - Local Development: http://localhost:8081
+    - Production: https://api.battlearena.com
+- Return configured OpenAPI bean
 
 **Backend - Controller Annotation Example:**
 **File:** `backend-services/auth-service/src/main/java/com/battlearena/auth/controller/AuthController.java`
 
-```java
-@RestController
-@RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "Authentication API endpoints")
-public class AuthController {
-
-    @Operation(
-        summary = "Register a new user",
-        description = "Creates a new user account with username, email, and password"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201",
-            description = "User created successfully",
-            content = @Content(schema = @Schema(implementation = RegisterResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Invalid request data"
-        ),
-        @ApiResponse(
-            responseCode = "409",
-            description = "Username or email already exists"
-        )
-    })
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(
-        @Parameter(description = "User registration data", required = true)
-        @Valid @RequestBody RegisterRequest request
-    ) {
-        // Implementation
-    }
-}
-```
+**Controller Swagger Annotations Implementation Requirements:**
+- Add `@Tag` annotation to controller class:
+  - Name: "Authentication"
+  - Description: "Authentication API endpoints"
+- Add `@Operation` annotation to each endpoint method:
+  - Summary: Brief description of endpoint purpose
+  - Description: Detailed description of endpoint functionality
+- Add `@ApiResponses` annotation to document response codes:
+  - HTTP 201: Success response with description and response schema
+  - HTTP 400: Bad request response with description
+  - HTTP 409: Conflict response with description
+  - Include `@Content` and `@Schema` annotations for response body structure
+- Add `@Parameter` annotation to method parameters:
+  - Description: Parameter description
+  - Required: true/false flag
+- Ensure all endpoints have comprehensive Swagger documentation
 
 **Backend - OpenAPI Configuration (Node.js):**
 **File:** `backend-services/matchmaking-service/src/config/swagger.config.ts`
 
-```typescript
-import swaggerJsdoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
-
-const swaggerOptions: swaggerJsdoc.Options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Battle Arena Matchmaking Service API",
-      version: "1.0.0",
-      description: "API documentation for Battle Arena Matchmaking Service",
-      contact: {
-        name: "Battle Arena Team",
-        email: "team@battlearena.com",
-      },
-      license: {
-        name: "MIT",
-        url: "https://opensource.org/licenses/MIT",
-      },
-    },
-    servers: [
-      {
-        url: "http://localhost:3002",
-        description: "Local Development",
-      },
-      {
-        url: "https://api.battlearena.com",
-        description: "Production",
-      },
-    ],
-  },
-  apis: ["./src/routes/*.ts", "./src/controllers/*.ts"],
-};
-
-export const swaggerSpec = swaggerJsdoc(swaggerOptions);
-export { swaggerUi };
-```
+**Node.js Swagger Configuration Implementation Requirements:**
+- Import swagger-jsdoc and swagger-ui-express packages
+- Create swaggerOptions object with:
+  - Definition section:
+    - OpenAPI version: "3.0.0"
+    - Info section:
+      - Title: "Battle Arena Matchmaking Service API"
+      - Version: "1.0.0"
+      - Description: "API documentation for Battle Arena Matchmaking Service"
+      - Contact: Name and email
+      - License: Name "MIT" and URL
+    - Servers array:
+      - Local Development: http://localhost:3002
+      - Production: https://api.battlearena.com
+  - APIs array: Paths to route and controller files for annotation scanning
+- Generate swaggerSpec using swaggerJsdoc with swaggerOptions
+- Export swaggerSpec and swaggerUi for use in Express app
 
 ---
 
@@ -1050,7 +573,7 @@ epic:content-complete, vertical-slice:6, milestone:content-complete, priority:hi
 
 Content Complete: Deployment, Testing, Documentation
 
-````
+```
 
 ---
 

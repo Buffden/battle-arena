@@ -1,0 +1,143 @@
+@if (isOpen) {
+  <div
+    class="modal-overlay"
+    (click)="close()"
+    (keydown.escape)="close()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="register-modal-title"
+  >
+    <div
+      class="modal-container"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+    >
+      <div class="pixel-card modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2 id="register-modal-title" class="pixel-title modal-title">Register</h2>
+          <button class="modal-close" (click)="close()" type="button">×</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <!-- Username Field -->
+            <div class="form-group">
+              <label for="register-username" class="pixel-text form-label">Username</label>
+              <input
+                id="register-username"
+                type="text"
+                formControlName="username"
+                class="pixel-input"
+                placeholder="Choose a username (3-20 chars)"
+                [class.error]="username?.invalid && username?.touched"
+              />
+              @if (username?.invalid && username?.touched) {
+                <div class="error-message">
+                  @if (username?.errors?.['required']) {
+                    <span class="pixel-text error-text">Username is required</span>
+                  }
+                  @if (username?.errors?.['minlength']) {
+                    <span class="pixel-text error-text"
+                      >Username must be at least 3 characters</span
+                    >
+                  }
+                  @if (username?.errors?.['maxlength']) {
+                    <span class="pixel-text error-text"
+                      >Username must be less than 20 characters</span
+                    >
+                  }
+                  @if (username?.errors?.['pattern']) {
+                    <span class="pixel-text error-text"
+                      >Username can only contain letters and numbers</span
+                    >
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+              <label for="register-email" class="pixel-text form-label">Email</label>
+              <input
+                id="register-email"
+                type="email"
+                formControlName="email"
+                class="pixel-input"
+                placeholder="Enter your email"
+                [class.error]="email?.invalid && email?.touched"
+              />
+              @if (email?.invalid && email?.touched) {
+                <div class="error-message">
+                  @if (email?.errors?.['required']) {
+                    <span class="pixel-text error-text">Email is required</span>
+                  }
+                  @if (email?.errors?.['email']) {
+                    <span class="pixel-text error-text">Please enter a valid email address</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+              <label for="register-password" class="pixel-text form-label">Password</label>
+              <input
+                id="register-password"
+                type="password"
+                formControlName="password"
+                class="pixel-input"
+                placeholder="Choose a password (min 8 chars)"
+                [class.error]="password?.invalid && password?.touched"
+              />
+              @if (password?.invalid && password?.touched) {
+                <div class="error-message">
+                  @if (password?.errors?.['required']) {
+                    <span class="pixel-text error-text">Password is required</span>
+                  }
+                  @if (password?.errors?.['minlength']) {
+                    <span class="pixel-text error-text"
+                      >Password must be at least 8 characters</span
+                    >
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Success Message -->
+            @if (successMessage) {
+              <div class="success-message">
+                <span class="pixel-text success-text">{{ successMessage }}</span>
+              </div>
+            }
+
+            <!-- Error Message -->
+            @if (errorMessage) {
+              <div class="error-message general-error">
+                <span class="pixel-text error-text">{{ errorMessage }}</span>
+              </div>
+            }
+
+            <!-- Submit Button -->
+            <button type="submit" class="pixel-button" [disabled]="registerForm.invalid || loading">
+              @if (loading) {
+                <span>Registering...</span>
+              } @else {
+                <span>Register</span>
+              }
+            </button>
+          </form>
+
+          <!-- Switch to Login -->
+          <div class="modal-footer">
+            <p class="pixel-text footer-text">
+              Already have an account?
+              <button class="link-button" (click)="switchToLogin()" type="button">Login</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

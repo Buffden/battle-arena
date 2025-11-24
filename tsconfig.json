@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./frontend-service"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "**/dist",
+    "**/target",
+    "**/coverage"
+  ]
+}
