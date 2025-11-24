@@ -13,15 +13,18 @@ import java.util.List;
 /**
  * Swagger/OpenAPI configuration for API documentation.
  *
- * <p>This configuration provides API documentation accessible at:
+ * <p>
+ * This configuration provides API documentation accessible at:
  * <ul>
- *   <li>Swagger UI: /swagger-ui.html</li>
- *   <li>OpenAPI Spec: /api-docs</li>
+ * <li>Swagger UI: /swagger-ui.html</li>
+ * <li>OpenAPI Spec: /api-docs</li>
  * </ul>
  * </p>
  *
- * <p>Design Pattern: Configuration class following Singleton Pattern
- * for single OpenAPI instance management.</p>
+ * <p>
+ * Design Pattern: Configuration class following Singleton Pattern for single OpenAPI instance
+ * management.
+ * </p>
  */
 @Configuration
 public class SwaggerConfig {
@@ -34,22 +37,16 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("Battle Arena Auth Service API")
-                        .version("1.0.0")
+                .info(new Info().title("Battle Arena Auth Service API").version("1.0.0")
                         .description("API documentation for Battle Arena Authentication Service")
-                        .contact(new Contact()
-                                .name("Battle Arena Team")
+                        .contact(new Contact().name("Battle Arena Team")
                                 .email("support@battlearena.com"))
-                        .license(new License()
-                                .name("MIT License")
+                        .license(new License().name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
-                        new Server()
-                                .url("http://localhost:8081")
+                        new Server().url("http://localhost:8081")
                                 .description("Local Development Server"),
-                        new Server()
-                                .url("https://api.battlearena.com")
+                        new Server().url("https://api.battlearena.com")
                                 .description("Production Server")));
     }
 }

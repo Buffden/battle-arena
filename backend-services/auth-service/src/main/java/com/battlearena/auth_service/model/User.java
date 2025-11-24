@@ -64,10 +64,8 @@ public class User {
 
     private LocalDateTime lastLoginAt;
 
-    // Default constructor for MongoDB
     public User() {}
 
-    // Constructor for creating new user
     public User(String username, String email, String passwordHash) {
         this.username = username;
         this.email = email;
@@ -76,7 +74,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

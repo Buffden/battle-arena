@@ -2,20 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 
-import {
-  AuthService,
-  RegisterRequest,
-  RegisterResponse,
-  LoginRequest,
-  AuthResponse
-} from './auth.service';
+import { AuthService } from './auth.service';
+import { RegisterRequest, RegisterResponse, LoginRequest, AuthResponse } from '../types/auth.types';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
   const apiUrl = '/api/auth';
 
-  // Test data constants (clearly marked as test-only, not real credentials)
   const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing // NOSONAR
   const TEST_VALID_USERNAME = 'testuser';
   const TEST_VALID_EMAIL = 'test@example.com';
@@ -196,6 +190,11 @@ describe('AuthService', () => {
     it('should remove token on logout', () => {
       localStorage.setItem('auth_token', 'mock-token');
       service.logout();
+
+      // Expect and flush the logout HTTP request
+      const req = httpMock.expectOne(`${apiUrl}/logout`);
+      expect(req.request.method).toBe('POST');
+      req.flush({ message: 'Logout successful' });
 
       expect(service.getToken()).toBeNull();
       expect(localStorage.getItem('auth_token')).toBeNull();

@@ -18,7 +18,7 @@ export class ModalService {
 
   openModal(modalType: ModalType): void {
     this.currentModal.set(modalType);
-    // Prevent body scroll when modal is open
+    // Prevent body scroll when modal is open (prevents background scrolling)
     if (typeof document !== 'undefined') {
       document.body.style.overflow = 'hidden';
     }
@@ -26,7 +26,6 @@ export class ModalService {
 
   closeModal(): void {
     this.currentModal.set(null);
-    // Restore body scroll
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
     }
@@ -36,6 +35,5 @@ export class ModalService {
     this.currentModal.set(to);
   }
 
-  // Signal for reactive updates
   readonly currentModalSignal = this.currentModal.asReadonly();
 }
