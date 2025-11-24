@@ -12,11 +12,9 @@ RUN npm ci --only=production && npm cache clean --force
 FROM node:20-alpine
 WORKDIR /app
 
-# Install wget for health checks
-RUN apk add --no-cache wget
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
+# Install wget for health checks and create non-root user
+RUN apk add --no-cache wget && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Copy dependencies and source code from build stage
