@@ -7,7 +7,8 @@ COPY package*.json ./
 COPY angular.json tsconfig*.json ./
 
 # Install dependencies
-RUN npm ci
+# Use --ignore-scripts to prevent execution of arbitrary scripts from packages (security)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY src ./src
@@ -19,12 +20,21 @@ RUN npm run build
 # Stage 2: Runtime - Serve static files with nginx
 FROM nginx:alpine
 
-# Copy built assets from build stage
-# Angular 17+ outputs to dist/[project-name]/browser by default
-COPY --from=build /app/dist/frontend-service/browser /usr/share/nginx/html
+# Security Note: Nginx runs as root by default in nginx:alpine image
+# This is acceptable here because:
+# - Only serving static files (no user-uploaded content)
+# - Running in isolated container environment
+# - Static assets are read-only (no write operations needed)
+# - Nginx master process runs as root, worker processes drop privileges automatically
 
-# Copy custom nginx configuration for SPA routing
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy built assets from build stage (read+execute only, no write for security)
+# Angular 17+ outputs to dist/[project-name]/browser by default
+# Set read+execute permissions (no write) - directories need execute to be traversed
+COPY --from=build --chmod=555 /app/dist/frontend-service/browser /usr/share/nginx/html
+
+# Copy custom nginx configuration for SPA routing (read-only for security)
+# nginx.conf doesn't need execute permission, only read
+COPY --chmod=444 nginx.conf /etc/nginx/conf.d/default.conf
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

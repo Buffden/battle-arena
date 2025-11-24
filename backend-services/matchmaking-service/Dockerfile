@@ -6,7 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Use --ignore-scripts to prevent execution of arbitrary scripts from packages (security)
+RUN npm ci --only=production --ignore-scripts && npm cache clean --force
 
 # Stage 2: Runtime
 FROM node:20-alpine
@@ -19,9 +20,14 @@ RUN apk add --no-cache wget
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy dependencies and source code from build stage
-COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --chown=nodejs:nodejs . .
+# Copy dependencies from build stage (read+execute only, no write for security)
+# node_modules don't need write access at runtime - packages are already installed
+COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
+
+# Copy only necessary source files (explicit paths prevent copying sensitive data)
+# Only copy server.js - standalone file, no src/ directory needed
+# Set read-only permissions for security (no write/execute needed - Node.js interprets, not executes)
+COPY --chown=nodejs:nodejs --chmod=444 server.js ./
 
 # Switch to non-root user
 USER nodejs
