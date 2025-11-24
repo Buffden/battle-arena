@@ -16,8 +16,7 @@ describe('AuthService', () => {
   const apiUrl = '/api/auth';
 
   // Test data constants (clearly marked as test-only, not real credentials)
-  // NOSONAR - This is a test-only password, not a real credential. Suppressing security hotspot.
-  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing
+  const TEST_VALID_PASSWORD = 'TestPassword123'; // Test-only password for validation testing // NOSONAR
   const TEST_VALID_USERNAME = 'testuser';
   const TEST_VALID_EMAIL = 'test@example.com';
 

@@ -36,15 +36,12 @@ import com.battlearena.auth_service.util.JwtTokenUtil;
 class UserServiceTest {
 
     // Test data constants (clearly marked as test-only, not real credentials)
-    // NOSONAR - These are test-only passwords, not real credentials. Suppressing security hotspot.
-    private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password for
-                                                                         // validation testing
+    private static final String TEST_VALID_PASSWORD = "TestPassword123"; // Test-only password //
+                                                                         // NOSONAR
     private static final String TEST_VALID_USERNAME = "testuser";
     private static final String TEST_VALID_EMAIL = "test@example.com";
-    // NOSONAR - Test-only password constant for testing unique hash functionality
-    private static final String TEST_ANOTHER_PASSWORD = "SamePassword123"; // Another test password
-                                                                           // for unique hash
-                                                                           // testing
+    private static final String TEST_ANOTHER_PASSWORD = "SamePassword123"; // Test-only password //
+                                                                           // NOSONAR
 
     @Mock
     private UserRepository userRepository;
