@@ -15,13 +15,11 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-# Install wget for health checks
+# Install wget for health checks and create non-root user
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN groupadd -r spring && useradd -r -g spring spring
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -r spring && useradd -r -g spring spring
 
 # Copy JAR from build stage (as root, then change ownership)
 COPY --from=build /app/target/*.jar app.jar
