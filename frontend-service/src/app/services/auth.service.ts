@@ -34,18 +34,18 @@ export interface RegisterResponse {
 export class AuthService {
   // Use relative URL since frontend is served through nginx gateway
   // Browser will make requests to the same origin (nginx on port 80)
-  private apiUrl = '/api/auth';
-  private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
-  public currentUser$ = this.currentUserSubject.asObservable();
+  private readonly apiUrl = '/api/auth';
+  private readonly currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
+  public readonly currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(
-    private http: HttpClient,
-    private router: Router
+    private readonly http: HttpClient,
+    private readonly router: Router
   ) {
     // Check for stored token on init
     const token = this.getToken();
     if (token) {
-      // TODO: Validate token and load user
+      // Token validation and user loading will be implemented when login endpoint is ready
       // For now, we'll just check if token exists
     }
   }
@@ -79,21 +79,21 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token');
+    if (globalThis.window !== undefined) {
+      return globalThis.window.localStorage.getItem('auth_token');
     }
     return null;
   }
 
   private setToken(token: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
+    if (globalThis.window !== undefined) {
+      globalThis.window.localStorage.setItem('auth_token', token);
     }
   }
 
   private removeToken(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
+    if (globalThis.window !== undefined) {
+      globalThis.window.localStorage.removeItem('auth_token');
     }
   }
 

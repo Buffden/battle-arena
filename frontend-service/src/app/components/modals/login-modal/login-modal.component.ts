@@ -1,4 +1,4 @@
-import { Component, OnInit, effect } from '@angular/core';
+import { Component, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ModalService } from '../../../services/modal.service';
@@ -11,16 +11,16 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './login-modal.component.html',
   styleUrl: './login-modal.component.css'
 })
-export class LoginModalComponent implements OnInit {
+export class LoginModalComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
   loading = false;
   isOpen = false;
 
   constructor(
-    private fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public modalService: ModalService,
-    private authService: AuthService
+    private readonly authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -35,8 +35,6 @@ export class LoginModalComponent implements OnInit {
       }
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit(): void {
     if (this.loginForm.valid) {

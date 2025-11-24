@@ -1,15 +1,8 @@
 import { Routes } from '@angular/router';
 
 export const authRoutes: Routes = [
-  // TODO: Create login and register components
-  // {
-  //   path: 'login',
-  //   loadComponent: () => import('../components/auth/login/login.component').then(m => m.LoginComponent)
-  // },
-  // {
-  //   path: 'register',
-  //   loadComponent: () => import('../components/auth/register/register.component').then(m => m.RegisterComponent)
-  // },
+  // Login and register are handled via modals, not separate routes
+  // This route file is kept for future routing needs if required
   {
     path: '',
     redirectTo: '/',

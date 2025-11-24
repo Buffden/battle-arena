@@ -10,7 +10,8 @@ import { RouterLink } from '@angular/router';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
-  username = 'Warrior'; // TODO: Get from auth service
+  // Username will be loaded from AuthService when user profile is implemented
+  username = 'Warrior';
 
   stats = {
     wins: 42,
