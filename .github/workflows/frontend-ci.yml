@@ -77,7 +77,6 @@ jobs:
             export CHROME_BIN=$(which chromium-browser)
           fi
           npm run test:ci
-        continue-on-error: true
 
       - name: Generate test coverage
         run: |

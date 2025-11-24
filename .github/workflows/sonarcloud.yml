@@ -59,9 +59,7 @@ jobs:
         run: |
           # Run tests to collect coverage data
           # JaCoCo agent is automatically configured in pom.xml via prepare-agent goal
-          # Continue even if tests fail (they may require MongoDB access, etc.)
-          mvn test || echo "Tests failed or require external services - continuing..."
-        continue-on-error: true
+          mvn test
 
       - name: Generate coverage report
         run: mvn jacoco:report
@@ -129,8 +127,7 @@ jobs:
         continue-on-error: false
 
       - name: Run tests with coverage
-        run: |
-          npm run test:coverage || echo "Coverage not configured - skipping"
+        run: npm run test:coverage
         continue-on-error: true
 
       - name: Verify coverage report exists

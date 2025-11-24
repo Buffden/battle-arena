@@ -51,8 +51,7 @@ jobs:
         run: mvn validate
 
       - name: Run unit tests
-        run: mvn test || echo "Tests failed or require external services (MongoDB, etc.) - continuing..."
-        continue-on-error: true
+        run: mvn test
 
       - name: Generate JaCoCo coverage report
         run: mvn jacoco:report
@@ -75,7 +74,7 @@ jobs:
         continue-on-error: true
 
       - name: Build package
-        run: mvn clean package -DskipTests
+        run: mvn clean package
 
       - name: Upload JaCoCo coverage reports
         uses: actions/upload-artifact@v4
@@ -119,8 +118,7 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        run: npm test || echo "Tests not configured - skipping"
-        continue-on-error: false
+        run: npm test
 
       - name: Generate test coverage (if configured)
         run: npm run test:coverage || echo "Coverage not configured - skipping"
