@@ -10,7 +10,7 @@
 
 ### Issue Template:
 
-```
+````
 Title: EPIC-VS-3: First Playable Match
 
 Description:
@@ -94,7 +94,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ## Stories (Player Experience)
 
-### VS-3-1: Player can click "Play" and join matchmaking queue
+### VS-3-1: Implement matchmaking queue join with WebSocket connection
 
 **User Story:** As a player, I want to click "Play" and join a matchmaking queue so that I can find an opponent and play a match.
 
@@ -133,70 +133,43 @@ Set up the Node.js project structure, dependencies, and configuration for the Ma
 
 **Technical Details:**
 
-**Project Structure:**
-```
+**Reference Documentation:**
+- [Matchmaking Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - Complete service architecture and component design
+- [System Architecture - Matchmaking Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#24-matchmaking-service) - Service integration and communication patterns
 
-backend-services/matchmaking-service/
-├── src/
-│ ├── index.ts
-│ ├── config/
-│ │ ├── redis.config.ts
-│ │ ├── socket.config.ts
-│ │ └── env.config.ts
-│ ├── controllers/
-│ │ └── MatchmakingController.ts
-│ ├── services/
-│ │ ├── MatchmakingService.ts
-│ │ ├── MatchmakingEngine.ts
-│ │ ├── QueueManager.ts
-│ │ ├── HeroSelector.ts
-│ │ ├── ArenaSelector.ts
-│ │ ├── WeaponSelector.ts
-│ │ └── LobbyManager.ts
-│ ├── middleware/
-│ │ ├── auth.middleware.ts
-│ │ ├── error.middleware.ts
-│ │ └── logging.middleware.ts
-│ ├── routes/
-│ │ └── health.routes.ts
-│ ├── utils/
-│ │ ├── logger.ts
-│ │ └── validators.ts
-│ ├── types/
-│ │ ├── hero.types.ts
-│ │ ├── queue.types.ts
-│ │ └── match.types.ts
-│ ├── models/
-│ │ ├── Hero.ts
-│ │ ├── QueueEntry.ts
-│ │ └── Lobby.ts
-│ ├── middleware/
-│ │ └── auth.middleware.ts
-│ └── types/
-│ └── matchmaking.types.ts
-├── package.json
-├── tsconfig.json (if TypeScript)
-├── .env.example
-└── README.md
+**Project Structure Setup:**
+- Create Node.js/TypeScript project structure in `backend-services/matchmaking-service/` directory
+- Set up TypeScript configuration with appropriate compiler options
+- Create source directory structure following clean architecture:
+  - `src/index.ts` - Application entry point
+  - `src/config/` - Configuration files (Redis, Socket.io, environment variables)
+  - `src/controllers/` - WebSocket and HTTP request handlers
+  - `src/services/` - Business logic layer (MatchmakingService, MatchmakingEngine, QueueManager, etc.)
+  - `src/middleware/` - Authentication, error handling, and logging middleware
+  - `src/routes/` - HTTP route definitions
+  - `src/utils/` - Utility functions (logger, validators)
+  - `src/types/` - TypeScript type definitions
+  - `src/models/` - Data models (Hero, QueueEntry, Lobby)
+- Create `package.json` with project metadata
+- Create `tsconfig.json` for TypeScript compilation
+- Create `.env.example` file documenting required environment variables
+- Create `README.md` documenting service overview, setup, and usage
 
-````
+**Maven Dependencies (package.json):**
+- Add express dependency for HTTP server
+- Add socket.io dependency for WebSocket server
+- Add redis dependency for Redis client
+- Add jsonwebtoken dependency for JWT token validation
+- Add dotenv dependency for environment variable management
+- Add typescript dependency for TypeScript compilation
+- Add type definitions: @types/node, @types/express, @types/socket.io
 
-**Required Dependencies (package.json):**
-- express
-- socket.io
-- redis
-- jsonwebtoken
-- dotenv
-- typescript
-- @types/node, @types/express, @types/socket.io
-
-**Environment Variables:**
-```env
-PORT=3002
-REDIS_HOST=redis
-REDIS_PORT=6379
-JWT_SECRET=${JWT_SECRET}
-````
+**Environment Variables Configuration:**
+- Configure PORT environment variable (default 3002)
+- Configure REDIS_HOST environment variable (default redis)
+- Configure REDIS_PORT environment variable (default 6379)
+- Configure JWT_SECRET environment variable (read from shared JWT secret)
+- Document all environment variables in `.env.example` file
 
 ---
 
@@ -232,99 +205,88 @@ Implement complete join queue feature including backend queue management and fro
 **Backend - Queue Service:**
 **File:** `src/services/QueueManager.ts`
 
-```typescript
-export class QueueManager {
-  async addToQueue(playerId: string, heroId: string, globalScore: number, socketId: string): Promise<QueueStatus> {
-    // 1. Add player to Redis sorted set (key: matchmaking:queue, score: globalScore)
-    // 2. Store queue entry with playerId, heroId, socketId, timestamp
-    // 3. Calculate position in queue
-    // 4. Calculate estimated wait time
-    // 5. Return QueueStatus
-  }
-
-  async removeFromQueue(playerId: string): Promise<void> {
-    // Remove player from Redis queue
-  }
-
-  async getQueueStatus(playerId: string): Promise<QueueStatus> {
-    // Get player position and estimated wait time
-  }
-}
-```
+**QueueManager Implementation Requirements:**
+- Create QueueManager class in `src/services/` directory
+- Implement `addToQueue(playerId, heroId, globalScore, socketId)` method:
+  - Add player to Redis sorted set with key "matchmaking:queue" and score equal to globalScore
+  - Store queue entry metadata (playerId, heroId, socketId, timestamp) in Redis hash
+  - Calculate player's position in queue based on sorted set rank
+  - Calculate estimated wait time based on queue position and historical match times
+  - Return QueueStatus object with position and estimated wait time
+- Implement `removeFromQueue(playerId)` method:
+  - Remove player from Redis sorted set
+  - Remove queue entry metadata from Redis hash
+- Implement `getQueueStatus(playerId)` method:
+  - Retrieve player's position from Redis sorted set
+  - Calculate estimated wait time
+  - Return QueueStatus object
+- Use Redis client for all queue operations
+- Handle Redis connection errors gracefully
 
 **Backend - Socket.io Handler:**
 **File:** `src/controllers/MatchmakingController.ts`
 
-```typescript
-io.on("connection", (socket) => {
-  socket.on("join-queue", async (data: { playerId: string }) => {
-    // 1. Validate JWT token
-    // 2. Get player global score (from Profile Service or default to 0)
-    // 3. Assign default hero (single hero for MVP)
-    // 4. Add to queue via QueueManager
-    // 5. Emit queue-status to player
-  });
-
-  socket.on("leave-queue", async (data: { playerId: string }) => {
-    // 1. Remove from queue
-    // 2. Emit confirmation
-  });
-});
-```
+**MatchmakingController Implementation Requirements:**
+- Create MatchmakingController class in `src/controllers/` directory
+- Set up Socket.io connection handler:
+  - Listen for "connection" event on Socket.io server
+  - Extract JWT token from connection handshake
+  - Validate JWT token using authentication middleware
+  - Store socket connection with player ID mapping
+- Implement "join-queue" event handler:
+  - Validate JWT token from socket connection
+  - Extract playerId from event data
+  - Get player global score from Profile Service (or default to 0 if service not available)
+  - Assign default hero ID (single default hero for MVP)
+  - Call QueueManager.addToQueue() with playerId, heroId, globalScore, and socketId
+  - Emit "queue-status" event to player with QueueStatus object
+  - Handle errors and emit error events if queue join fails
+- Implement "leave-queue" event handler:
+  - Extract playerId from event data
+  - Call QueueManager.removeFromQueue() to remove player from queue
+  - Emit "queue-left" confirmation event to player
+  - Handle errors gracefully
 
 **Frontend - Matchmaking Component:**
 **File:** `src/app/matchmaking/components/matchmaking/matchmaking.component.ts`
 
-```typescript
-@Component({
-  selector: "app-matchmaking",
-  templateUrl: "./matchmaking.component.html",
-})
-export class MatchmakingComponent {
-  queueStatus: QueueStatus | null = null;
-  isInQueue = false;
-
-  constructor(private matchmakingService: MatchmakingService) {}
-
-  joinQueue(): void {
-    this.matchmakingService.joinQueue().subscribe({
-      next: (status) => {
-        this.queueStatus = status;
-        this.isInQueue = true;
-      },
-    });
-  }
-
-  leaveQueue(): void {
-    this.matchmakingService.leaveQueue().subscribe({
-      next: () => {
-        this.isInQueue = false;
-        this.queueStatus = null;
-      },
-    });
-  }
-}
-```
+**MatchmakingComponent Implementation Requirements:**
+- Create MatchmakingComponent class in `src/app/matchmaking/components/matchmaking/` directory
+- Add `@Component` decorator with selector "app-matchmaking" and template URL
+- Add queueStatus property (QueueStatus | null) to store current queue status
+- Add isInQueue property (boolean) to track queue membership state
+- Inject MatchmakingService via constructor
+- Implement `joinQueue()` method:
+  - Call MatchmakingService.joinQueue() method
+  - Subscribe to Observable response
+  - On success: Update queueStatus and set isInQueue to true
+  - Handle errors and display error messages
+- Implement `leaveQueue()` method:
+  - Call MatchmakingService.leaveQueue() method
+  - Subscribe to Observable response
+  - On success: Set isInQueue to false and clear queueStatus
+  - Handle errors gracefully
+- Display queue status in template (position, estimated wait time)
+- Display loading state during queue operations
 
 **Frontend - MatchmakingService:**
 **File:** `src/app/services/matchmaking.service.ts`
 
-```typescript
-@Injectable()
-export class MatchmakingService {
-  private socket: Socket;
-
-  joinQueue(): Observable<QueueStatus> {
-    this.socket.emit("join-queue", { playerId: this.authService.getUserId() });
-    return this.socket.fromEvent<QueueStatus>("queue-status");
-  }
-
-  leaveQueue(): Observable<void> {
-    this.socket.emit("leave-queue", { playerId: this.authService.getUserId() });
-    return new Observable((observer) => observer.next());
-  }
-}
-```
+**MatchmakingService Implementation Requirements:**
+- Create MatchmakingService class in `src/app/services/` directory
+- Add `@Injectable()` decorator for Angular dependency injection
+- Maintain private Socket instance for WebSocket connection
+- Initialize Socket.io connection to Matchmaking Service endpoint
+- Implement `joinQueue()` method:
+  - Emit "join-queue" event to Socket.io server with playerId from AuthService
+  - Return Observable that listens for "queue-status" events from server
+  - Handle connection errors and emit error events
+- Implement `leaveQueue()` method:
+  - Emit "leave-queue" event to Socket.io server with playerId from AuthService
+  - Return Observable that completes after leave confirmation
+  - Handle connection errors gracefully
+- Inject AuthService to get current user ID
+- Handle Socket.io disconnection and reconnection scenarios
 
 **End-to-End Test Scenario:**
 
@@ -345,7 +307,7 @@ export class MatchmakingService {
 
 ---
 
-### VS-3-2: Player gets matched and enters game room
+### VS-3-2: Implement player matching with bot opponent and game room creation
 
 **User Story:** As a player, I want to get matched with an opponent so that I can start playing a match.
 
@@ -385,29 +347,23 @@ Implement basic matchmaking algorithm that matches players with bot opponents fo
 **Backend - Matchmaking Engine:**
 **File:** `src/services/MatchmakingEngine.ts`
 
-```typescript
-export class MatchmakingEngine {
-  async findMatch(playerId: string): Promise<Match | null> {
-    // MVP: Match with bot opponent
-    // 1. Get player from queue
-    // 2. Create bot opponent (default hero, default score)
-    // 3. Create match object
-    // 4. Send match to Game Engine Service
-    // 5. Notify player via Socket.io
-    // 6. Return match
-  }
-
-  private createBotOpponent(): BotPlayer {
-    // Create bot with default hero and score
-    return {
-      id: `bot-${Date.now()}`,
-      heroId: "default-hero",
-      globalScore: 0,
-      isBot: true,
-    };
-  }
-}
-```
+**MatchmakingEngine Implementation Requirements:**
+- Create MatchmakingEngine class in `src/services/` directory
+- Implement `findMatch(playerId)` method:
+  - Get player data from queue using QueueManager
+  - For MVP: Create bot opponent using createBotOpponent() method
+  - Create match object with player and bot opponent data
+  - Send match data to Game Engine Service via HTTP API or message queue
+  - Notify player via Socket.io "match-found" event with match details
+  - Remove player from queue after successful match creation
+  - Return Match object or null if match creation fails
+- Implement private `createBotOpponent()` method:
+  - Generate unique bot ID using timestamp (format: "bot-{timestamp}")
+  - Assign default hero ID ("default-hero")
+  - Set global score to 0 (default for bots)
+  - Set isBot flag to true
+  - Return BotPlayer object
+- Handle errors during match creation and notify player of failures
 
 **End-to-End Test Scenario:**
 
@@ -453,19 +409,24 @@ Implement game room creation in Game Engine Service when match is assigned from 
 **Backend - Game Room Manager:**
 **File:** `src/service/GameRoomManager.ts`
 
-```typescript
-export class GameRoomManager {
-  async createGameRoom(matchId: string, matchData: MatchData): Promise<GameRoom> {
-    // 1. Create game room with match data
-    // 2. Initialize game state (default hero, default weapon, default arena)
-    // 3. Set initial positions, health, scores, moves
-    // 4. Store in Redis (key: game:{matchId})
-    // 5. Create Socket.io room
-    // 6. Emit game-started event to players
-    // 7. Return game room
-  }
-}
-```
+**GameRoomManager Implementation Requirements:**
+- Create GameRoomManager class in `src/service/` directory
+- Implement `createGameRoom(matchId, matchData)` method:
+  - Create game room object with match data (players, match ID)
+  - Initialize game state with default values:
+    - Assign default hero to both players
+    - Assign default weapon (single weapon for MVP)
+    - Select default arena
+    - Set initial hero positions (left and right sides of arena)
+    - Set health to 100 (or default HP value)
+    - Initialize scores to 0 for both players
+    - Initialize moves remaining to 4 per player
+    - Set current turn to player 1
+  - Store game state in Redis with key format "game:{matchId}"
+  - Create Socket.io room for match communication
+  - Emit "game-started" event to all players in the room with initial game state
+  - Return GameRoom object
+- Handle errors during game room creation and notify players of failures
 
 **Game State Initialization:**
 
@@ -495,7 +456,7 @@ export class GameRoomManager {
 
 ---
 
-### VS-3-3: Player can see game arena and their hero
+### VS-3-3: Implement game arena rendering with hero display and HUD
 
 **User Story:** As a player, I want to see the game arena and my hero so that I can understand the game state and prepare for my turn.
 
@@ -538,64 +499,44 @@ Implement game arena UI component that displays the game state, heroes, and aren
 **Frontend - Game Arena Component:**
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
-```typescript
-@Component({
-  selector: "app-game-arena",
-  templateUrl: "./game-arena.component.html",
-})
-export class GameArenaComponent implements OnInit, OnDestroy {
-  gameState: GameState | null = null;
-  gameScene: Phaser.Scene | null = null;
-
-  constructor(private gameService: GameService) {}
-
-  ngOnInit(): void {
-    this.gameService.connectToGame(this.matchId);
-    this.gameService.getGameState().subscribe((state) => {
-      this.gameState = state;
-      this.updateGameScene(state);
-    });
-  }
-
-  private updateGameScene(state: GameState): void {
-    // Update Phaser scene with game state
-    // Update hero positions
-    // Update health bars
-    // Update scores
-    // Update turn indicator
-  }
-}
-```
+**GameArenaComponent Implementation Requirements:**
+- Create GameArenaComponent class in `src/app/arena/components/game-arena/` directory
+- Add `@Component` decorator with selector "app-game-arena" and template URL
+- Implement OnInit and OnDestroy interfaces
+- Add gameState property (GameState | null) to store current game state
+- Add gameScene property (Phaser.Scene | null) to store Phaser game scene instance
+- Inject GameService via constructor
+- Implement `ngOnInit()` method:
+  - Call GameService.connectToGame() with matchId
+  - Subscribe to GameService.getGameState() Observable
+  - On state update: Update gameState and call updateGameScene()
+- Implement `updateGameScene(state)` private method:
+  - Update Phaser scene with new game state
+  - Update hero sprite positions based on state
+  - Update health bar displays for both players
+  - Update score displays
+  - Update turn indicator to show current player's turn
+- Implement `ngOnDestroy()` method to clean up subscriptions and Phaser scene
 
 **Frontend - GameService:**
 **File:** `src/app/services/game.service.ts`
 
-```typescript
-@Injectable()
-export class GameService {
-  private socket: Socket;
-  private gameStateSubject = new BehaviorSubject<GameState | null>(null);
-
-  connectToGame(matchId: string): void {
-    this.socket = io(`${this.gameEngineUrl}`, {
-      query: { matchId },
-      auth: { token: this.authService.getToken() },
-    });
-
-    this.socket.on("game-started", (gameState: GameState) => {
-      this.gameStateSubject.next(gameState);
-    });
-
-    this.socket.on("game-state-update", (gameState: GameState) => {
-      this.gameStateSubject.next(gameState);
-    });
-  }
-
-  getGameState(): Observable<GameState> {
-    return this.gameStateSubject.asObservable();
-  }
-}
-```
+**GameService Implementation Requirements:**
+- Create GameService class in `src/app/services/` directory
+- Add `@Injectable()` decorator for Angular dependency injection
+- Maintain private Socket instance for WebSocket connection
+- Create BehaviorSubject for game state (initialized to null)
+- Inject AuthService to get JWT token
+- Implement `connectToGame(matchId)` method:
+  - Initialize Socket.io connection to Game Engine Service URL
+  - Pass matchId as query parameter
+  - Pass JWT token in authentication handshake
+  - Listen for "game-started" event and update gameStateSubject
+  - Listen for "game-state-update" event and update gameStateSubject
+  - Handle connection errors and reconnection scenarios
+- Implement `getGameState()` method:
+  - Return Observable from gameStateSubject for components to subscribe
+- Handle Socket.io disconnection and cleanup resources
 
 **End-to-End Test Scenario:**
 
@@ -616,7 +557,7 @@ export class GameService {
 
 ---
 
-### VS-3-4: Player can move and fire shots
+### VS-3-4: Implement hero movement and weapon firing with physics engine
 
 **User Story:** As a player, I want to move my hero and fire shots so that I can play the game and try to win.
 
@@ -663,55 +604,52 @@ Implement hero movement system including backend movement validation and fronten
 **Backend - Movement Service:**
 **File:** `src/service/MovementManager.ts`
 
-```typescript
-export class MovementManager {
-  validateMove(gameState: GameState, playerId: string, direction: "left" | "right"): boolean {
-    // 1. Check if it's player's turn
-    // 2. Check if player has moves remaining (max 4)
-    // 3. Check if movement is valid (left/right only, within bounds)
-    // 4. Return true if valid, false otherwise
-  }
-
-  applyMove(gameState: GameState, playerId: string, direction: "left" | "right"): GameState {
-    // 1. Update hero position
-    // 2. Decrement moves remaining
-    // 3. Update game state
-    // 4. Return updated game state
-  }
-}
-```
+**MovementManager Implementation Requirements:**
+- Create MovementManager class in `src/service/` directory
+- Implement `validateMove(gameState, playerId, direction)` method:
+  - Check if it's the player's turn (compare playerId with currentTurn in gameState)
+  - Check if player has moves remaining (verify movesRemaining > 0, max 4 per match)
+  - Check if movement direction is valid (only "left" or "right" allowed)
+  - Check if movement is within arena bounds (hero position + direction is valid)
+  - Return true if all validations pass, false otherwise
+- Implement `applyMove(gameState, playerId, direction)` method:
+  - Update hero position based on direction (increment or decrement X coordinate)
+  - Decrement moves remaining for the player
+  - Update game state with new position and moves count
+  - Return updated GameState object
+- Handle edge cases (boundary limits, invalid directions)
 
 **Backend - Socket.io Handler:**
 **File:** `src/controller/GameEngineController.ts`
 
-```typescript
-socket.on("player-move", async (data: { matchId: string; playerId: string; direction: string }) => {
-  // 1. Get game state from Redis
-  // 2. Validate move via MovementManager
-  // 3. Apply move via MovementManager
-  // 4. Update game state in Redis
-  // 5. Emit game-state-update to all players
-});
-```
+**GameEngineController.player-move Handler Implementation Requirements:**
+- Add "player-move" event handler to Socket.io connection
+- Extract matchId, playerId, and direction from event data
+- Retrieve game state from Redis using matchId (key: "game:{matchId}")
+- Validate move using MovementManager.validateMove() method
+- If validation fails, emit error event to player and return
+- If validation passes, apply move using MovementManager.applyMove() method
+- Update game state in Redis with new state
+- Emit "game-state-update" event to all players in the Socket.io room
+- Handle errors gracefully and notify players of failures
 
 **Frontend - Movement Controls:**
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
-```typescript
-onMove(direction: 'left' | 'right'): void {
-  if (this.gameState?.currentTurn === this.playerId && this.canMove()) {
-    this.gameService.moveHero(this.matchId, this.playerId, direction).subscribe({
-      next: (updatedState) => {
-        this.gameState = updatedState;
-      },
-    });
-  }
-}
-
-canMove(): boolean {
-  return (this.gameState?.playerMovesRemaining || 0) > 0;
-}
-```
+**Movement Controls Implementation Requirements:**
+- Implement `onMove(direction)` method in GameArenaComponent:
+  - Check if it's player's turn (compare currentTurn with playerId)
+  - Check if player can move using canMove() method
+  - If both conditions pass, call GameService.moveHero() with matchId, playerId, and direction
+  - Subscribe to Observable response
+  - On success: Update gameState with returned updated state
+  - Handle errors and display error messages
+- Implement `canMove()` method:
+  - Check if player has moves remaining (playerMovesRemaining > 0)
+  - Return boolean indicating if move is allowed
+- Add keyboard event listeners for arrow keys (left/right)
+- Add UI buttons for movement controls
+- Display moves remaining counter in UI
 
 **End-to-End Test Scenario:**
 
@@ -762,61 +700,60 @@ Implement weapon firing system including backend physics calculation and fronten
 **Backend - Physics Service:**
 **File:** `src/service/PhysicsEngine.ts`
 
-```typescript
-export class PhysicsEngine {
-  private engine: Matter.Engine;
-  private world: Matter.World;
-
-  calculateTrajectory(startPos: Position, angle: number, power: number): Trajectory {
-    // Calculate projectile trajectory using physics
-    // Return trajectory points
-  }
-
-  fireProjectile(gameState: GameState, playerId: string, angle: number, power: number): ProjectileResult {
-    // 1. Create projectile in Matter.js world
-    // 2. Simulate trajectory
-    // 3. Check for collisions
-    // 4. Calculate damage if hit
-    // 5. Update health
-    // 6. Return projectile result
-  }
-}
-```
+**PhysicsEngine Implementation Requirements:**
+- Create PhysicsEngine class in `src/service/` directory
+- Initialize Matter.js physics engine and world
+- Maintain private engine and world instances
+- Implement `calculateTrajectory(startPos, angle, power)` method:
+  - Calculate projectile trajectory using physics equations (projectile motion)
+  - Consider gravity, initial velocity (from power), and launch angle
+  - Generate trajectory points for visualization
+  - Return Trajectory object with path points
+- Implement `fireProjectile(gameState, playerId, angle, power)` method:
+  - Create projectile body in Matter.js world at hero's position
+  - Apply initial velocity based on angle and power
+  - Simulate trajectory step by step until collision or ground hit
+  - Check for collisions with opponent hero or arena terrain
+  - Calculate damage if collision detected (based on impact velocity and distance)
+  - Update opponent's health in game state
+  - Return ProjectileResult object with hit status, damage, and updated health
+- Handle edge cases (projectile out of bounds, no collision)
 
 **Backend - Socket.io Handler:**
 **File:** `src/controller/GameEngineController.ts`
 
-```typescript
-socket.on("player-fire", async (data: { matchId: string; playerId: string; angle: number; power: number }) => {
-  // 1. Get game state from Redis
-  // 2. Validate it's player's turn
-  // 3. Fire projectile via PhysicsEngine
-  // 4. Update game state (health, scores)
-  // 5. Check win condition
-  // 6. Update game state in Redis
-  // 7. Emit game-state-update to all players
-  // 8. Switch turn if match not ended
-});
-```
+**GameEngineController.player-fire Handler Implementation Requirements:**
+- Add "player-fire" event handler to Socket.io connection
+- Extract matchId, playerId, angle, and power from event data
+- Retrieve game state from Redis using matchId
+- Validate it's the player's turn (compare playerId with currentTurn)
+- If validation fails, emit error event and return
+- Call PhysicsEngine.fireProjectile() with game state, playerId, angle, and power
+- Update game state with projectile result (health changes, scores)
+- Check win condition using WinConditionChecker
+- Update game state in Redis
+- Emit "game-state-update" event to all players with updated state
+- If match not ended, switch turn to opponent using TurnManager
+- If match ended, emit "match-ended" event with match result
 
 **Frontend - Firing Controls:**
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
-```typescript
-onFire(angle: number, power: number): void {
-  if (this.gameState?.currentTurn === this.playerId) {
-    this.gameService.fireWeapon(this.matchId, this.playerId, angle, power).subscribe({
-      next: (result) => {
-        this.animateProjectile(result.trajectory);
-        if (result.hit) {
-          this.showDamage(result.damage);
-          this.updateHealth(result.health);
-        }
-      },
-    });
-  }
-}
-```
+**Firing Controls Implementation Requirements:**
+- Implement `onFire(angle, power)` method in GameArenaComponent:
+  - Check if it's player's turn (compare currentTurn with playerId)
+  - If not player's turn, return early
+  - Call GameService.fireWeapon() with matchId, playerId, angle, and power
+  - Subscribe to Observable response
+  - On success: Animate projectile along trajectory path
+  - If hit detected: Display damage animation and update health bars
+  - Update game state with result
+  - Handle errors and display error messages
+- Add aiming controls (angle slider or mouse drag)
+- Add power control (power slider or mouse drag distance)
+- Add fire button to trigger shot
+- Display aiming line or trajectory preview before firing
+- Animate projectile movement along calculated trajectory
 
 **End-to-End Test Scenario:**
 
@@ -867,41 +804,43 @@ Implement turn management system including turn timers, turn switching, and turn
 **Backend - Turn Service:**
 **File:** `src/service/TurnManager.ts`
 
-```typescript
-export class TurnManager {
-  startTurn(matchId: string, playerId: string): void {
-    // 1. Set current turn to playerId
-    // 2. Start 15-second timer
-    // 3. Emit turn-started event
-    // 4. If timer expires, switch turn automatically
-  }
-
-  switchTurn(matchId: string): void {
-    // 1. Get current turn
-    // 2. Switch to other player
-    // 3. Start new turn
-    // 4. Emit turn-switched event
-  }
-
-  handleTurnTimeout(matchId: string): void {
-    // 1. Switch turn automatically
-    // 2. Emit turn-timeout event
-  }
-}
-```
+**TurnManager Implementation Requirements:**
+- Create TurnManager class in `src/service/` directory
+- Implement `startTurn(matchId, playerId)` method:
+  - Set current turn to playerId in game state
+  - Start 15-second countdown timer
+  - Store timer reference for timeout handling
+  - Emit "turn-started" event to all players with playerId and timer duration
+  - If timer expires without action, automatically call handleTurnTimeout()
+- Implement `switchTurn(matchId)` method:
+  - Retrieve current game state from Redis
+  - Determine other player (switch between player 1 and player 2)
+  - Set current turn to other player
+  - Start new turn for the other player
+  - Update game state in Redis
+  - Emit "turn-switched" event to all players
+- Implement `handleTurnTimeout(matchId)` method:
+  - Switch turn automatically to opponent
+  - Emit "turn-timeout" event to notify players of automatic turn switch
+  - Update game state in Redis
+- Handle timer cleanup and cancellation when player takes action
 
 **Frontend - Turn Indicator:**
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
-```typescript
-get isMyTurn(): boolean {
-  return this.gameState?.currentTurn === this.playerId;
-}
-
-get turnTimeRemaining(): number {
-  return this.gameState?.turnTimer || 0;
-}
-```
+**Turn Indicator Implementation Requirements:**
+- Implement `isMyTurn` getter property:
+  - Compare gameState.currentTurn with playerId
+  - Return boolean indicating if it's the current player's turn
+  - Used in template to conditionally enable/disable controls
+- Implement `turnTimeRemaining` getter property:
+  - Get turn timer value from gameState
+  - Return number of seconds remaining (default to 0 if not available)
+  - Used in template to display countdown timer
+- Display turn indicator in UI showing current player's turn
+- Display countdown timer showing seconds remaining
+- Update UI when turn switches (disable controls for non-active player)
+- Highlight active player's UI elements
 
 **End-to-End Test Scenario:**
 
@@ -921,7 +860,7 @@ get turnTimeRemaining(): number {
 
 ---
 
-### VS-3-5: Player can see match result
+### VS-3-5: Implement match result display with win condition detection
 
 **User Story:** As a player, I want to see the match result so that I know if I won or lost and what my score was.
 
@@ -964,64 +903,65 @@ Implement win condition detection, match result calculation, and match result di
 **Backend - Win Condition Service:**
 **File:** `src/service/WinConditionChecker.ts`
 
-```typescript
-export class WinConditionChecker {
-  checkWinCondition(gameState: GameState): WinCondition | null {
-    // 1. Check if any player health <= 0
-    // 2. Check if match timeout reached
-    // 3. Return win condition if met, null otherwise
-  }
-
-  calculateMatchResult(gameState: GameState, winCondition: WinCondition): MatchResult {
-    // 1. Determine winner
-    // 2. Calculate final scores
-    // 3. Calculate stats (damage dealt, accuracy, etc.)
-    // 4. Return match result
-  }
-}
-```
+**WinConditionChecker Implementation Requirements:**
+- Create WinConditionChecker class in `src/service/` directory
+- Implement `checkWinCondition(gameState)` method:
+  - Check if any player's health is less than or equal to 0
+  - Check if match timeout has been reached (maximum match duration)
+  - If either condition is met, create WinCondition object with winner and reason
+  - Return WinCondition object if condition met, null otherwise
+- Implement `calculateMatchResult(gameState, winCondition)` method:
+  - Determine winner based on win condition (player with health > 0, or highest score if timeout)
+  - Calculate final scores for both players
+  - Calculate match statistics:
+    - Total damage dealt by each player
+    - Accuracy (hits vs total shots)
+    - Number of moves used
+    - Match duration
+  - Create MatchResult object with winner, scores, and statistics
+  - Return MatchResult object
+- Handle edge cases (draw conditions, invalid game states)
 
 **Backend - Match Result Storage:**
 **File:** `src/service/MatchResultProcessor.ts`
 
-```typescript
-export class MatchResultProcessor {
-  async processMatchResult(matchId: string, matchResult: MatchResult): Promise<void> {
-    // 1. Store match result in MongoDB
-    // 2. Update player profiles (if Profile Service integrated)
-    // 3. Update leaderboard (if Leaderboard Service integrated)
-    // 4. Clean up game room
-  }
-}
-```
+**MatchResultProcessor Implementation Requirements:**
+- Create MatchResultProcessor class in `src/service/` directory
+- Implement `processMatchResult(matchId, matchResult)` method:
+  - Store match result in MongoDB (match history collection)
+  - If Profile Service is integrated:
+    - Update player profiles with match statistics
+    - Update global scores based on match result
+    - Update win/loss records
+  - If Leaderboard Service is integrated:
+    - Update leaderboard rankings with new scores
+  - Clean up game room from Redis (remove game state)
+  - Clean up Socket.io room
+  - Handle errors gracefully and log processing failures
+- Ensure all operations are atomic or have proper error handling
+- Emit "match-result-processed" event after successful processing
 
 **Frontend - Match Result Component:**
 **File:** `src/app/arena/components/match-result/match-result.component.ts`
 
-```typescript
-@Component({
-  selector: "app-match-result",
-  templateUrl: "./match-result.component.html",
-})
-export class MatchResultComponent {
-  matchResult: MatchResult | null = null;
-
-  constructor(
-    private gameService: GameService,
-    private router: Router,
-  ) {}
-
-  ngOnInit(): void {
-    this.gameService.getMatchResult().subscribe((result) => {
-      this.matchResult = result;
-    });
-  }
-
-  returnToDashboard(): void {
-    this.router.navigate(["/dashboard"]);
-  }
-}
-```
+**MatchResultComponent Implementation Requirements:**
+- Create MatchResultComponent class in `src/app/arena/components/match-result/` directory
+- Add `@Component` decorator with selector "app-match-result" and template URL
+- Add matchResult property (MatchResult | null) to store match result data
+- Inject GameService and Router via constructor
+- Implement `ngOnInit()` method:
+  - Subscribe to GameService.getMatchResult() Observable
+  - On result received: Update matchResult property
+  - Handle errors and display error messages
+- Implement `returnToDashboard()` method:
+  - Navigate to dashboard route using Router
+  - Clean up any subscriptions or resources
+- Display match result in template:
+  - Show winner (winner name or "You Win" / "You Lose")
+  - Display final scores for both players
+  - Display match statistics (damage dealt, accuracy, etc.)
+  - Show "Return to Dashboard" button
+- Handle component cleanup in ngOnDestroy()
 
 **End-to-End Test Scenario:**
 
@@ -1201,3 +1141,4 @@ VS-3: First Playable Match
 5. Define clear acceptance criteria and definitions of done
 6. Consolidate BE + FE tasks for end-to-end testing
 ```
+````

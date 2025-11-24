@@ -88,10 +88,10 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 
 **This epic follows the Phase 1 document structure exactly:**
 
-1. **STORY-VS-1-1:** Set up project structure and repository
-2. **STORY-VS-1-2:** Set up development environment and tooling
-3. **STORY-VS-1-3:** Set up CI/CD pipeline with GitHub Actions
-4. **STORY-VS-1-4:** Set up development tooling and code quality infrastructure
+1. **STORY-VS-1-1:** Setup project structure and repository foundation
+2. **STORY-VS-1-2:** Setup development environment with Docker Compose
+3. **STORY-VS-1-3:** Setup CI/CD pipeline with GitHub Actions
+4. **STORY-VS-1-4:** Setup development tooling and code quality infrastructure
 
 **For detailed task breakdown, refer to [Phase 1 Foundation Document](https://github.com/Buffden/battle-arena/blob/main/docs/05-PROJECT_MANAGEMENT/ISSUE_TEMPLATES/PHASE_1_FOUNDATION.md) which contains all stories and tasks in order.**
 
