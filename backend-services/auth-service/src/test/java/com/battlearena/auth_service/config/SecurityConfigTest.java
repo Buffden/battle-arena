@@ -47,7 +47,8 @@ class SecurityConfigTest {
     void passwordEncoderIsBCrypt() {
         // Test that password encoder is BCrypt by encoding a password
         // Test data constant (clearly marked as test-only, not real credentials)
-        final String TEST_PASSWORD = "testPassword123"; // Test-only password // NOSONAR
+        @SuppressWarnings("squid:S2068") // Suppress hard-coded password warning - test-only data
+        final String TEST_PASSWORD = "testPassword123";
         String encoded = passwordEncoder.encode(TEST_PASSWORD);
 
         assertNotNull(encoded, "Encoded password should not be null");

@@ -95,6 +95,9 @@ jobs:
             -Dsonar.coverage.exclusions=**/*Test.java,**/*Tests.java
             -Dsonar.exclusions=**/target/**,**/*.jar,**/generated/**
             -Dsonar.security.hotspot.exclusions=**/*Test.java,**/*Tests.java
+            -Dsonar.issue.ignore.multicriteria=e1
+            -Dsonar.issue.ignore.multicriteria.e1.ruleKey=java:S2068
+            -Dsonar.issue.ignore.multicriteria.e1.resourceKey=**/*Test.java,**/*Tests.java
         continue-on-error: true
 
   sonarcloud-nodejs:
@@ -246,7 +249,10 @@ jobs:
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**
             -Dsonar.test.exclusions=**/*.spec.ts,**/*.test.ts
-            -Dsonar.security.hotspot.exclusions=**/*.spec.ts,**/*.test.ts
+            -Dsonar.security.hotspot.exclusions=**/*.spec.ts,**/*.test.ts,**/*Test.ts
+            -Dsonar.issue.ignore.multicriteria=e1
+            -Dsonar.issue.ignore.multicriteria.e1.ruleKey=typescript:S2068
+            -Dsonar.issue.ignore.multicriteria.e1.resourceKey=**/*.spec.ts
         continue-on-error: true
 
   quality-gate-check:
