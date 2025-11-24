@@ -6,6 +6,7 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches: [main, develop]
+  workflow_dispatch: # Allows manual triggering from GitHub Actions tab
 
 # Prevent concurrent runs on the same branch
 concurrency:
