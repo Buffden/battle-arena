@@ -19,7 +19,8 @@ describe('App Component', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend-service');
+    // App component only renders router-outlet, no title in template
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 
   it('should render router outlet', () => {

@@ -39,7 +39,7 @@ public class JwtTokenUtil {
     @Value("${jwt.secret:your-256-bit-secret-key-change-this-in-production-minimum-32-characters}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}") // 24 hours in milliseconds
+    @Value("${jwt.expiration:86400000}")
     private Long expiration;
 
     /**
@@ -61,7 +61,7 @@ public class JwtTokenUtil {
      */
     public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", username); // Subject (username)
+        claims.put("sub", username);
         claims.put("userId", userId);
         return createToken(claims, username);
     }

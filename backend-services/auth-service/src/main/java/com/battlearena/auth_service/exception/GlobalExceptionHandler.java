@@ -54,17 +54,18 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", "Validation Error");
         errorResponse.put("message", "Input validation failed");
 
-        // Extract field-specific validation errors
+        // Extract field-specific validation errors (merge duplicate fields by keeping first occurrence)
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(error -> error.getField(),
                         error -> error.getDefaultMessage() != null ? error.getDefaultMessage()
                                 : "Invalid value",
-                        (existing, replacement) -> existing)); // Handle duplicate field names
+                        (existing, replacement) -> existing));
 
         errorResponse.put("fieldErrors", fieldErrors);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
 
     /**
      * Handles UserAlreadyExistsException (409 Conflict).
@@ -115,7 +116,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        // Log the exception for debugging (but don't expose details to client)
         logger.error("An unexpected error occurred", ex);
 
         Map<String, Object> errorResponse = new HashMap<>();
@@ -127,3 +127,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
+

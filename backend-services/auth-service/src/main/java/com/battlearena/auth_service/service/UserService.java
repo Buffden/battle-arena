@@ -71,24 +71,19 @@ public class UserService {
      * @throws UserAlreadyExistsException if username or email already exists
      */
     public User registerUser(RegisterRequest request) throws UserAlreadyExistsException {
-        // Check if username already exists
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException(
                     "Username already exists: " + request.getUsername());
         }
 
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email already exists: " + request.getEmail());
         }
 
-        // Hash the password securely (BCrypt with 12 rounds)
+        // BCrypt hashing (default 12 rounds)
         String passwordHash = passwordEncoder.encode(request.getPassword());
 
-        // Create new user entity
         User user = new User(request.getUsername(), request.getEmail(), passwordHash);
-
-        // Save user to MongoDB
         User savedUser = userRepository.save(user);
 
         return savedUser;
@@ -112,16 +107,14 @@ public class UserService {
      * @throws InvalidCredentialsException if username not found or password doesn't match
      */
     public User loginUser(LoginRequest request) throws InvalidCredentialsException {
-        // Find user by username
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
-        // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
-        // Update last login timestamp
+        // Update audit fields
         user.setLastLoginAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);

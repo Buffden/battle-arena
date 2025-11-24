@@ -1,5 +1,8 @@
 package com.battlearena.profile_service.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,9 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Spring Security configuration for Profile Service.
@@ -29,8 +29,7 @@ public class SecurityConfig {
          *
          * <p>
          * Allows public access to: - /actuator/health (for health checks) - /api/profile/**
-         * (profile endpoints - will require auth later) - /swagger-ui/** and /api-docs/** (Swagger
-         * documentation)
+         * (profile endpoints - will require auth later)
          * </p>
          *
          * @param http HttpSecurity builder
@@ -42,7 +41,8 @@ public class SecurityConfig {
                 http
                                 // Enable CSRF protection, but ignore stateless API endpoints
                                 // CSRF is not needed for stateless JWT-based API authentication
-                                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/profile/**"))
+                                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/profile/**",
+                                                "/actuator/**"))
 
                                 // CORS configuration
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -59,11 +59,6 @@ public class SecurityConfig {
 
                                                 // Allow profile endpoints (will require auth later)
                                                 .requestMatchers("/api/profile/**").permitAll()
-
-                                                // Allow Swagger documentation
-                                                .requestMatchers("/swagger-ui/**",
-                                                                "/v3/api-docs/**", "/api-docs/**")
-                                                .permitAll()
 
                                                 // All other requests require authentication (for
                                                 // future implementation)

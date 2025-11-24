@@ -19,11 +19,9 @@ public class RegisterResponse {
     private String email;
     private String message;
 
-    // Default constructor
     public RegisterResponse() {
     }
 
-    // Constructor with fields
     public RegisterResponse(String id, String username, String email, String message) {
         this.id = id;
         this.username = username;
@@ -31,7 +29,6 @@ public class RegisterResponse {
         this.message = message;
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

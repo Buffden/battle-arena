@@ -27,7 +27,6 @@ export class LoginModalComponent {
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
 
-    // React to modal state changes
     effect(() => {
       this.isOpen = this.modalService.isOpen('login');
       if (!this.isOpen) {
@@ -45,7 +44,6 @@ export class LoginModalComponent {
         next: () => {
           this.loading = false;
           this.modalService.closeModal();
-          // Navigation handled by auth service
         },
         error: error => {
           this.loading = false;

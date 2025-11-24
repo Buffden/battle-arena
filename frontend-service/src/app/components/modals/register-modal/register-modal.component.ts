@@ -37,7 +37,6 @@ export class RegisterModalComponent {
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
 
-    // React to modal state changes
     effect(() => {
       this.isOpen = this.modalService.isOpen('register');
       if (!this.isOpen) {
@@ -56,7 +55,6 @@ export class RegisterModalComponent {
         next: () => {
           this.loading = false;
           this.successMessage = 'Registration successful! Redirecting to login...';
-          // Switch to login modal after 2 seconds
           setTimeout(() => {
             this.modalService.switchModal('register', 'login');
           }, 2000);

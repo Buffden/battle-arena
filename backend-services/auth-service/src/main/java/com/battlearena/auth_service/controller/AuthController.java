@@ -2,14 +2,13 @@ package com.battlearena.auth_service.controller;
 
 import com.battlearena.auth_service.dto.AuthResponse;
 import com.battlearena.auth_service.dto.LoginRequest;
+import com.battlearena.auth_service.dto.LogoutResponse;
 import com.battlearena.auth_service.dto.RegisterRequest;
 import com.battlearena.auth_service.dto.RegisterResponse;
 import com.battlearena.auth_service.exception.InvalidCredentialsException;
 import com.battlearena.auth_service.exception.UserAlreadyExistsException;
 import com.battlearena.auth_service.model.User;
 import com.battlearena.auth_service.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "Authentication API endpoints")
 public class AuthController {
 
     private final UserService userService;
@@ -74,18 +72,13 @@ public class AuthController {
      *         GlobalExceptionHandler)
      */
     @PostMapping("/register")
-    @Operation(summary = "Register a new user",
-            description = "Creates a new user account with username, email, and password")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request)
             throws UserAlreadyExistsException {
-        // Delegate business logic to UserService (Facade Pattern)
         User user = userService.registerUser(request);
 
-        // Map User entity to RegisterResponse DTO (separation of concerns)
         RegisterResponse response = new RegisterResponse(user.getId(), user.getUsername(),
                 user.getEmail(), "Registration successful");
 
-        // Return HTTP 201 Created status code (REST API standard)
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -109,20 +102,39 @@ public class AuthController {
      *         GlobalExceptionHandler)
      */
     @PostMapping("/login")
-    @Operation(summary = "Login user", description = "Authenticates user and returns JWT token")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
             throws InvalidCredentialsException {
-        // Authenticate user (Facade Pattern)
         User user = userService.loginUser(request);
-
-        // Generate JWT token
         String token = userService.generateTokenForUser(user);
 
-        // Map User entity to AuthResponse DTO (separation of concerns)
         AuthResponse response = new AuthResponse(token, user.getId(), user.getUsername(),
                 user.getEmail(), "Login successful");
 
-        // Return HTTP 200 OK status code (REST API standard)
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Logout a user.
+     *
+     * <p>
+     * This endpoint handles user logout. For JWT-based authentication, logout is primarily a
+     * client-side operation. This endpoint provides a consistent API response.
+     * </p>
+     *
+     * <p>
+     * Note: JWT tokens are stateless. Actual logout happens when the client removes the token. This
+     * endpoint is provided for API consistency. If token blacklisting is implemented in the future,
+     * this endpoint would be the place to add it.
+     * </p>
+     *
+     * @return ResponseEntity with LogoutResponse containing success message
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<LogoutResponse> logout() {
+        // JWT is stateless - logout is primarily client-side. This endpoint provides API
+        // consistency.
+        // Future: Token blacklisting could be implemented here for enhanced security.
+        LogoutResponse response = new LogoutResponse("Logout successful");
         return ResponseEntity.ok(response);
     }
 }
