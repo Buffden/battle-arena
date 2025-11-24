@@ -17,6 +17,7 @@ COPY public ./public
 RUN npm run build -- --configuration production
 
 # Stage 2: Runtime with Nginx
+# NOSONAR - Nginx root user is acceptable for static file serving in isolated containers
 FROM nginx:1.25-alpine
 
 # Security Note: Nginx runs as root by default in the official image.
