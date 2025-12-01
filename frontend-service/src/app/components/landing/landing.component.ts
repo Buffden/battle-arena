@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ModalService } from '../../services/modal.service';
 import { LoginModalComponent } from '../modals/login-modal/login-modal.component';
@@ -8,7 +7,7 @@ import { RegisterModalComponent } from '../modals/register-modal/register-modal.
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink, CommonModule, LoginModalComponent, RegisterModalComponent],
+  imports: [CommonModule, LoginModalComponent, RegisterModalComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.css'
 })
