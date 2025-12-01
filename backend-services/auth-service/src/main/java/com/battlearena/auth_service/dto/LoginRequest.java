@@ -22,17 +22,14 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    // Default constructor
     public LoginRequest() {
     }
 
-    // Constructor with fields
     public LoginRequest(String username, String password) {
         this.username = username;
         this.password = password;
     }
 
-    // Getters and Setters
     public String getUsername() {
         return username;
     }

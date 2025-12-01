@@ -31,7 +31,7 @@ print_warning() {
 test-all() {
     print_info "Running all tests..."
     cd "$PROJECT_ROOT"
-    
+
     # Java services
     print_info "Testing Java services..."
     for service in auth-service profile-service leaderboard-service; do
@@ -42,7 +42,7 @@ test-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Node.js services
     print_info "Testing Node.js services..."
     for service in matchmaking-service game-engine; do
@@ -53,7 +53,7 @@ test-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Angular frontend
     if [ -d "frontend-service" ]; then
         print_info "Testing Angular frontend..."
@@ -61,7 +61,7 @@ test-all() {
         npm run test 2>/dev/null || print_warning "Frontend tests not configured"
         cd "$PROJECT_ROOT"
     fi
-    
+
     print_info "All tests completed!"
 }
 
@@ -69,7 +69,7 @@ test-all() {
 lint-all() {
     print_info "Running all linters..."
     cd "$PROJECT_ROOT"
-    
+
     # Java services
     print_info "Linting Java services..."
     for service in auth-service profile-service leaderboard-service; do
@@ -80,7 +80,7 @@ lint-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Node.js services
     print_info "Linting Node.js services..."
     for service in matchmaking-service game-engine; do
@@ -91,7 +91,7 @@ lint-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Angular frontend
     if [ -d "frontend-service" ]; then
         print_info "Linting Angular frontend..."
@@ -99,7 +99,7 @@ lint-all() {
         npm run lint 2>/dev/null || print_warning "Frontend linting not configured"
         cd "$PROJECT_ROOT"
     fi
-    
+
     print_info "All linting completed!"
 }
 
@@ -107,7 +107,7 @@ lint-all() {
 format-all() {
     print_info "Formatting all code..."
     cd "$PROJECT_ROOT"
-    
+
     # Node.js services
     print_info "Formatting Node.js services..."
     for service in matchmaking-service game-engine; do
@@ -118,7 +118,7 @@ format-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Angular frontend
     if [ -d "frontend-service" ]; then
         print_info "Formatting Angular frontend..."
@@ -126,13 +126,13 @@ format-all() {
         npm run format 2>/dev/null || print_warning "Frontend formatting not configured"
         cd "$PROJECT_ROOT"
     fi
-    
+
     # Format root JSON/MD files
     if command -v npx > /dev/null 2>&1; then
         print_info "Formatting root JSON/MD files..."
         npx prettier --write "*.json" "*.md" 2>/dev/null || print_warning "Prettier not available"
     fi
-    
+
     print_info "All formatting completed!"
 }
 
@@ -140,7 +140,7 @@ format-all() {
 coverage-all() {
     print_info "Generating coverage reports..."
     cd "$PROJECT_ROOT"
-    
+
     # Java services
     print_info "Generating coverage for Java services..."
     for service in auth-service profile-service leaderboard-service; do
@@ -151,7 +151,7 @@ coverage-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Node.js services
     print_info "Generating coverage for Node.js services..."
     for service in matchmaking-service game-engine; do
@@ -162,7 +162,7 @@ coverage-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Angular frontend
     if [ -d "frontend-service" ]; then
         print_info "Generating coverage for Angular frontend..."
@@ -170,7 +170,7 @@ coverage-all() {
         npm run test:coverage 2>/dev/null || print_warning "Frontend coverage not configured"
         cd "$PROJECT_ROOT"
     fi
-    
+
     print_info "All coverage reports generated!"
 }
 
@@ -178,18 +178,18 @@ coverage-all() {
 build-all() {
     print_info "Building all services..."
     cd "$PROJECT_ROOT"
-    
+
     # Java services
     print_info "Building Java services..."
     for service in auth-service profile-service leaderboard-service; do
         if [ -d "backend-services/$service" ]; then
             print_info "Building $service..."
             cd "backend-services/$service"
-            mvn clean package -DskipTests || print_warning "$service build failed"
+            mvn clean package || print_warning "$service build failed"
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Node.js services
     print_info "Building Node.js services..."
     for service in matchmaking-service game-engine; do
@@ -200,7 +200,7 @@ build-all() {
             cd "$PROJECT_ROOT"
         fi
     done
-    
+
     # Angular frontend
     if [ -d "frontend-service" ]; then
         print_info "Building Angular frontend..."
@@ -208,7 +208,7 @@ build-all() {
         npm run build 2>/dev/null || print_warning "Frontend build not configured"
         cd "$PROJECT_ROOT"
     fi
-    
+
     print_info "All builds completed!"
 }
 

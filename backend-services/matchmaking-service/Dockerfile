@@ -2,18 +2,12 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files and install dependencies
-# Security: --ignore-scripts prevents execution of package scripts during installation
-# This mitigates risk of malicious scripts in dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install --ignore-scripts
 
-# Copy source code explicitly (avoiding COPY . . to prevent copying sensitive/unnecessary files)
-COPY server.js ./
-COPY src ./src
-
-# Build step (if needed in future)
-RUN npm run build || echo "No build step for this service"
+# Install dependencies
+# Use --ignore-scripts to prevent execution of arbitrary scripts from packages (security)
+RUN npm ci --only=production --ignore-scripts && npm cache clean --force
 
 # Stage 2: Runtime
 FROM node:20-alpine
@@ -26,14 +20,14 @@ RUN apk add --no-cache wget
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy dependencies and source from build stage
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/server.js ./
-COPY --from=build /app/src ./src
+# Copy dependencies from build stage (read+execute only, no write for security)
+# node_modules don't need write access at runtime - packages are already installed
+COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
 
-# Change ownership to non-root user
-RUN chown -R nodejs:nodejs /app
+# Copy only necessary source files (explicit paths prevent copying sensitive data)
+# Only copy server.js - standalone file, no src/ directory needed
+# Set read-only permissions for security (no write/execute needed - Node.js interprets, not executes)
+COPY --chown=nodejs:nodejs --chmod=444 server.js ./
 
 # Switch to non-root user
 USER nodejs
@@ -46,5 +40,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 EXPOSE 3002
 
 # Run application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
 

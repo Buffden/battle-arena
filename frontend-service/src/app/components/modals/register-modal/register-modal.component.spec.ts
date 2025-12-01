@@ -6,7 +6,8 @@ import { of, throwError, delay } from 'rxjs';
 
 import { RegisterModalComponent } from './register-modal.component';
 import { ModalService } from '../../../services/modal.service';
-import { AuthService, RegisterRequest, RegisterResponse } from '../../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';
+import { RegisterRequest, RegisterResponse } from '../../../types/auth.types';
 
 describe('RegisterModalComponent', () => {
   let component: RegisterModalComponent;
@@ -182,7 +183,6 @@ describe('RegisterModalComponent', () => {
         password: TEST_VALID_PASSWORD
       };
       component.registerForm.setValue(registerData);
-      // Use delayed observable to test loading state
       authService.register.and.returnValue(
         of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
       );
@@ -202,7 +202,6 @@ describe('RegisterModalComponent', () => {
         email: TEST_VALID_EMAIL,
         password: TEST_VALID_PASSWORD
       });
-      // Use delayed observable to test loading state
       authService.register.and.returnValue(
         of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
       );
@@ -238,7 +237,6 @@ describe('RegisterModalComponent', () => {
         email: TEST_VALID_EMAIL,
         password: TEST_VALID_PASSWORD
       });
-      // Use delayed observable to test clearing before success
       authService.register.and.returnValue(
         of({} as RegisterResponse).pipe(delay(OBSERVABLE_DELAY_MS))
       );
@@ -317,7 +315,8 @@ describe('RegisterModalComponent', () => {
       component.onSubmit();
 
       expect(component.loading).toBeFalse();
-      expect(component.errorMessage).toBe(`Username already exists: ${TEST_VALID_USERNAME}`);
+      // Error message comes directly from API response
+      expect(component.errorMessage).toBe('Username already exists: testuser');
       expect(component.successMessage).toBeNull();
     });
 

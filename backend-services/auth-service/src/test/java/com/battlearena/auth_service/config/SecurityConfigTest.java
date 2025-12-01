@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -23,10 +23,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
  * </ul>
  * </p>
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@TestPropertySource(properties = {
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration",
-        "cors.allowed-origins=*"})
+@SpringJUnitConfig(SecurityConfig.class)
+@TestPropertySource(properties = {"cors.allowed-origins=*"})
 class SecurityConfigTest {
 
     @Autowired
@@ -45,9 +43,7 @@ class SecurityConfigTest {
 
     @Test
     void passwordEncoderIsBCrypt() {
-        // Test that password encoder is BCrypt by encoding a password
-        // Test data constant (clearly marked as test-only, not real credentials)
-        @SuppressWarnings("squid:S2068") // Suppress hard-coded password warning - test-only data
+        @SuppressWarnings("squid:S2068") // Test-only data
         final String TEST_PASSWORD = "testPassword123";
         String encoded = passwordEncoder.encode(TEST_PASSWORD);
 

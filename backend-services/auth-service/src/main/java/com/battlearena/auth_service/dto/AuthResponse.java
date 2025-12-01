@@ -20,11 +20,9 @@ public class AuthResponse {
     private String email;
     private String message;
 
-    // Default constructor
     public AuthResponse() {
     }
 
-    // Constructor with fields
     public AuthResponse(String token, String id, String username, String email, String message) {
         this.token = token;
         this.id = id;
@@ -33,7 +31,6 @@ public class AuthResponse {
         this.message = message;
     }
 
-    // Getters and Setters
     public String getToken() {
         return token;
     }
