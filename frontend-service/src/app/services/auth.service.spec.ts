@@ -5,6 +5,23 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { RegisterRequest, RegisterResponse, LoginRequest, AuthResponse } from '../types/auth.types';
 
+/**
+ * Helper function to create a JWT token with custom expiration.
+ * Format: header.payload.signature (we only need valid payload)
+ */
+function createMockJWT(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
+  const encodedPayload = btoa(JSON.stringify(payload))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
+  const signature = 'mock-signature';
+  return `${header}.${encodedPayload}.${signature}`;
+}
+
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
@@ -206,9 +223,142 @@ describe('AuthService', () => {
       expect(service.isAuthenticated()).toBeFalse();
     });
 
-    it('should return true for isAuthenticated when token exists', () => {
-      localStorage.setItem('auth_token', 'mock-token');
+    it('should return true for isAuthenticated when valid token exists', () => {
+      // Create a valid non-expired JWT token for testing
+      const validPayload = {
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+        iat: Math.floor(Date.now() / 1000),
+        sub: 'test-user'
+      };
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+        .replaceAll('+', '-')
+        .replaceAll('/', '_')
+        .replaceAll('=', '');
+      const encodedPayload = btoa(JSON.stringify(validPayload))
+        .replaceAll('+', '-')
+        .replaceAll('/', '_')
+        .replaceAll('=', '');
+      const validToken = `${header}.${encodedPayload}.mock-signature`;
+
+      localStorage.setItem('auth_token', validToken);
       expect(service.isAuthenticated()).toBeTrue();
+    });
+  });
+
+  describe('Token Expiration Handling', () => {
+    it('should return false for expired tokens in isAuthenticated()', () => {
+      // Create expired token (exp is in seconds, past date)
+      const expiredPayload = {
+        exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
+        iat: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
+        sub: 'user123'
+      };
+      const expiredToken = createMockJWT(expiredPayload);
+      localStorage.setItem('auth_token', expiredToken);
+
+      expect(service.isAuthenticated()).toBeFalse();
+    });
+
+    it('should automatically clear expired tokens', () => {
+      // Create expired token
+      const expiredPayload = {
+        exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
+        sub: 'user123'
+      };
+      const expiredToken = createMockJWT(expiredPayload);
+      localStorage.setItem('auth_token', expiredToken);
+
+      service.isAuthenticated();
+
+      // Token should be removed from localStorage
+      expect(localStorage.getItem('auth_token')).toBeNull();
+      expect(service.getToken()).toBeNull();
+    });
+
+    it('should return true for valid non-expired tokens', () => {
+      // Create valid token (exp is in seconds, future date)
+      const validPayload = {
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+        iat: Math.floor(Date.now() / 1000),
+        sub: 'user123'
+      };
+      const validToken = createMockJWT(validPayload);
+      localStorage.setItem('auth_token', validToken);
+
+      expect(service.isAuthenticated()).toBeTrue();
+    });
+
+    it('should handle malformed tokens gracefully', () => {
+      // Invalid token format
+      localStorage.setItem('auth_token', 'invalid.token');
+
+      expect(service.isAuthenticated()).toBeFalse();
+      // Token should be cleared
+      expect(localStorage.getItem('auth_token')).toBeNull();
+    });
+
+    it('should handle tokens with missing payload', () => {
+      // Token without payload part
+      localStorage.setItem('auth_token', 'header.');
+
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(localStorage.getItem('auth_token')).toBeNull();
+    });
+
+    it('should handle tokens without expiration claim', () => {
+      // Token without exp claim
+      const payloadWithoutExp = {
+        iat: Math.floor(Date.now() / 1000),
+        sub: 'user123'
+      };
+      const tokenWithoutExp = createMockJWT(payloadWithoutExp);
+      localStorage.setItem('auth_token', tokenWithoutExp);
+
+      // Should treat as expired (no exp claim)
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(localStorage.getItem('auth_token')).toBeNull();
+    });
+
+    it('should decode JWT payload correctly', () => {
+      // Create valid token with specific claims
+      const payload = {
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+        sub: 'user123',
+        username: 'testuser'
+      };
+      const validToken = createMockJWT(payload);
+      localStorage.setItem('auth_token', validToken);
+
+      // Token should be valid and not cleared
+      expect(service.isAuthenticated()).toBeTrue();
+      expect(localStorage.getItem('auth_token')).toBe(validToken);
+    });
+
+    it('should handle tokens expiring exactly now', () => {
+      // Token expiring exactly at current time
+      const expiringNowPayload = {
+        exp: Math.floor(Date.now() / 1000), // Exactly now
+        sub: 'user123'
+      };
+      const expiringNowToken = createMockJWT(expiringNowPayload);
+      localStorage.setItem('auth_token', expiringNowToken);
+
+      // Should be treated as expired (>= check)
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(localStorage.getItem('auth_token')).toBeNull();
+    });
+
+    it('should handle empty token string', () => {
+      localStorage.setItem('auth_token', '');
+
+      expect(service.isAuthenticated()).toBeFalse();
+    });
+
+    it('should handle token with only one dot', () => {
+      localStorage.setItem('auth_token', 'invalid.token');
+
+      expect(service.isAuthenticated()).toBeFalse();
     });
   });
 

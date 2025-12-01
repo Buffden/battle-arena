@@ -79,7 +79,56 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    // Check if token is expired
+    if (this.isTokenExpired(token)) {
+      this.removeToken();
+      this.currentUserSubject.next(null);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Checks if JWT token is expired.
+   *
+   * <p>
+   * Decodes JWT token and checks expiration claim (exp).
+   * </p>
+   *
+   * @param token JWT token string
+   * @return true if token is expired, false otherwise
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      // Decode JWT token (base64url encoded payload)
+      const payload = token.split('.')[1];
+      if (!payload) {
+        return true;
+      }
+
+      // Decode base64url to JSON
+      const decodedPayload = JSON.parse(
+        globalThis.window.atob(payload.replaceAll('-', '+').replaceAll('_', '/'))
+      );
+
+      // Check expiration claim (exp is Unix timestamp in seconds)
+      const exp = decodedPayload.exp;
+      if (!exp) {
+        return true; // No expiration claim, consider expired
+      }
+
+      // Compare expiration time with current time (in seconds)
+      return Date.now() >= exp * 1000;
+    } catch {
+      // Invalid token format, consider expired
+      return true;
+    }
   }
 
   getCurrentUser(): AuthResponse | null {
