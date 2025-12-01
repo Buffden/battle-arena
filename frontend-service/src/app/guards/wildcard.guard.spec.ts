@@ -1,34 +1,20 @@
-import { TestBed } from '@angular/core/testing';
-import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-
 import { WildcardGuard } from './wildcard.guard';
-import { AuthService } from '../services/auth.service';
+import { setupGuardTestBed } from './guards-test-utils';
 
 describe('WildcardGuard', () => {
   let guard: WildcardGuard;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
-  let route: ActivatedRouteSnapshot;
-  let state: RouterStateSnapshot;
+  let authService: jasmine.SpyObj<import('../services/auth.service').AuthService>;
+  let router: jasmine.SpyObj<import('@angular/router').Router>;
+  let route: import('@angular/router').ActivatedRouteSnapshot;
+  let state: import('@angular/router').RouterStateSnapshot;
 
   beforeEach(() => {
-    const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-
-    TestBed.configureTestingModule({
-      providers: [
-        WildcardGuard,
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy }
-      ]
-    });
-
-    guard = TestBed.inject(WildcardGuard);
-    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-
-    route = {} as ActivatedRouteSnapshot;
-    state = {} as RouterStateSnapshot;
+    const setup = setupGuardTestBed(WildcardGuard);
+    guard = setup.guard;
+    authService = setup.authService;
+    router = setup.router;
+    route = setup.route;
+    state = setup.state;
   });
 
   it('should be created', () => {
