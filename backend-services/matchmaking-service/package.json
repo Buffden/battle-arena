@@ -22,8 +22,16 @@
   ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "redis": "^4.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

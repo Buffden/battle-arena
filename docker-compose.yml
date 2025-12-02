@@ -219,6 +219,7 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-changeme}
     networks:
       - battle-arena-network
     depends_on:

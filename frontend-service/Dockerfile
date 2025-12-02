@@ -7,8 +7,9 @@ COPY package*.json ./
 COPY angular.json tsconfig*.json ./
 
 # Install dependencies
-# Use --ignore-scripts to prevent execution of arbitrary scripts from packages (security)
-RUN npm ci --ignore-scripts
+# Note: We need to allow scripts for esbuild to install platform-specific binaries
+# This is safe in the build stage as we're only building, not running the app
+RUN npm ci
 
 # Copy source code
 COPY src ./src
