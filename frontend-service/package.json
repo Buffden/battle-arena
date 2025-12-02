@@ -18,7 +18,8 @@
   },
   "private": true,
   "overrides": {
-    "@modelcontextprotocol/sdk": "^1.24.0"
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "chokidar": "^3.6.0"
   },
   "dependencies": {
     "@angular/common": "^20.3.15",
