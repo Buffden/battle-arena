@@ -1,26 +1,27 @@
-# EPIC-VS-5: Full Game Features
-
-**Copy and paste this template directly into GitHub Issues.**
+# EPIC-VS-5: Full Game Features - Hero Selection, Real Player Matchmaking, Arena Voting, Weapon Drafting
 
 **Note:** All technical implementation details from Phase 5 (Matchmaking - hero/arena/weapon selection, real player matching), Phase 6 (Game Engine - hero/weapon/arena integration), and Phase 7 (Frontend - selection UIs) have been consolidated into this file. You no longer need to reference multiple Phase documents when creating GitHub issues.
 
 ---
 
-## EPIC-VS-5: Full Game Features
+## EPIC-VS-5: Full Game Features - Hero Selection, Real Player Matchmaking, Arena Voting, Weapon Drafting
 
-### Issue Template:
+### Issue Template
 
-````
-Title: EPIC-VS-5: Full Game Features
+**Title:** EPIC-VS-5: Full Game Features - Hero Selection, Real Player Matchmaking, Arena Voting, Weapon Drafting
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the fifth vertical slice where players can select heroes, arenas, and weapons before matches, and get matched with real players (not bots). This epic enables the complete pre-game experience - hero selection, real player matchmaking, arena voting/elimination, and weapon drafting. This completes the Beta milestone - players can play full matches with all features enabled.
 
 **This is the fifth vertical slice** - it enables players to customize their match experience and play against real opponents.
 
 ## Vertical Slice Goal
+
 A player can:
+
 1. Select multiple heroes before matchmaking (increases match chances)
 2. Get matched with real players (not bots) based on score/rank and hero compatibility
 3. Vote on arena selection (elimination system)
@@ -29,6 +30,7 @@ A player can:
 6. See all features working together end-to-end
 
 ## Success Criteria
+
 - [ ] Player can select multiple heroes (up to 5) before joining queue
 - [ ] Hero selection stored and used for matchmaking compatibility
 - [ ] Real player matching works (no bots)
@@ -44,6 +46,7 @@ A player can:
 ## MVP Scope (Minimal for Beta Milestone)
 
 **What's Included:**
+
 - Multiple hero selection (up to 5 heroes, priority order)
 - Real player matching (score/rank-based with hero compatibility)
 - Arena voting system (3-5 arenas, elimination voting)
@@ -53,6 +56,7 @@ A player can:
 - Frontend selection UIs (hero cards, arena voting, weapon picker)
 
 **What's Deferred:**
+
 - Advanced hero selection strategies (preferred hero combinations)
 - Complex arena selection (map-specific rules, weather effects)
 - Advanced weapon balancing (weapon-specific stats, synergies)
@@ -63,6 +67,7 @@ A player can:
 ## Technical References
 
 ### Phase Documents (Technical Implementation Details)
+
 This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (Frontend) for technical specifications.
 
 - **Matchmaking Service:** See Phase 5 (PHASE-5 issue) - STORY-5-2, STORY-5-5
@@ -72,18 +77,21 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 ### Architecture References
 
 **Sequence Diagrams:**
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Complete matchmaking flow with hero selection
-- [Hero Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/hero-selection-flow.puml) - Hero selection flow
-- [Arena Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/arena-selection-flow.puml) - Arena voting flow
-- [Weapon Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/weapon-selection-flow.puml) - Weapon drafting flow
+
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Complete matchmaking flow with hero selection
+- [Hero Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Hero%20Selection%20Flow.png) - Hero selection flow
+- [Arena Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Arena%20Selection%20Flow.png) - Arena voting flow
+- [Weapon Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Weapon%20Selection%20Flow.png) - Weapon drafting flow
 - [Sequence Diagrams Index](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/README.md)
 
 **Class Diagrams:**
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml)
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml)
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml)
+
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png)
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png)
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png)
 
 **Architecture Documents:**
+
 - [System Architecture - Matchmaking Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#24-matchmaking-service)
 - [Matchmaking Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md)
 - [Game Engine Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/GAME_ENGINE_SERVICE.md)
@@ -92,17 +100,19 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ## Stories (Player Experience)
 
-### VS-5-1: Implement multiple hero selection with priority ordering
+### VS-5-1: Multiple Hero Selection with Priority Ordering and Compatibility Checking
 
 **User Story:** As a player, I want to select multiple heroes before matchmaking so that I can increase my match chances and play with my preferred heroes.
 
 **Related Diagrams & Documents:**
-- [Hero Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/hero-selection-flow.puml) - Hero selection flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - HeroSelector component
+
+- [Hero Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Hero%20Selection%20Flow.png) - Hero selection flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - HeroSelector component
 - [Matchmaking Service LLD](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - HeroSelector (section 3.5)
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Heroes collection schema
 
 **Acceptance Criteria:**
+
 - [ ] Hero selection page displays available heroes
 - [ ] Player can select multiple heroes (up to 5)
 - [ ] Hero selection stored with priority order
@@ -119,6 +129,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/models/Hero.ts`
 
 **Hero Model Implementation Requirements:**
+
 - Create HeroType enum with values: TANK, DAMAGE, SUPPORT (string values: "tank", "damage", "support")
 - Create HeroRarity enum with values: COMMON, RARE, EPIC, LEGENDARY (string values: "common", "rare", "epic", "legendary")
 - Create Hero interface with fields:
@@ -149,6 +160,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/types/hero.types.ts`
 
 **Hero Selection Types Implementation Requirements:**
+
 - Create HeroSelection interface with fields:
   - userId (string) - User ID who made the selection
   - heroIds (string[]) - Array of selected hero IDs (up to 5)
@@ -162,6 +174,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/services/HeroSelector.ts`
 
 **HeroSelector Implementation Requirements:**
+
 - Create HeroSelector class in `src/services/` directory
 - Define private constant SELECTION_KEY_PREFIX = "hero-selection:" for Redis key prefix
 - Inject Redis client via dependency injection or configuration
@@ -190,6 +203,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/controllers/MatchmakingController.ts`
 
 **MatchmakingController.handleHeroSelection() Implementation Requirements:**
+
 - Add `handleHeroSelection(socket, data)` method to MatchmakingController class
 - Extract userId from socket.data (set by JWT authentication middleware)
 - Call HeroSelector.selectHeroes() with userId and HeroSelectionRequest data
@@ -202,6 +216,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/utils/validators.ts`
 
 **validateHeroSelection() Implementation Requirements:**
+
 - Create ValidationResult interface with valid (boolean) and errors (string[]) fields
 - Create `validateHeroSelection(payload)` async function:
   - Initialize errors array
@@ -221,6 +236,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `frontend-service/src/app/hero-selection/components/hero-selection/hero-selection.component.ts`
 
 **HeroSelectionComponent Implementation Requirements:**
+
 - Create HeroSelectionComponent class in `src/app/hero-selection/components/hero-selection/` directory
 - Add `@Component` decorator with selector "app-hero-selection", template, and styles
 - Implement OnInit interface
@@ -254,6 +270,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `frontend-service/src/app/services/matchmaking.service.ts`
 
 **MatchmakingService Hero Selection Methods Implementation Requirements:**
+
 - Add `getAvailableHeroes()` method to MatchmakingService:
   - Listen for "available-heroes" event from Socket.io server
   - Return Observable<Hero[]> for components to subscribe
@@ -267,14 +284,14 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ---
 
-### VS-5-2: Implement real player matching with score-based algorithm
+### VS-5-2: Real Player Matching with Score-Based Algorithm and Hero Compatibility Checks
 
 **User Story:** As a player, I want to be matched with real players of similar skill level and compatible hero selection so that I have fair and fun matches.
 
 **Related Diagrams & Documents:**
 
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Real player matching flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - MatchmakingEngine component
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Real player matching flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - MatchmakingEngine component
 - [Matchmaking Service LLD](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - MatchmakingEngine (section 3.3)
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Matchmaking algorithm overview
 
@@ -322,6 +339,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/services/MatchmakingEngine.ts`
 
 **MatchmakingEngine Implementation Requirements:**
+
 - Create MatchmakingEngine class in `src/services/` directory
 - Add private matchmakingInterval property (NodeJS.Timeout | null) to track interval
 - Define constant MATCHMAKING_INTERVAL_MS = 5000 (5 seconds) for matchmaking cycle frequency
@@ -352,6 +370,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/services/strategy/ScoreBasedMatchingStrategy.ts`
 
 **ScoreBasedMatchingStrategy Implementation Requirements:**
+
 - Create ScoreBasedMatchingStrategy class implementing MatchingStrategy interface
 - Define constants:
   - INITIAL_SCORE_BAND = 500 (initial score difference allowed)
@@ -370,7 +389,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
   - Return matches array
 - Implement private `calculateScoreBand(waitTime)` method:
   - Calculate number of widen intervals based on wait time
-  - Calculate band width: INITIAL_SCORE_BAND + (intervals * WIDEN_AMOUNT)
+  - Calculate band width: INITIAL_SCORE_BAND + (intervals \* WIDEN_AMOUNT)
   - Return minimum of calculated band and MAX_SCORE_BAND
 - Implement private `selectBestMatch(player1, candidates)` method:
   - Initialize bestMatch as null
@@ -395,14 +414,14 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ---
 
-### VS-5-3: Implement arena voting system with elimination mechanism
+### VS-5-3: Arena Voting System with Elimination Mechanism and Real-Time Vote Updates
 
 **User Story:** As a player, I want to vote on which arena to play in so that the match uses a fair and preferred arena.
 
 **Related Diagrams & Documents:**
 
-- [Arena Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/arena-selection-flow.puml) - Arena voting flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - ArenaSelector component
+- [Arena Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Arena%20Selection%20Flow.png) - Arena voting flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - ArenaSelector component
 - [Matchmaking Service LLD](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - ArenaSelector (section 3.6)
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Arenas collection schema
 
@@ -423,6 +442,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/models/Arena.ts`
 
 **Arena Model Implementation Requirements:**
+
 - Create Arena interface with fields:
   - id (string) - Unique arena identifier
   - name (string) - Arena display name
@@ -437,6 +457,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/services/ArenaSelector.ts`
 
 **ArenaSelector Implementation Requirements:**
+
 - Create ArenaVote interface with userId (string), arenaId (string), and timestamp (Date) fields
 - Create ArenaSelector class in `src/services/` directory
 - Define private constant VOTE_KEY_PREFIX = "arena-vote:" for Redis key prefix
@@ -471,6 +492,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `frontend-service/src/app/arena-selection/components/arena-selection/arena-selection.component.ts`
 
 **ArenaSelectionComponent Implementation Requirements:**
+
 - Create ArenaSelectionComponent class in `src/app/arena-selection/components/arena-selection/` directory
 - Add `@Component` decorator with selector "app-arena-selection", template, and styles
 - Implement OnInit and OnDestroy interfaces
@@ -512,14 +534,14 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ---
 
-### VS-5-4: Implement weapon drafting system with turn-based selection
+### VS-5-4: Weapon Drafting System with Turn-Based Selection and 30-Second Timer
 
 **User Story:** As a player, I want to draft weapons in a turn-based system so that I can select my preferred weapon for the match.
 
 **Related Diagrams & Documents:**
 
-- [Weapon Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/weapon-selection-flow.puml) - Weapon drafting flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - WeaponSelector component
+- [Weapon Selection Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Weapon%20Selection%20Flow.png) - Weapon drafting flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - WeaponSelector component
 - [Matchmaking Service LLD](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - WeaponSelector (section 3.7)
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Weapons collection schema
 
@@ -540,6 +562,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/models/Weapon.ts`
 
 **Weapon Model Implementation Requirements:**
+
 - Create Weapon interface with fields:
   - id (string) - Unique weapon identifier
   - name (string) - Weapon display name
@@ -556,6 +579,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `backend-services/matchmaking-service/src/services/WeaponSelector.ts`
 
 **WeaponSelector Implementation Requirements:**
+
 - Create WeaponSelectionState interface with fields:
   - matchId (string) - Match identifier
   - playerIds (string[]) - Array of player IDs in turn order
@@ -602,6 +626,7 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 **File:** `frontend-service/src/app/weapon-selection/components/weapon-selection/weapon-selection.component.ts`
 
 **WeaponSelectionComponent Implementation Requirements:**
+
 - Create WeaponSelectionComponent class in `src/app/weapon-selection/components/weapon-selection/` directory
 - Add `@Component` decorator with selector "app-weapon-selection", template, and styles
 - Implement OnInit and OnDestroy interfaces
@@ -675,11 +700,6 @@ epic:full-game-features, vertical-slice:5, milestone:beta, priority:high
 
 Beta: Full Game Features
 
-```
-
 ---
 
 **Note:** This epic consolidates all technical details from Phase 5 (Matchmaking - hero/arena/weapon selection, real player matching), Phase 6 (Game Engine - integration), and Phase 7 (Frontend - selection UIs). All code snippets, folder structures, class names, and method signatures match the Phase documents exactly for consistency.
-
-```
-````

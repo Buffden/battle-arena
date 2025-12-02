@@ -1,26 +1,27 @@
-# EPIC-VS-7: Gold Master
-
-**Copy and paste this template directly into GitHub Issues.**
+# EPIC-VS-7: Gold Master - Production Monitoring, Logging, Bug Fixes, Launch Preparation
 
 **Note:** All technical implementation details from Deployment Architecture (monitoring, logging, production deployment) have been consolidated into this file. You no longer need to reference multiple documents when creating GitHub issues.
 
 ---
 
-## EPIC-VS-7: Gold Master
+## EPIC-VS-7: Gold Master - Production Monitoring, Logging, Bug Fixes, Launch Preparation
 
-### Issue Template:
+### Issue Template
 
-```
-Title: EPIC-VS-7: Gold Master
+**Title:** EPIC-VS-7: Gold Master - Production Monitoring, Logging, Bug Fixes, Launch Preparation
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the seventh and final vertical slice to reach Gold Master milestone - the game is production-ready, fully monitored, and ready to launch. This epic includes production monitoring (Prometheus, Grafana), logging infrastructure (ELK Stack or Loki + Grafana), final bug fixes, production deployment automation, launch preparation, and operational runbooks. This is the "launch-ready" milestone - no critical bugs, all systems monitored, ready for players.
 
 **This is the seventh and final vertical slice** - it prepares the game for launch by ensuring production readiness, observability, and operational excellence.
 
 ## Vertical Slice Goal
+
 The game is:
+
 1. Production-ready and deployed (monitoring, logging, alerting)
 2. Fully monitored (metrics, dashboards, alerts)
 3. Comprehensively logged (centralized logging, log aggregation)
@@ -29,6 +30,7 @@ The game is:
 6. Launch-ready (launch checklist complete, go-live procedures defined)
 
 ## Success Criteria
+
 - [ ] Production monitoring infrastructure deployed (Prometheus, Grafana)
 - [ ] Application metrics collected and visualized (dashboards, alerts)
 - [ ] Logging infrastructure deployed (ELK Stack or Loki + Grafana)
@@ -47,6 +49,7 @@ The game is:
 ## MVP Scope (Minimal for Gold Master Milestone)
 
 **What's Included:**
+
 - Production monitoring (Prometheus + Grafana)
 - Centralized logging (Loki + Grafana or ELK Stack)
 - Basic alerting (critical errors, service downtime)
@@ -57,6 +60,7 @@ The game is:
 - Basic disaster recovery (backup strategy, recovery procedures)
 
 **What's Deferred:**
+
 - Advanced distributed tracing (Jaeger/Zipkin) - can be added post-launch
 - Advanced APM (Application Performance Monitoring) - can be added post-launch
 - Multi-region deployment - can be added post-launch
@@ -66,6 +70,7 @@ The game is:
 ## Technical References
 
 ### Architecture Documents (Technical Implementation Details)
+
 This epic references Deployment Architecture for technical specifications.
 
 - **Monitoring:** See [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Section 6.1, 6.2
@@ -75,21 +80,30 @@ This epic references Deployment Architecture for technical specifications.
 ### Architecture References
 
 **Architecture Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Production deployment, monitoring, logging
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service architecture
 - [Security Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Security best practices
 
+**Architecture Diagrams:**
+
+- [System Architecture Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png) - High-level system architecture
+- [Deployment Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Deployment%20Diagram.png) - Production deployment with monitoring and logging
+- [Container Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Container%20Diagram.png) - Container and service architecture
+
 ## Stories (Player Experience)
 
-### VS-7-1: Deploy production monitoring with Prometheus and Grafana
+### VS-7-1: Production Monitoring Infrastructure with Prometheus and Grafana
 
 **User Story:** As an operator, I want comprehensive monitoring and alerting so that I can detect and respond to issues before they affect players.
 
 **Related Diagrams & Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Monitoring infrastructure (section 6.1, 6.2)
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service architecture
 
 **Acceptance Criteria:**
+
 - [ ] Prometheus deployed and configured
 - [ ] Grafana deployed and configured
 - [ ] Application metrics exposed (Spring Boot Actuator, Node.js metrics)
@@ -108,13 +122,14 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `deployments/monitoring/prometheus/prometheus.yml`
 
 **Prometheus Configuration Implementation Requirements:**
+
 - Create prometheus.yml configuration file
 - Configure global settings:
   - Set scrape_interval to 15 seconds (how often to scrape metrics)
   - Set evaluation_interval to 15 seconds (how often to evaluate alerting rules)
   - Set external_labels: cluster='battle-arena', environment='production'
 - Configure rule_files:
-  - Reference alerting rules directory: "alerts/*.yml"
+  - Reference alerting rules directory: "alerts/\*.yml"
 - Configure alerting section:
   - Set alertmanagers target: alertmanager:9093
 - Configure scrape_configs for all services:
@@ -149,6 +164,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `deployments/monitoring/prometheus/alerts/service-down.yml`
 
 **Prometheus Alerting Rules Implementation Requirements:**
+
 - Create alerting rules YAML file in alerts directory
 - Configure alert group:
   - Group name: service_availability
@@ -175,6 +191,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `backend-services/{service}/src/main/resources/application.yaml`
 
 **Spring Boot Metrics Configuration Implementation Requirements:**
+
 - Configure Spring Boot Actuator in application.yaml:
   - Enable Prometheus endpoint: management.endpoint.prometheus.enabled=true
   - Enable Prometheus metrics export: management.metrics.export.prometheus.enabled=true
@@ -188,6 +205,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `backend-services/{service}/src/config/metrics.config.ts`
 
 **Node.js Metrics Configuration Implementation Requirements:**
+
 - Create metrics configuration file in config directory
 - Import prom-client package
 - Create Prometheus Registry:
@@ -217,15 +235,17 @@ This epic references Deployment Architecture for technical specifications.
 
 ---
 
-### VS-7-2: Implement centralized logging with Loki and Grafana
+### VS-7-2: Centralized Logging Infrastructure with Loki and Grafana
 
 **User Story:** As an operator, I want centralized logging so that I can search, filter, and analyze logs from all services in one place.
 
 **Related Diagrams & Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Logging infrastructure (section 6.3)
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service architecture
 
 **Acceptance Criteria:**
+
 - [ ] Logging infrastructure deployed (Loki + Grafana or ELK Stack)
 - [ ] All services configured for structured logging (JSON format)
 - [ ] Log collection configured (Filebeat, Fluentd, or Promtail)
@@ -242,6 +262,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `deployments/logging/loki/loki-config.yml`
 
 **Loki Configuration Implementation Requirements:**
+
 - Create loki-config.yml configuration file
 - Configure authentication:
   - Set auth_enabled to false (for development, enable in production)
@@ -260,7 +281,7 @@ This epic references Deployment Architecture for technical specifications.
   - Set schema version: v11
   - Set store type: boltdb-shipper
   - Set object store: filesystem
-  - Set index prefix: index_
+  - Set index prefix: index\_
   - Set index period: 24h
 - Configure storage_config:
   - BoltDB shipper: active index directory, cache location, shared store (filesystem)
@@ -281,6 +302,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `deployments/logging/promtail/promtail-config.yml`
 
 **Promtail Configuration Implementation Requirements:**
+
 - Create promtail-config.yml configuration file
 - Configure server settings:
   - HTTP listen port: 9080
@@ -294,33 +316,34 @@ This epic references Deployment Architecture for technical specifications.
     - Job name: auth-service
     - Target: localhost
     - Labels: job=auth-service, service=auth-service
-    - Log path: /var/log/auth-service/*.log
+    - Log path: /var/log/auth-service/\*.log
   - **profile-service:**
     - Job name: profile-service
     - Target: localhost
     - Labels: job=profile-service, service=profile-service
-    - Log path: /var/log/profile-service/*.log
+    - Log path: /var/log/profile-service/\*.log
   - **leaderboard-service:**
     - Job name: leaderboard-service
     - Target: localhost
     - Labels: job=leaderboard-service, service=leaderboard-service
-    - Log path: /var/log/leaderboard-service/*.log
+    - Log path: /var/log/leaderboard-service/\*.log
   - **matchmaking-service:**
     - Job name: matchmaking-service
     - Target: localhost
     - Labels: job=matchmaking-service, service=matchmaking-service
-    - Log path: /var/log/matchmaking-service/*.log
+    - Log path: /var/log/matchmaking-service/\*.log
   - **game-engine:**
     - Job name: game-engine
     - Target: localhost
     - Labels: job=game-engine, service=game-engine
-    - Log path: /var/log/game-engine/*.log
+    - Log path: /var/log/game-engine/\*.log
 - Ensure log file paths match actual log file locations in containers
 
 **Spring Boot - Structured Logging Configuration:**
 **File:** `backend-services/{service}/src/main/resources/logback-spring.xml`
 
 **Spring Boot Structured Logging Implementation Requirements:**
+
 - Create logback-spring.xml configuration file in resources directory
 - Include Spring Boot default logback configuration
 - Configure CONSOLE appender:
@@ -353,6 +376,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `backend-services/{service}/src/config/logger.config.ts`
 
 **Node.js Structured Logging Implementation Requirements:**
+
 - Create logger configuration file in config directory
 - Import winston logging library and path module
 - Configure log format:
@@ -381,15 +405,17 @@ This epic references Deployment Architecture for technical specifications.
 
 ---
 
-### VS-7-3: Complete production readiness with bug fixes and launch procedures
+### VS-7-3: Production Readiness with Bug Fixes, CI/CD Pipeline, and Launch Procedures
 
 **User Story:** As a developer, I want the application to be production-ready with all critical bugs fixed, tests passing, and launch procedures documented so that we can launch confidently.
 
 **Related Diagrams & Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Production deployment, disaster recovery (section 7)
 - [Security Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Security best practices
 
 **Acceptance Criteria:**
+
 - [ ] All critical bugs fixed
 - [ ] All high-priority bugs fixed
 - [ ] All tests passing (unit, integration, E2E)
@@ -410,11 +436,12 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `.github/workflows/deploy-production.yml`
 
 **Production CI/CD Workflow Implementation Requirements:**
+
 - Create GitHub Actions workflow file for production deployment
 - Configure workflow name: "Deploy to Production"
 - Configure trigger events:
   - Push to main branch
-  - Push tags matching 'v*' pattern (version tags)
+  - Push tags matching 'v\*' pattern (version tags)
 - Configure test job:
   - Run on ubuntu-latest
   - Checkout code using actions/checkout@v3
@@ -440,6 +467,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `docs/operations/DISASTER_RECOVERY.md`
 
 **Disaster Recovery Plan Documentation Requirements:**
+
 - Create comprehensive disaster recovery plan document
 - Document backup strategy:
   - **Database Backups:**
@@ -474,6 +502,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `docs/operations/RUNBOOK.md`
 
 **Operational Runbook Documentation Requirements:**
+
 - Create comprehensive operational runbook document
 - Document common procedures:
   - **Service Restart:**
@@ -512,6 +541,7 @@ This epic references Deployment Architecture for technical specifications.
 **File:** `docs/operations/LAUNCH_CHECKLIST.md`
 
 **Launch Checklist Documentation Requirements:**
+
 - Create comprehensive launch checklist document
 - Document Pre-Launch checklist items:
   - **Infrastructure:**
@@ -580,8 +610,6 @@ epic:gold-master, vertical-slice:7, milestone:gold-master, priority:critical
 ## Milestone
 
 Gold Master: Production Ready, Launch Ready
-
-```
 
 ---
 
