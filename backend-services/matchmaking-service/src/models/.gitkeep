@@ -1,0 +1,8 @@
+# Data Models Directory
+# This directory will contain data model classes:
+# - Hero model
+# - QueueEntry model
+# - Lobby model
+# - Match model
+# - Configuration models
+

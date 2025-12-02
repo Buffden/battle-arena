@@ -1,0 +1,11 @@
+# Services Directory
+# This directory will contain business logic layer services:
+# - MatchmakingService
+# - MatchmakingEngine
+# - QueueManager
+# - HeroSelector
+# - ArenaSelector
+# - WeaponSelector
+# - LobbyManager
+# - ConfigurationManager
+

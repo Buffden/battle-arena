@@ -1,0 +1,10 @@
+# TypeScript Type Definitions Directory
+# This directory will contain TypeScript type definitions:
+# - QueueEntry interface
+# - MatchRequest interface
+# - HeroSelection interface
+# - ArenaVote interface
+# - WeaponSelection interface
+# - Lobby interface
+# - Configuration interfaces
+
