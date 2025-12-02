@@ -17,13 +17,16 @@
     "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\""
   },
   "private": true,
+  "overrides": {
+    "@modelcontextprotocol/sdk": "^1.24.0"
+  },
   "dependencies": {
-    "@angular/common": "^20.3.14",
-    "@angular/compiler": "^20.3.14",
-    "@angular/core": "^20.3.14",
-    "@angular/forms": "^20.3.14",
-    "@angular/platform-browser": "^20.3.14",
-    "@angular/router": "^20.3.14",
+    "@angular/common": "^20.3.15",
+    "@angular/compiler": "^20.3.15",
+    "@angular/core": "^20.3.15",
+    "@angular/forms": "^20.3.15",
+    "@angular/platform-browser": "^20.3.15",
+    "@angular/router": "^20.3.15",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -31,7 +34,7 @@
   "devDependencies": {
     "@angular/build": "^20.3.10",
     "@angular/cli": "^20.3.10",
-    "@angular/compiler-cli": "^20.3.14",
+    "@angular/compiler-cli": "^20.3.15",
     "@angular-eslint/builder": "^18.0.0",
     "@angular-eslint/eslint-plugin": "^18.0.0",
     "@angular-eslint/eslint-plugin-template": "^18.0.0",
