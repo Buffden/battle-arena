@@ -1,26 +1,27 @@
-# EPIC-VS-6: Content Complete
-
-**Copy and paste this template directly into GitHub Issues.**
+# EPIC-VS-6: Content Complete - Docker Containerization, Testing, API Documentation, Polish
 
 **Note:** All technical implementation details from Phase 8 (Deployment) and Phase 9 (Quality Assurance) have been consolidated into this file. You no longer need to reference multiple Phase documents when creating GitHub issues.
 
 ---
 
-## EPIC-VS-6: Content Complete
+## EPIC-VS-6: Content Complete - Docker Containerization, Testing, API Documentation, Polish
 
-### Issue Template:
+### Issue Template
 
-```
-Title: EPIC-VS-6: Content Complete
+**Title:** EPIC-VS-6: Content Complete - Docker Containerization, Testing, API Documentation, Polish
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the sixth vertical slice to reach Content Complete milestone - the game is feature-complete, polished, tested, and ready for final bug fixes. This epic includes deployment infrastructure (Docker, docker-compose, Nginx), comprehensive testing (unit, integration, E2E), API documentation, performance optimization, security hardening, and UI/UX polish. This is the "feature freeze" milestone - no new features, only bug fixes and polish.
 
 **This is the sixth vertical slice** - it prepares the game for launch by ensuring deployment readiness, quality assurance, and polish.
 
 ## Vertical Slice Goal
+
 The game is:
+
 1. Fully containerized and deployable (Docker, docker-compose)
 2. Comprehensively tested (80%+ unit coverage, integration tests, E2E tests)
 3. Fully documented (API docs, deployment guides)
@@ -29,6 +30,7 @@ The game is:
 6. UI/UX polished (animations, feedback, error handling)
 
 ## Success Criteria
+
 - [ ] All services containerized with Docker (multi-stage builds, optimized images)
 - [ ] Docker Compose configuration for local development
 - [ ] Nginx API Gateway configured (upstreams, routing, WebSocket support)
@@ -45,6 +47,7 @@ The game is:
 ## MVP Scope (Minimal for Content Complete Milestone)
 
 **What's Included:**
+
 - Dockerfiles for all services (Spring Boot, Node.js, Angular)
 - Docker Compose for local development
 - Nginx API Gateway configuration
@@ -57,6 +60,7 @@ The game is:
 - UI/UX improvements (error handling, loading states)
 
 **What's Deferred:**
+
 - Advanced performance tuning (caching strategies, database optimization)
 - Advanced security features (rate limiting, DDoS protection)
 - Advanced monitoring (APM, distributed tracing)
@@ -67,6 +71,7 @@ The game is:
 ## Technical References
 
 ### Phase Documents (Technical Implementation Details)
+
 This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for technical specifications.
 
 - **Deployment:** See Phase 8 (PHASE-8 issue) - STORY-8-1, STORY-8-2, STORY-8-3
@@ -75,22 +80,32 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 ### Architecture References
 
 **Architecture Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Containerization and deployment
 - [Testing Strategy](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing approach
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service architecture
 - [Security Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - Security best practices
 
+**Architecture Diagrams:**
+
+- [System Architecture Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png) - High-level system architecture
+- [Container Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Container%20Diagram.png) - Container and deployment architecture
+- [Deployment Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Deployment%20Diagram.png) - Production deployment architecture
+- [Component Diagram - Game Engine Service](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Component%20Diagram%20-%20Game%20Engine%20Service.png) - Service component architecture
+
 ## Stories (Player Experience)
 
-### VS-6-1: Containerize all services with Docker and Docker Compose
+### VS-6-1: Containerize All Services with Docker Multi-Stage Builds and Docker Compose
 
 **User Story:** As a developer, I want the application to be containerized with Docker so that I can deploy it consistently across environments.
 
 **Related Diagrams & Documents:**
+
 - [Deployment Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/09-DEPLOYMENT.md) - Containerization strategy
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Service ports and configuration
 
 **Acceptance Criteria:**
+
 - [ ] Dockerfile for Auth Service (Spring Boot) with multi-stage build
 - [ ] Dockerfile for Profile Service (Spring Boot) with multi-stage build
 - [ ] Dockerfile for Leaderboard Service (Spring Boot) with multi-stage build
@@ -115,6 +130,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/auth-service/Dockerfile`
 
 **Spring Boot Dockerfile Implementation Requirements:**
+
 - Create multi-stage Dockerfile with two stages: Build and Runtime
 - **Build Stage:**
   - Use base image: maven:3.9-eclipse-temurin-17
@@ -142,6 +158,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/matchmaking-service/Dockerfile`
 
 **Node.js Dockerfile Implementation Requirements:**
+
 - Create multi-stage Dockerfile with two stages: Build and Runtime
 - **Build Stage:**
   - Use base image: node:20-alpine
@@ -171,6 +188,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `frontend-service/Dockerfile`
 
 **Angular Dockerfile Implementation Requirements:**
+
 - Create multi-stage Dockerfile with two stages: Build and Runtime
 - **Build Stage:**
   - Use base image: node:20-alpine
@@ -199,6 +217,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `frontend-service/nginx.conf`
 
 **Frontend Nginx Configuration Implementation Requirements:**
+
 - Create Nginx server block configuration file
 - Configure server to listen on port 80
 - Set server_name to localhost
@@ -217,6 +236,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `deployments/nginx/nginx.conf`
 
 **API Gateway Nginx Configuration Implementation Requirements:**
+
 - Create main Nginx configuration file for API Gateway
 - Configure global settings:
   - Set user to nginx
@@ -267,6 +287,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `docker-compose.yml`
 
 **Docker Compose Configuration Implementation Requirements:**
+
 - Create docker-compose.yml file with version 3.8
 - Configure database services:
   - **mongodb:**
@@ -337,15 +358,17 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 
 ---
 
-### VS-6-2: Implement comprehensive testing with unit integration and E2E tests
+### VS-6-2: Comprehensive Testing with 80%+ Unit Coverage, Integration Tests, and E2E Tests
 
 **User Story:** As a developer, I want comprehensive tests (unit, integration, E2E) so that I can ensure code quality and catch bugs early.
 
 **Related Diagrams & Documents:**
+
 - [Testing Strategy](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Testing approach
 - [Testing Framework Setup](https://github.com/Buffden/battle-arena/blob/main/docs/TESTING_FRAMEWORK_SETUP.md) - Testing tools
 
 **Acceptance Criteria:**
+
 - [ ] 80%+ unit test coverage for all services
 - [ ] Unit tests for all Spring Boot services (Auth, Profile, Leaderboard)
 - [ ] Unit tests for all Node.js services (Matchmaking, Game Engine)
@@ -367,6 +390,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/auth-service/src/test/java/com/battlearena/auth/service/UserServiceTests.java`
 
 **Java Unit Test Implementation Requirements:**
+
 - Create test class in test package mirroring main package structure
 - Use JUnit 5 and Mockito for testing
 - Add `@ExtendWith(MockitoExtension.class)` annotation to enable Mockito
@@ -392,6 +416,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/matchmaking-service/src/__tests__/services/QueueManager.test.ts`
 
 **Node.js Unit Test Implementation Requirements:**
+
 - Create test file in `__tests__` directory mirroring source structure
 - Use Jest testing framework
 - Mock external dependencies (Redis client) using jest.mock()
@@ -414,6 +439,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/auth-service/src/test/java/com/battlearena/auth/integration/AuthControllerIntegrationTests.java`
 
 **Java Integration Test Implementation Requirements:**
+
 - Create integration test class in integration test package
 - Use Spring Boot Test and Testcontainers for real database testing
 - Add `@SpringBootTest` annotation with Application class
@@ -443,6 +469,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `frontend-service/e2e/auth.cy.ts`
 
 **Cypress E2E Test Implementation Requirements:**
+
 - Create E2E test file in e2e directory
 - Use Cypress testing framework
 - Set up test suite with describe() block:
@@ -464,15 +491,17 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 
 ---
 
-### VS-6-3: Generate API documentation with Swagger and OpenAPI
+### VS-6-3: API Documentation with Swagger/OpenAPI Setup for All Services
 
 **User Story:** As a developer, I want comprehensive API documentation so that I can understand and integrate with the APIs easily.
 
 **Related Diagrams & Documents:**
+
 - [Testing Strategy](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/COMMON/TESTING_STRATEGY.md) - Documentation approach
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - API endpoints
 
 **Acceptance Criteria:**
+
 - [ ] Swagger/OpenAPI setup for Spring Boot services (Auth, Profile, Leaderboard)
 - [ ] OpenAPI documentation for Node.js services (Matchmaking, Game Engine)
 - [ ] All REST API endpoints documented with descriptions
@@ -493,6 +522,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/auth-service/src/main/java/com/battlearena/auth/config/SwaggerConfig.java`
 
 **SwaggerConfig Implementation Requirements:**
+
 - Create SwaggerConfig class in config package
 - Add `@Configuration` annotation for Spring configuration class
 - Create `customOpenAPI()` method with `@Bean` annotation
@@ -512,6 +542,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/auth-service/src/main/java/com/battlearena/auth/controller/AuthController.java`
 
 **Controller Swagger Annotations Implementation Requirements:**
+
 - Add `@Tag` annotation to controller class:
   - Name: "Authentication"
   - Description: "Authentication API endpoints"
@@ -532,6 +563,7 @@ This epic references Phase 8 (Deployment) and Phase 9 (Quality Assurance) for te
 **File:** `backend-services/matchmaking-service/src/config/swagger.config.ts`
 
 **Node.js Swagger Configuration Implementation Requirements:**
+
 - Import swagger-jsdoc and swagger-ui-express packages
 - Create swaggerOptions object with:
   - Definition section:
@@ -572,8 +604,6 @@ epic:content-complete, vertical-slice:6, milestone:content-complete, priority:hi
 ## Milestone
 
 Content Complete: Deployment, Testing, Documentation
-
-```
 
 ---
 

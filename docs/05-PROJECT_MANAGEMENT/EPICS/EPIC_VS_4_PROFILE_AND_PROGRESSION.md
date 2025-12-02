@@ -1,26 +1,27 @@
-# EPIC-VS-4: Profile & Progression
-
-**Copy and paste this template directly into GitHub Issues.**
+# EPIC-VS-4: Profile and Progression - Statistics Tracking, Rank Tier System, Leaderboard
 
 **Note:** All technical implementation details from Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Frontend - profile/leaderboard parts) have been consolidated into this file. You no longer need to reference multiple Phase documents when creating GitHub issues.
 
 ---
 
-## EPIC-VS-4: Profile & Progression
+## EPIC-VS-4: Profile and Progression - Statistics Tracking, Rank Tier System, Leaderboard
 
-### Issue Template:
+### Issue Template
 
-```
-Title: EPIC-VS-4: Profile & Progression
+**Title:** EPIC-VS-4: Profile and Progression - Statistics Tracking, Rank Tier System, Leaderboard
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the fourth vertical slice where a player can view their profile, see their progression (global score, rank tier, statistics), update their profile, and view leaderboards. This epic enables players to track their progress, see how they rank against others, and personalize their profile. This completes the Alpha milestone - players can play matches and see their progression.
 
 **This is the fourth vertical slice** - it enables players to see their progression and compete on leaderboards.
 
 ## Vertical Slice Goal
+
 A player can:
+
 1. View their profile with statistics (wins, losses, matches played, global score, rank tier)
 2. Update their profile (display name, avatar)
 3. View global leaderboard (top players by score)
@@ -28,6 +29,7 @@ A player can:
 5. See profile and leaderboard updated after matches
 
 ## Success Criteria
+
 - [ ] Player can view their profile with all statistics
 - [ ] Player can update their profile (display name, avatar)
 - [ ] Global score tracked and updated after each match
@@ -42,6 +44,7 @@ A player can:
 ## MVP Scope (Minimal for Alpha Milestone)
 
 **What's Included:**
+
 - Profile creation after first match
 - Basic statistics (wins, losses, matches played, win percentage)
 - Global score tracking (infinite, no level cap)
@@ -51,6 +54,7 @@ A player can:
 - Profile update (display name, avatar)
 
 **What's Deferred:**
+
 - Advanced statistics (accuracy, combos, saves, damage dealt)
 - Hero-specific statistics
 - Weapon-specific statistics
@@ -62,6 +66,7 @@ A player can:
 ## Technical References
 
 ### Phase Documents (Technical Implementation Details)
+
 This epic references Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Frontend) for technical specifications.
 
 - **Profile Service:** See Phase 3 (PHASE-3 issue) - STORY-3-1, STORY-3-2, STORY-3-3, STORY-3-4, STORY-3-5, STORY-3-6
@@ -71,23 +76,27 @@ This epic references Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Fron
 ### Architecture References
 
 **Sequence Diagrams:**
-- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/profile-view-flow.puml) - View profile flow
-- [Profile Update Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/profile-update-flow.puml) - Update profile flow
-- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/leaderboard-view-flow.puml) - View leaderboard flow
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Profile and leaderboard updates
-- [Post-Match Result Screen Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-result-screen-flow.puml) - Result screen with rank changes
+
+- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Profile%20View%20Flow.png) - View profile flow
+- [Profile Update Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Profile%20Update%20Flow.png) - Update profile flow
+- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Leaderboard%20View%20Flow.png) - View leaderboard flow
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Profile and leaderboard updates
+- [Post-Match Result Screen Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Result%20Screen%20Flow.png) - Result screen with rank changes
 - [Sequence Diagrams Index](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/README.md)
 
 **Class Diagrams:**
-- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/profile-service.puml)
-- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/leaderboard-service.puml)
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml)
-- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/database-schema.puml)
+
+- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Profile%20Service%20Class%20Diagram.png)
+- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Leaderboard%20Service%20Class%20Diagram.png)
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png)
+- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png)
 
 **ER Diagrams:**
-- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/er-diagrams/database-er-diagram.puml) - Profile entity relationships
+
+- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png) - Profile entity relationships
 
 **Architecture Documents:**
+
 - [System Architecture - Profile Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#22-profile-service)
 - [System Architecture - Leaderboard Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#23-leaderboard-service)
 - [Profile Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md)
@@ -97,11 +106,12 @@ This epic references Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Fron
 
 ## Stories (Player Experience)
 
-### VS-4-1: Implement player profile view with statistics and rank tier display
+### VS-4-1: Player Profile View with Statistics Display and Rank Tier Visualization
 
 **User Story:** As a player, I want to view my profile with my statistics so that I can see my progress and how I'm performing.
 
 **Acceptance Criteria:**
+
 - [ ] Profile page visible on frontend
 - [ ] Player can navigate to their profile
 - [ ] Profile displays: display name, avatar, global score, rank tier, wins, losses, matches played, win percentage
@@ -112,17 +122,19 @@ This epic references Phase 3 (Profile), Phase 4 (Leaderboard), and Phase 7 (Fron
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-4-1-1: Profile Service Foundation Setup (BE)**
+**TASK-VS-4-1-1: Profile Service Foundation - Spring Boot 3.x, MongoDB, Redis, Clean Architecture (BE)**
 
 **Description:**
 Set up the Spring Boot project structure, dependencies, and configuration for the Profile Service. This is a prerequisite for all other profile tasks.
 
 **Related Diagrams & Documents:**
-- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/profile-service.puml)
+
+- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Profile%20Service%20Class%20Diagram.png)
 - [System Architecture - Profile Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#22-profile-service)
 - [Profile Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md)
 
 **Acceptance Criteria:**
+
 - [ ] Spring Boot 3.x project created (Java 17)
 - [ ] Maven project structure created
 - [ ] Package structure follows clean architecture
@@ -135,11 +147,13 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 **Technical Details:**
 
 **Reference Documentation:**
+
 - [Profile Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/PROFILE_SERVICE.md) - Complete service architecture and component design
 - [System Architecture - Profile Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#22-profile-service) - Service integration and communication patterns
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure and dependencies
 
 **Project Structure Setup:**
+
 - Create Maven project structure in `backend-services/profile-service/` directory
 - Set up standard Maven directory layout (src/main/java, src/main/resources, src/test/java)
 - Create package structure following clean architecture principles:
@@ -157,6 +171,7 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 - Create `README.md` file documenting service overview, technology stack, endpoints, and environment variables
 
 **Maven Dependencies (pom.xml):**
+
 - Configure Spring Boot parent POM version 3.3.6
 - Set Java version to 17 in properties section
 - Add Spring Boot starter dependencies:
@@ -175,6 +190,7 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 - Add Maven Checkstyle plugin for code quality enforcement
 
 **Application Configuration (application.yaml):**
+
 - Configure server port (default 8082, configurable via SERVER_PORT environment variable)
 - Set Spring application name to "profile-service"
 - Configure MongoDB connection URI (default mongodb://mongodb:27017/battlearena, configurable via MONGODB_URI)
@@ -188,18 +204,18 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 
 ---
 
-**TASK-VS-4-1-2: View Profile Feature (DB + BE + FE)**
+**TASK-VS-4-1-2: View Profile Feature - MongoDB Entity, Redis Caching, REST API, Profile UI (DB + BE + FE)**
 
 **Description:**
 Implement complete view profile feature including database model, backend API, and frontend profile page. This task combines all view profile-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/profile-view-flow.puml) - View profile flow
-- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/database-schema.puml) - Profile entity structure
-- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/er-diagrams/database-er-diagram.puml) - Profile entity relationships
-- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/profile-service.puml) - Service layer structure
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - ProfileService and components
+- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Profile%20View%20Flow.png) - View profile flow
+- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png) - Profile entity structure
+- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png) - Profile entity relationships
+- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Profile%20Service%20Class%20Diagram.png) - Service layer structure
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - ProfileService and components
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Profiles collection schema
 
 **Acceptance Criteria:**
@@ -223,6 +239,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `com.battlearena.profile.model.Profile`
 
 **Profile Entity Implementation Requirements:**
+
 - Create Profile class in `com.battlearena.profile.model` package
 - Add `@Document(collection = "profiles")` annotation to map to MongoDB collection
 - Add `@Id` annotation to id field (String type for MongoDB ObjectId)
@@ -235,7 +252,7 @@ Implement complete view profile feature including database model, backend API, a
 - Add wins field (Integer, default 0) - Number of matches won
 - Add losses field (Integer, default 0) - Number of matches lost
 - Add matchesPlayed field (Integer, default 0) - Total matches played
-- Add winRate field (Double, default 0.0) - Calculated as wins / matchesPlayed * 100
+- Add winRate field (Double, default 0.0) - Calculated as wins / matchesPlayed \* 100
 - Add createdAt field (LocalDateTime) - Profile creation timestamp
 - Add updatedAt field (LocalDateTime) - Profile last update timestamp
 - Implement getters and setters (or use Lombok @Data annotation)
@@ -244,6 +261,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `com.battlearena.profile.model.RankTier`
 
 **RankTier Enum Implementation Requirements:**
+
 - Create RankTier enum in `com.battlearena.profile.model` package
 - Define enum values in order: IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER
 - Enum represents Valorant-style rank tier system
@@ -253,6 +271,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `com.battlearena.profile.repository.ProfileRepository`
 
 **ProfileRepository Implementation Requirements:**
+
 - Create ProfileRepository interface in `com.battlearena.profile.repository` package
 - Extend MongoRepository interface with Profile entity and String ID type
 - Add `@Repository` annotation for Spring component scanning
@@ -266,6 +285,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `com.battlearena.profile.service.ProfileService`
 
 **ProfileService.getProfileByUserId() Implementation Requirements:**
+
 - Create ProfileService class in `com.battlearena.profile.service` package
 - Add `@Service` annotation for Spring service component
 - Use constructor injection for dependencies (ProfileRepository, RedisCache)
@@ -274,7 +294,7 @@ Implement complete view profile feature including database model, backend API, a
   - If found in cache, return cached ProfileResponse
   - If not in cache, retrieve profile from database using ProfileRepository.findByUserId()
   - If profile not found, create new profile with default values (or throw exception)
-  - Calculate win rate if matchesPlayed > 0 (wins / matchesPlayed * 100)
+  - Calculate win rate if matchesPlayed > 0 (wins / matchesPlayed \* 100)
   - Map Profile entity to ProfileResponse DTO
   - Cache ProfileResponse in Redis for future requests
   - Return ProfileResponse DTO
@@ -282,6 +302,7 @@ Implement complete view profile feature including database model, backend API, a
 
 **Backend - DTO:**
 **ProfileResponse Implementation Requirements:**
+
 - Create ProfileResponse class in `com.battlearena.profile.dto` package
 - Add userId field (String) - User ID from Auth Service
 - Add displayName field (String) - Player's display name
@@ -298,6 +319,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `com.battlearena.profile.controller.ProfileController`
 
 **ProfileController.getProfileByUserId() Implementation Requirements:**
+
 - Create ProfileController class in `com.battlearena.profile.controller` package
 - Add `@RestController` annotation for REST API controller
 - Add `@RequestMapping("/api/profile")` annotation to set base path for all endpoints
@@ -315,6 +337,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `src/app/profile/components/profile-view/profile-view.component.ts`
 
 **ProfileViewComponent Implementation Requirements:**
+
 - Create ProfileViewComponent class in `src/app/profile/components/profile-view/` directory
 - Add `@Component` decorator with selector "app-profile-view" and template URL
 - Implement OnInit interface
@@ -338,6 +361,7 @@ Implement complete view profile feature including database model, backend API, a
 **File:** `src/app/services/profile.service.ts`
 
 **ProfileService.getProfileByUserId() Implementation Requirements:**
+
 - Create ProfileService class in `src/app/services/` directory
 - Add `@Injectable()` decorator for Angular dependency injection
 - Inject HttpClient for making HTTP requests
@@ -365,7 +389,7 @@ Implement complete view profile feature including database model, backend API, a
 
 ---
 
-### VS-4-2: Implement player profile update with display name and avatar
+### VS-4-2: Player Profile Update with Display Name and Avatar URL Upload
 
 **User Story:** As a player, I want to update my profile (display name, avatar) so that I can personalize my account.
 
@@ -382,16 +406,16 @@ Implement complete view profile feature including database model, backend API, a
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-4-2-1: Update Profile Feature (BE + FE)**
+**TASK-VS-4-2-1: Update Profile Feature - DTO Validation, REST API PUT, Frontend Form (BE + FE)**
 
 **Description:**
 Implement complete profile update feature including backend update endpoint and frontend update form. This task combines all update profile-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Profile Update Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/profile-update-flow.puml) - Update profile flow
-- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/profile-service.puml) - Update methods
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - ProfileService update methods
+- [Profile Update Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Profile%20Update%20Flow.png) - Update profile flow
+- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Profile%20Service%20Class%20Diagram.png) - Update methods
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - ProfileService update methods
 
 **Acceptance Criteria:**
 
@@ -413,6 +437,7 @@ Implement complete profile update feature including backend update endpoint and 
 
 **Backend - DTO:**
 **UpdateProfileRequest Implementation Requirements:**
+
 - Create UpdateProfileRequest class in `com.battlearena.profile.dto` package
 - Add displayName field (String) with validation:
   - `@Size(min = 1, max = 50)` annotation with message "Display name must be between 1 and 50 characters"
@@ -424,6 +449,7 @@ Implement complete profile update feature including backend update endpoint and 
 **File:** `com.battlearena.profile.service.ProfileService`
 
 **ProfileService.updateProfile() Implementation Requirements:**
+
 - Add `updateProfile(String userId, UpdateProfileRequest request)` method to ProfileService
 - Retrieve profile from database using ProfileRepository.findByUserId()
 - If profile not found, throw appropriate exception
@@ -440,6 +466,7 @@ Implement complete profile update feature including backend update endpoint and 
 **File:** `com.battlearena.profile.controller.ProfileController`
 
 **ProfileController.updateProfile() Implementation Requirements:**
+
 - Add `updateProfile(@PathVariable String userId, @Valid @RequestBody UpdateProfileRequest request, @RequestHeader("Authorization") String token)` method to ProfileController
 - Add `@PutMapping("/{userId}")` annotation
 - Add `@Operation` annotation for Swagger documentation (summary: "Update user profile")
@@ -456,6 +483,7 @@ Implement complete profile update feature including backend update endpoint and 
 **File:** `src/app/profile/components/profile-update/profile-update.component.ts`
 
 **ProfileUpdateComponent Implementation Requirements:**
+
 - Create ProfileUpdateComponent class in `src/app/profile/components/profile-update/` directory
 - Add `@Component` decorator with selector "app-profile-update" and template URL
 - Create reactive form using FormBuilder with two form controls:
@@ -493,7 +521,7 @@ Implement complete profile update feature including backend update endpoint and 
 
 ---
 
-### VS-4-3: Implement global leaderboard view with top players ranking
+### VS-4-3: Global Leaderboard View with Top Players Ranking and Score-Based Sorting
 
 **User Story:** As a player, I want to view the global leaderboard so that I can see how I rank against other players.
 
@@ -509,14 +537,14 @@ Implement complete profile update feature including backend update endpoint and 
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-4-3-1: Leaderboard Service Foundation Setup (BE)**
+**TASK-VS-4-3-1: Leaderboard Service Foundation - Spring Boot 3.x, MongoDB, Strategy Pattern (BE)**
 
 **Description:**
 Set up the Spring Boot project structure, dependencies, and configuration for the Leaderboard Service. This is a prerequisite for all other leaderboard tasks.
 
 **Related Diagrams & Documents:**
 
-- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/leaderboard-service.puml)
+- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Leaderboard%20Service%20Class%20Diagram.png)
 - [System Architecture - Leaderboard Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#23-leaderboard-service)
 - [Leaderboard Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/LEADERBOARD_SERVICE.md)
 
@@ -533,11 +561,13 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 **Technical Details:**
 
 **Reference Documentation:**
+
 - [Leaderboard Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/LEADERBOARD_SERVICE.md) - Complete service architecture and component design
 - [System Architecture - Leaderboard Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#23-leaderboard-service) - Service integration and communication patterns
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure and dependencies
 
 **Project Structure Setup:**
+
 - Create Maven project structure in `backend-services/leaderboard-service/` directory
 - Set up standard Maven directory layout (src/main/java, src/main/resources, src/test/java)
 - Create package structure following clean architecture principles:
@@ -554,6 +584,7 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 - Create `README.md` file documenting service overview, technology stack, endpoints, and environment variables
 
 **Maven Dependencies (pom.xml):**
+
 - Configure Spring Boot parent POM version 3.3.6
 - Set Java version to 17 in properties section
 - Add Spring Boot starter dependencies:
@@ -572,6 +603,7 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 - Add Maven Checkstyle plugin for code quality enforcement
 
 **Application Configuration (application.yaml):**
+
 - Configure server port (default 8083, configurable via SERVER_PORT environment variable)
 - Set Spring application name to "leaderboard-service"
 - Configure MongoDB connection URI (default mongodb://mongodb:27017/battlearena, configurable via MONGODB_URI)
@@ -582,16 +614,16 @@ Set up the Spring Boot project structure, dependencies, and configuration for th
 
 ---
 
-**TASK-VS-4-3-2: Global Leaderboard Feature (BE + FE)**
+**TASK-VS-4-3-2: Global Leaderboard Feature - MongoDB Aggregation, Pagination, Leaderboard UI (BE + FE)**
 
 **Description:**
 Implement complete global leaderboard feature including backend leaderboard query and frontend leaderboard page. This task combines all leaderboard-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/leaderboard-view-flow.puml) - View leaderboard flow
-- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/leaderboard-service.puml) - Service layer structure
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - LeaderboardService and components
+- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Leaderboard%20View%20Flow.png) - View leaderboard flow
+- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Leaderboard%20Service%20Class%20Diagram.png) - Service layer structure
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - LeaderboardService and components
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - Profiles collection (read model)
 
 **Acceptance Criteria:**
@@ -616,6 +648,7 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **File:** `com.battlearena.leaderboard.repository.LeaderboardRepository`
 
 **LeaderboardRepository Implementation Requirements:**
+
 - Create LeaderboardRepository interface in `com.battlearena.leaderboard.repository` package
 - Extend MongoRepository interface with Profile entity and String ID type
 - Add `@Repository` annotation for Spring component scanning
@@ -631,11 +664,12 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **File:** `com.battlearena.leaderboard.service.LeaderboardService`
 
 **LeaderboardService.getTopPlayers() Implementation Requirements:**
+
 - Create LeaderboardService class in `com.battlearena.leaderboard.service` package
 - Add `@Service` annotation for Spring service component
 - Use constructor injection for LeaderboardRepository dependency
 - Implement `getTopPlayers(int page, int size)` method:
-  - Calculate offset based on page and size: (page - 1) * size
+  - Calculate offset based on page and size: (page - 1) \* size
   - Call repository.findTopPlayers() with offset and size
   - Get total count of players using repository.count()
   - Calculate total pages: Math.ceil(totalCount / size)
@@ -645,12 +679,14 @@ Implement complete global leaderboard feature including backend leaderboard quer
 
 **Backend - DTO:**
 **LeaderboardResponse Implementation Requirements:**
+
 - Create LeaderboardResponse class in `com.battlearena.leaderboard.dto` package
 - Add entries field (List<LeaderboardEntry>) - List of leaderboard entries
 - Add totalPlayers field (Integer) - Total number of players in leaderboard
 - Implement getters and setters (or use Lombok @Data annotation)
 
 **LeaderboardEntry Implementation Requirements:**
+
 - Create LeaderboardEntry class in `com.battlearena.leaderboard.dto` package
 - Add rank field (Integer) - Player's rank position
 - Add playerId field (String) - User ID from Auth Service
@@ -667,6 +703,7 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **File:** `com.battlearena.leaderboard.controller.LeaderboardController`
 
 **LeaderboardController.getTopPlayers() Implementation Requirements:**
+
 - Create LeaderboardController class in `com.battlearena.leaderboard.controller` package
 - Add `@RestController` annotation for REST API controller
 - Add `@RequestMapping("/api/leaderboard")` annotation to set base path
@@ -683,6 +720,7 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **File:** `src/app/leaderboard/components/leaderboard/leaderboard.component.ts`
 
 **LeaderboardComponent Implementation Requirements:**
+
 - Create LeaderboardComponent class in `src/app/leaderboard/components/leaderboard/` directory
 - Add `@Component` decorator with selector "app-leaderboard" and template URL
 - Implement OnInit interface
@@ -706,6 +744,7 @@ Implement complete global leaderboard feature including backend leaderboard quer
 **File:** `src/app/services/leaderboard.service.ts`
 
 **LeaderboardService Implementation Requirements:**
+
 - Create LeaderboardService class in `src/app/services/` directory
 - Add `@Injectable()` decorator for Angular dependency injection
 - Inject HttpClient for making HTTP requests
@@ -741,7 +780,7 @@ Implement complete global leaderboard feature including backend leaderboard quer
 
 ---
 
-### VS-4-4: Implement leaderboard filtering by rank tier and region
+### VS-4-4: Leaderboard Filtering by Rank Tier and Region with Combined Filter Support
 
 **User Story:** As a player, I want to filter the leaderboard by rank tier and region so that I can see rankings for specific criteria.
 
@@ -756,15 +795,15 @@ Implement complete global leaderboard feature including backend leaderboard quer
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-4-4-1: Leaderboard Filtering Feature (BE + FE)**
+**TASK-VS-4-4-1: Leaderboard Filtering - FilterCriteria DTO, MongoDB Aggregation, Filter UI (BE + FE)**
 
 **Description:**
 Implement leaderboard filtering feature including backend filter logic and frontend filter controls. This task combines all filtering-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/leaderboard-view-flow.puml) - Filtering flow
-- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/leaderboard-service.puml) - FilterStrategy structure
+- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Leaderboard%20View%20Flow.png) - Filtering flow
+- [Leaderboard Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Leaderboard%20Service%20Class%20Diagram.png) - FilterStrategy structure
 
 **Acceptance Criteria:**
 
@@ -784,6 +823,7 @@ Implement leaderboard filtering feature including backend filter logic and front
 
 **Backend - DTO:**
 **FilterCriteria Implementation Requirements:**
+
 - Create FilterCriteria class in `com.battlearena.leaderboard.dto` package
 - Add rankTier field (RankTier, nullable) - Filter by rank tier
 - Add region field (String, nullable) - Filter by region
@@ -794,6 +834,7 @@ Implement leaderboard filtering feature including backend filter logic and front
 **File:** `com.battlearena.leaderboard.repository.LeaderboardRepository`
 
 **LeaderboardRepository.findByFilters() Implementation Requirements:**
+
 - Add `findByFilters(RankTier rankTier, String region, int skip, int limit)` method to LeaderboardRepository
 - Use `@Aggregation` annotation with MongoDB aggregation pipeline:
   - Match stage: Filter documents where rankTier and region match criteria (use $and operator)
@@ -807,8 +848,9 @@ Implement leaderboard filtering feature including backend filter logic and front
 **File:** `com.battlearena.leaderboard.service.LeaderboardService`
 
 **LeaderboardService.getFilteredLeaderboard() Implementation Requirements:**
+
 - Add `getFilteredLeaderboard(FilterCriteria filters, int page, int size)` method to LeaderboardService
-- Calculate offset based on page and size: (page - 1) * size
+- Calculate offset based on page and size: (page - 1) \* size
 - Call repository.findByFilters() with rankTier, region, offset, and size from FilterCriteria
 - Get total count of players matching filters (implement count method with same filter criteria)
 - Calculate total pages: Math.ceil(totalCount / size)
@@ -820,6 +862,7 @@ Implement leaderboard filtering feature including backend filter logic and front
 **File:** `src/app/leaderboard/components/leaderboard-filters/leaderboard-filters.component.ts`
 
 **LeaderboardFiltersComponent Implementation Requirements:**
+
 - Create LeaderboardFiltersComponent class in `src/app/leaderboard/components/leaderboard-filters/` directory
 - Add `@Component` decorator with selector "app-leaderboard-filters" and template URL
 - Create reactive form using FormBuilder with two form controls:
@@ -855,7 +898,7 @@ Implement leaderboard filtering feature including backend filter logic and front
 
 ---
 
-### VS-4-5: Implement post-match score tracking and rank tier calculation
+### VS-4-5: Post-Match Score Tracking and Rank Tier Automatic Recalculation
 
 **User Story:** As a player, I want my match results to automatically update my profile and leaderboard position so that my progress is tracked accurately.
 
@@ -872,15 +915,15 @@ Implement leaderboard filtering feature including backend filter logic and front
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-4-5-1: Score Tracking & Rank Tier Calculation (BE)**
+**TASK-VS-4-5-1: Score Tracking and Rank Tier Calculation - Win/Loss Points, Valorant-Style Tiers (BE)**
 
 **Description:**
 Implement global score tracking and rank tier calculation system. This includes score updates after matches and automatic rank tier recalculation.
 
 **Related Diagrams & Documents:**
 
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Score update flow
-- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/profile-service.puml) - ScoreCalculator and RankTierCalculator
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Score update flow
+- [Profile Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Profile%20Service%20Class%20Diagram.png) - ScoreCalculator and RankTierCalculator
 
 **Acceptance Criteria:**
 
@@ -903,6 +946,7 @@ Implement global score tracking and rank tier calculation system. This includes 
 **File:** `com.battlearena.profile.service.ScoreCalculator`
 
 **ScoreCalculator Implementation Requirements:**
+
 - Create ScoreCalculator class in `com.battlearena.profile.service` package
 - Add `@Component` or `@Service` annotation for Spring dependency injection
 - Implement `calculateScoreUpdate(MatchResult matchResult, boolean isWinner)` method:
@@ -917,6 +961,7 @@ Implement global score tracking and rank tier calculation system. This includes 
 **File:** `com.battlearena.profile.service.RankTierCalculator`
 
 **RankTierCalculator Implementation Requirements:**
+
 - Create RankTierCalculator class in `com.battlearena.profile.service` package
 - Add `@Component` or `@Service` annotation for Spring dependency injection
 - Implement `calculateRankTier(int globalScore)` method with Valorant-style rank tiers:
@@ -935,6 +980,7 @@ Implement global score tracking and rank tier calculation system. This includes 
 **File:** `com.battlearena.profile.service.ProfileService`
 
 **ProfileService.updateScore() Implementation Requirements:**
+
 - Add `updateScore(String userId, MatchResult matchResult)` method to ProfileService
 - Add `@Transactional` annotation to ensure atomic database operations
 - Retrieve profile from database using ProfileRepository.findByUserId()
@@ -945,7 +991,7 @@ Implement global score tracking and rank tier calculation system. This includes 
   - Increment matchesPlayed by 1
   - If winner: Increment wins by 1
   - If loser: Increment losses by 1
-  - Calculate win rate: (wins / matchesPlayed) * 100
+  - Calculate win rate: (wins / matchesPlayed) \* 100
 - Calculate new rank tier using RankTierCalculator.calculateRankTier() with updated globalScore
 - Update rankTier if it changed from previous value
 - Set updatedAt timestamp to current time
@@ -975,15 +1021,15 @@ Implement global score tracking and rank tier calculation system. This includes 
 
 ---
 
-**TASK-VS-4-5-2: Post-Match Integration (BE + FE)**
+**TASK-VS-4-5-2: Post-Match Integration - MatchResultProcessor, Score Update API, Result UI (BE + FE)**
 
 **Description:**
 Implement post-match integration between Game Engine Service and Profile Service, and update frontend to show rank changes after match.
 
 **Related Diagrams & Documents:**
 
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Complete post-match flow
-- [Post-Match Result Screen Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-result-screen-flow.puml) - Result screen with rank changes
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Complete post-match flow
+- [Post-Match Result Screen Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Result%20Screen%20Flow.png) - Result screen with rank changes
 
 **Acceptance Criteria:**
 
@@ -1003,6 +1049,7 @@ Implement post-match integration between Game Engine Service and Profile Service
 **File:** `src/service/MatchResultProcessor.ts` (Game Engine Service)
 
 **MatchResultProcessor Implementation Requirements:**
+
 - Create MatchResultProcessor class in `src/service/` directory (Game Engine Service)
 - Implement `processMatchResult(matchId, matchResult)` method:
   - Store match result in MongoDB (match history collection)
@@ -1024,6 +1071,7 @@ Implement post-match integration between Game Engine Service and Profile Service
 **File:** `com.battlearena.profile.controller.ProfileController`
 
 **ProfileController.updateScore() Implementation Requirements:**
+
 - Add `updateScore(@PathVariable String userId, @RequestBody ScoreUpdateRequest request)` method to ProfileController
 - Add `@PostMapping("/{userId}/score")` annotation
 - Add `@Operation` annotation for Swagger documentation (summary: "Update player score after match")
@@ -1037,6 +1085,7 @@ Implement post-match integration between Game Engine Service and Profile Service
 **File:** `src/app/arena/components/match-result/match-result.component.ts`
 
 **MatchResultComponent Implementation Requirements:**
+
 - Create MatchResultComponent class in `src/app/arena/components/match-result/` directory
 - Add `@Component` decorator with selector "app-match-result" and template URL
 - Implement OnInit interface
@@ -1080,13 +1129,11 @@ Implement post-match integration between Game Engine Service and Profile Service
 
 **Related Diagrams:**
 
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Complete post-match flow
-- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/profile-view-flow.puml) - Profile view flow
-- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/leaderboard-view-flow.puml) - Leaderboard view flow
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Complete post-match flow
+- [Profile View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Profile%20View%20Flow.png) - Profile view flow
+- [Leaderboard View Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Leaderboard%20View%20Flow.png) - Leaderboard view flow
 
 ### End-to-End Test Scenario
-
-```
 
 1. Player plays a match (VS-3)
 2. Match ends with result
@@ -1103,8 +1150,6 @@ Implement post-match integration between Game Engine Service and Profile Service
 13. Filtered leaderboard displayed
 14. Player updates profile (display name, avatar)
 15. Profile updated and displayed
-
-```
 
 **Test should pass:** ✅ All steps complete without errors
 
@@ -1194,8 +1239,6 @@ VS-4: Profile & Progression
 - EPIC-VS-3: First Playable Match (prerequisite)
 - EPIC-VS-5: Full Game Features (depends on VS-4)
 
-```
-
 ---
 
 ## How to Use This Template
@@ -1231,7 +1274,3 @@ VS-4: Profile & Progression
 4. Pull tasks from Phase documents
 5. Define clear acceptance criteria and definitions of done
 6. Consolidate BE + FE tasks for end-to-end testing
-
-```
-
-```

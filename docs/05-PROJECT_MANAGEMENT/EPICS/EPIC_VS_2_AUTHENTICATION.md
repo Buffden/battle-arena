@@ -1,31 +1,33 @@
 # EPIC-VS-2: Player Authentication & Identity
 
-**Copy and paste this template directly into GitHub Issues.**
-
 **Note:** All technical implementation details from Phase 2 (Authentication) and Phase 7 (Frontend) have been consolidated into this file. You no longer need to reference multiple Phase documents when creating GitHub issues.
 
 ---
 
 ## EPIC-VS-2: Player Authentication & Identity
 
-### Issue Template:
+### Issue Template
 
-```
-Title: EPIC-VS-2: Player Authentication & Identity
+**Title:** EPIC-VS-2: Player Authentication & Identity
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the second vertical slice where a player can register, login, and logout. This epic establishes player identity and authentication, which is the foundation for all future gameplay features. Players must be able to create accounts and securely access the game.
 
 **This is the second vertical slice** - it enables all future features by establishing player identity.
 
 ## Vertical Slice Goal
+
 A player can:
+
 1. Register a new account with username, email, and password
 2. Login with their credentials and receive a JWT token
 3. Logout and securely end their session
 
 ## Success Criteria
+
 - [ ] Player can register with username, email, and password
 - [ ] Player can login with credentials and receive JWT token
 - [ ] Player can logout and session is terminated
@@ -37,6 +39,7 @@ A player can:
 ## Technical References
 
 ### Phase Documents (Technical Implementation Details)
+
 This epic references Phase 2 (Authentication) for technical specifications.
 
 - **Auth Service:** See Phase 2 (PHASE-2 issue) - STORY-2-1, STORY-2-2, STORY-2-3
@@ -45,19 +48,23 @@ This epic references Phase 2 (Authentication) for technical specifications.
 ### Architecture References
 
 **Sequence Diagrams:**
-- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/authentication-flow.puml)
-- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/session-timeout-flow.puml)
+
+- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png)
+- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Session%20Timeout%20Flow.png)
 - [Sequence Diagrams Index](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/README.md)
 
 **Class Diagrams:**
-- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/auth-service.puml)
-- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/database-schema.puml)
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml)
+
+- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service%20Class%20Diagram.png)
+- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png)
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png)
 
 **ER Diagrams:**
-- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/er-diagrams/database-er-diagram.puml) - Entity relationships
+
+- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png) - Entity relationships
 
 **Architecture Documents:**
+
 - [System Architecture - Auth Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#21-auth-service)
 - [Auth Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md)
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md)
@@ -104,6 +111,7 @@ Based on [Auth Service LLD](https://github.com/Buffden/battle-arena/blob/main/do
 ### Clean Architecture Principles
 
 **Layer Separation:**
+
 ```
 
 Controller Layer (Presentation)
@@ -113,16 +121,17 @@ Service Layer (Business Logic)
 Repository Layer (Data Access)
 ↓ depends on
 Model Layer (Domain Entities)
-
-````
+```
 
 **Dependency Flow:**
+
 - Dependencies flow **inward** (controller → service → repository)
 - Outer layers depend on inner layers, **never the reverse**
 - Use **interfaces** for abstraction between layers
 - **Dependency Injection** for loose coupling
 
 **Package Organization:**
+
 - **controller/** - REST API endpoints (Facade Pattern)
 - **service/** - Business logic (Strategy Pattern)
 - **repository/** - Data access (Repository Pattern)
@@ -135,6 +144,7 @@ Model Layer (Domain Entities)
 ### SOLID Principles Application
 
 **Single Responsibility Principle (SRP):**
+
 - Each class has **one reason to change**
 - `AuthController` - Only handles HTTP requests/responses
 - `AuthService` - Only handles business logic
@@ -142,19 +152,23 @@ Model Layer (Domain Entities)
 - `JwtTokenManager` - Only handles JWT operations
 
 **Open/Closed Principle (OCP):**
+
 - Classes open for **extension**, closed for **modification**
 - Use **Strategy Pattern** for authentication methods
 - Use **interfaces** for extensibility
 
 **Liskov Substitution Principle (LSP):**
+
 - Subtypes must be **substitutable** for their base types
 - Repository implementations must be interchangeable
 
 **Interface Segregation Principle (ISP):**
+
 - Clients should not depend on interfaces they don't use
 - Create **specific interfaces** (e.g., `UserRepository` not `GenericRepository`)
 
 **Dependency Inversion Principle (DIP):**
+
 - Depend on **abstractions**, not concretions
 - Use **dependency injection** for all dependencies
 - Services depend on **interfaces**, not implementations
@@ -162,21 +176,25 @@ Model Layer (Domain Entities)
 ### Code Quality Standards
 
 **Meaningful Naming:**
+
 - Use **descriptive names** (e.g., `registerUser()` not `reg()`)
 - Follow **Java naming conventions** (camelCase for methods, PascalCase for classes)
 - Use **self-documenting code** (code should explain itself)
 
 **DRY (Don't Repeat Yourself):**
+
 - Extract **common functionality** into reusable methods
 - Use **shared utilities** for JWT operations, validation
 - Create **base classes** for common exception handling
 
 **Comprehensive Documentation:**
+
 - **JavaDoc** comments for all public methods
 - **API documentation** with Swagger annotations
 - **Architecture decisions** documented in code comments
 
 **Testing Requirements:**
+
 - **80%+ code coverage** for unit tests
 - **Integration tests** for all endpoints
 - **Mock dependencies** for unit testing
@@ -185,22 +203,26 @@ Model Layer (Domain Entities)
 ### Security Best Practices
 
 **Input Validation:**
+
 - Validate **all input** at controller level (`@Valid` annotations)
 - Validate **business rules** at service level
 - **Sanitize** user input to prevent injection attacks
 
 **Password Security:**
+
 - **Never store** passwords in plain text
 - Use **BCrypt** with 12 rounds minimum
 - **Never log** passwords or sensitive data
 
 **JWT Security:**
+
 - Use **strong secret keys** (stored in environment variables)
 - Set **appropriate expiration** times (24 hours)
 - **Validate tokens** on every request
 - Use **HS512 algorithm** for signing
 
 **Error Handling:**
+
 - **Never expose** internal errors to clients
 - Return **generic error messages** to users
 - **Log detailed errors** for debugging
@@ -209,24 +231,28 @@ Model Layer (Domain Entities)
 ### Industrial Standards
 
 **REST API Design:**
+
 - Use **HTTP status codes** correctly (200, 201, 400, 401, 404, 500)
 - Follow **RESTful conventions** (nouns for resources, verbs for actions)
 - Use **consistent response formats** (JSON with consistent structure)
 - Implement **proper error responses** with error codes and messages
 
 **Database Design:**
+
 - Use **indexes** for frequently queried fields (username, email)
 - Implement **unique constraints** at database level
 - Use **MongoDB ObjectId** for primary keys
 - **Never expose** database IDs directly to clients
 
 **Logging Standards:**
+
 - Use **structured logging** (JSON format)
 - Log **at appropriate levels** (INFO, WARN, ERROR)
 - **Never log** sensitive data (passwords, tokens, PII)
 - Include **correlation IDs** for request tracing
 
 **Configuration Management:**
+
 - Use **environment variables** for sensitive configuration
 - Provide **default values** for development
 - **Never commit** secrets to version control
@@ -235,9 +261,11 @@ Model Layer (Domain Entities)
 ## Stories (Player Experience)
 
 ### VS-2-1: Implement player registration with username email and password
+
 **User Story:** As a player, I want to register with username, email, and password so that I can create an account and play the game.
 
 **Acceptance Criteria:**
+
 - [ ] Registration form visible on frontend
 - [ ] Player can enter username, email, and password
 - [ ] Form validates input (username length, email format, password strength)
@@ -256,11 +284,13 @@ Model Layer (Domain Entities)
 Set up the Spring Boot project structure, dependencies, and configuration for the Auth Service. This is a prerequisite for all other tasks.
 
 **Related Diagrams & Documents:**
-- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/auth-service.puml)
+
+- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service%20Class%20Diagram.png)
 - [System Architecture - Auth Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#21-auth-service)
 - [Auth Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md)
 
 **Acceptance Criteria:**
+
 - [x] Maven project structure created
 - [x] Package structure follows clean architecture
 - [x] Main Application class created
@@ -323,6 +353,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
    - Ensured consistency across all service configurations
 
 **Verification:**
+
 - All services verified healthy and running in Docker containers
 - Auth service health check accessible at http://localhost/api/auth/actuator/health
 - Swagger UI accessible at http://localhost/swagger-ui.html
@@ -333,11 +364,13 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 **Technical Details:**
 
 **Reference Documentation:**
+
 - [Auth Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/AUTH_SERVICE.md) - Complete service architecture and component design
 - [System Architecture - Auth Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#21-auth-service) - Service integration and communication patterns
 - [Component Design](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Backend service structure and dependencies
 
 **Project Structure Setup:**
+
 - Create Maven project structure in `backend-services/auth-service/` directory
 - Set up standard Maven directory layout (src/main/java, src/main/resources, src/test/java)
 - Create package structure following clean architecture principles:
@@ -355,6 +388,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 - Create `README.md` file documenting service overview, technology stack, endpoints, and environment variables
 
 **Maven Dependencies (pom.xml):**
+
 - Configure Spring Boot parent POM version 3.3.6
 - Set Java version to 17 in properties section
 - Add Spring Boot starter dependencies:
@@ -374,13 +408,14 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 - Add Maven Checkstyle plugin (version 3.6.0) for code quality enforcement
 
 **Application Configuration (application.yaml):**
+
 - Configure server port (default 8081, configurable via SERVER_PORT environment variable)
 - Set Spring application name to "auth-service"
 - Configure MongoDB connection URI (default mongodb://mongodb:27017/battlearena, configurable via MONGODB_URI)
 - Configure MongoDB database name (default battlearena, configurable via MONGODB_DATABASE)
 - Set JWT secret key (configurable via JWT_SECRET environment variable, with production warning)
 - Set JWT expiration time in milliseconds (default 86400000, configurable via JWT_EXPIRATION)
-- Configure CORS allowed origins (default "*", configurable via CORS_ALLOWED_ORIGINS)
+- Configure CORS allowed origins (default "\*", configurable via CORS_ALLOWED_ORIGINS)
 - Configure SpringDoc OpenAPI settings:
   - Set API docs path to /api-docs
   - Set Swagger UI path to /swagger-ui.html
@@ -400,12 +435,14 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 - Configure logging patterns for console and file output
 
 **Main Application Class:**
+
 - Create `AuthServiceApplication.java` in `com.battlearena.auth_service` package
 - Add `@SpringBootApplication` annotation to enable Spring Boot auto-configuration
 - Implement main method that calls `SpringApplication.run()`
 - Ensure the class serves as the application entry point and component scanning root
 
 **Security Configuration (SecurityConfig.java):**
+
 - Create `SecurityConfig` class in `com.battlearena.auth_service.config` package
 - Add `@Configuration` and `@EnableWebSecurity` annotations
 - Inject CORS allowed origins from application.yaml using `@Value` annotation
@@ -420,13 +457,14 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
     - Permit all requests to Swagger UI and API docs endpoints
     - Require authentication for all other requests
 - Create `CorsConfigurationSource` bean:
-  - Parse allowed origins from configuration (support comma-separated values or "*")
+  - Parse allowed origins from configuration (support comma-separated values or "\*")
   - Configure allowed HTTP methods (GET, POST, PUT, DELETE, OPTIONS, PATCH)
   - Allow all headers
   - Enable credentials
   - Set preflight request cache to 1 hour
 
 **Swagger Configuration (SwaggerConfig.java):**
+
 - Create `SwaggerConfig` class in `com.battlearena.auth_service.config` package
 - Add `@Configuration` annotation
 - Create `OpenAPI` bean with:
@@ -438,6 +476,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
   - Server URLs for local development and production environments
 
 **Global Exception Handler (GlobalExceptionHandler.java):**
+
 - Create `GlobalExceptionHandler` class in `com.battlearena.auth_service.exception` package
 - Add `@RestControllerAdvice` annotation for global exception handling
 - Implement exception handler for `MethodArgumentNotValidException`:
@@ -456,6 +495,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
   - Log errors for debugging purposes
 
 **Custom Exception Classes:**
+
 - Create `UserAlreadyExistsException` class in `com.battlearena.auth_service.exception` package
   - Extend `Exception` class
   - Accept message parameter in constructor
@@ -464,6 +504,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
   - Accept message parameter in constructor
 
 **Testing Structure:**
+
 - Create test package structure mirroring main package structure
 - Set up test classes for:
   - SecurityConfigTest in config package
@@ -472,11 +513,13 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
   - UserRepositoryTest in repository package
 
 **Code Quality Configuration:**
+
 - Ensure `checkstyle.xml` file exists in project root
 - Configure JaCoCo plugin to enforce 80% minimum code coverage
 - Configure Maven compiler plugin to use Java 17 source and target
 
 **Service Documentation:**
+
 - Create or update `README.md` file in `backend-services/auth-service/` directory
 - Document technology stack (Spring Boot 3.3.6, Java 17, MongoDB, JWT, BCrypt)
 - Document service port (8081)
@@ -487,6 +530,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 **Docker Configuration:**
 
 **Dockerfile Implementation:**
+
 - Create `Dockerfile` in `backend-services/auth-service/` directory
 - Use multi-stage build:
   - **Build Stage:** Use `maven:3.9-eclipse-temurin-17` as base image
@@ -504,6 +548,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
 - Follow security best practices (non-root user)
 
 **.dockerignore File:**
+
 - Create `.dockerignore` file in `backend-services/auth-service/` directory
 - Exclude unnecessary files:
   - `target/` directory
@@ -515,6 +560,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
   - `compose.yaml` (local compose file)
 
 **Docker Compose Configuration:**
+
 - Uncomment `auth-service` section in root `docker-compose.yml` file
 - Configure service with:
   - Build context: `./backend-services/auth-service`
@@ -539,6 +585,7 @@ While implementing TASK-VS-2-1-1, the following additional infrastructure work w
     - Start period: 40s
 
 **Docker Deployment Notes:**
+
 - Service runs in Docker containers with **NO host ports exposed**
 - Services communicate internally via Docker network using service names
 - Access is only through Nginx API Gateway (port 80/443 on host)
@@ -555,11 +602,11 @@ Implement complete user registration feature including database model, backend A
 
 **Related Diagrams & Documents:**
 
-- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/authentication-flow.puml) - Registration flow
-- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/database-schema.puml) - User entity structure
-- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/er-diagrams/database-er-diagram.puml) - User entity relationships
-- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/auth-service.puml) - Service layer structure
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - AuthService and components
+- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png) - Registration flow
+- [Database Schema Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Database%20Schema%20Class%20Diagram.png) - User entity structure
+- [Database ER Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/er-diagrams/Database%20ER%20Diagram.png) - User entity relationships
+- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service%20Class%20Diagram.png) - Service layer structure
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - AuthService and components
 - [Database Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/06-DATABASE_DESIGN.md) - User collection schema
 
 **Acceptance Criteria:**
@@ -603,6 +650,7 @@ Implement complete user registration feature including database model, backend A
   - Include audit fields (createdAt, updatedAt, lastLoginAt)
 
 **User Entity Implementation Requirements:**
+
 - Create User class in `com.battlearena.auth_service.model` package
 - Add `@Document(collection = "users")` annotation to map to MongoDB collection
 - Add `@Id` annotation to id field (String type for MongoDB ObjectId)
@@ -640,6 +688,7 @@ Implement complete user registration feature including database model, backend A
   - Spring Data MongoDB provides implementation automatically
 
 **UserRepository Implementation Requirements:**
+
 - Create UserRepository interface in `com.battlearena.auth_service.repository` package
 - Extend MongoRepository interface with User entity and String ID type
 - Add `@Repository` annotation for Spring component scanning
@@ -667,6 +716,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `com.battlearena.auth_service.config.SwaggerConfig`
 
 **SwaggerConfig Implementation Requirements:**
+
 - Create SwaggerConfig class in `com.battlearena.auth_service.config` package
 - Add `@Configuration` annotation for Spring configuration
 - Create `OpenAPI` bean method that returns OpenAPI configuration
@@ -684,6 +734,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `com.battlearena.auth_service.exception.GlobalExceptionHandler`
 
 **GlobalExceptionHandler Implementation Requirements:**
+
 - Create GlobalExceptionHandler class in `com.battlearena.auth_service.exception` package
 - Add `@RestControllerAdvice` annotation for global exception handling across all controllers
 - Implement exception handler for `MethodArgumentNotValidException`:
@@ -706,6 +757,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `com.battlearena.auth_service.exception.UserAlreadyExistsException`
 
 **UserAlreadyExistsException Implementation Requirements:**
+
 - Create UserAlreadyExistsException class in `com.battlearena.auth_service.exception` package
 - Extend Exception class
 - Add constructor that accepts String message parameter
@@ -714,6 +766,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `com.battlearena.auth_service.exception.InvalidCredentialsException`
 
 **InvalidCredentialsException Implementation Requirements:**
+
 - Create InvalidCredentialsException class in `com.battlearena.auth_service.exception` package
 - Extend Exception class
 - Add constructor that accepts String message parameter
@@ -742,6 +795,7 @@ Implement complete user registration feature including database model, backend A
   - **OCP:** Open for extension (can add new authentication strategies)
 
 **UserService Implementation Requirements:**
+
 - Create UserService class in `com.battlearena.auth_service.service` package
 - Add `@Service` annotation for Spring service component
 - Use constructor injection for dependencies (UserRepository, PasswordEncoder, JwtTokenManager)
@@ -767,6 +821,7 @@ Implement complete user registration feature including database model, backend A
 **Backend - DTOs:**
 
 **RegisterRequest Implementation Requirements:**
+
 - Create RegisterRequest class in `com.battlearena.auth_service.dto` package
 - Add username field (String) with validation:
   - `@NotBlank` annotation with message "Username is required"
@@ -780,6 +835,7 @@ Implement complete user registration feature including database model, backend A
 - Implement getters and setters (or use Lombok @Data annotation)
 
 **RegisterResponse Implementation Requirements:**
+
 - Create RegisterResponse class in `com.battlearena.auth_service.dto` package
 - Add id field (String) - User ID from database
 - Add username field (String) - User's username
@@ -814,6 +870,7 @@ Implement complete user registration feature including database model, backend A
   - Document endpoints with Swagger annotations
 
 **AuthController Implementation Requirements:**
+
 - Create AuthController class in `com.battlearena.auth_service.controller` package
 - Add `@RestController` annotation for REST API controller
 - Add `@RequestMapping("/api/auth")` annotation to set base path for all endpoints
@@ -833,6 +890,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `src/app/auth/components/register/register.component.ts`
 
 **RegisterComponent Implementation Requirements:**
+
 - Create RegisterComponent class in `src/app/auth/components/register/` directory
 - Add `@Component` decorator with selector "app-register", template, and styles
 - Implement OnInit interface
@@ -854,6 +912,7 @@ Implement complete user registration feature including database model, backend A
 **File:** `src/app/services/auth.service.ts`
 
 **AuthService.register() Implementation Requirements:**
+
 - Implement register method that accepts RegisterRequest object
 - Make HTTP POST request to `${apiUrl}/register` endpoint
 - Send userData in request body
@@ -904,10 +963,10 @@ Implement complete user login feature including JWT token generation, backend lo
 
 **Related Diagrams & Documents:**
 
-- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/authentication-flow.puml) - Login flow
-- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/session-timeout-flow.puml) - Token expiration handling
-- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/auth-service.puml) - JWT service structure
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - AuthService login methods
+- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png) - Login flow
+- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Session%20Timeout%20Flow.png) - Token expiration handling
+- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service%20Class%20Diagram.png) - JWT service structure
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - AuthService login methods
 - [Security Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/07-SECURITY_ARCHITECTURE.md) - JWT implementation details
 
 **Acceptance Criteria:**
@@ -931,6 +990,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **File:** `com.battlearena.auth_service.security.JwtTokenManager`
 
 **JwtTokenManager Implementation Requirements:**
+
 - Create JwtTokenManager class in `com.battlearena.auth_service.security` package
 - Add `@Component` or `@Service` annotation for Spring dependency injection
 - Implement `generateToken(User user)` method:
@@ -963,6 +1023,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **AuthResponse (used internally by UserService):**
 
 **AuthResponse Implementation Requirements:**
+
 - Create AuthResponse class in `com.battlearena.auth_service.dto` package
 - Add token field (String) - JWT token
 - Add username field (String) - User's username
@@ -973,6 +1034,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **Backend - DTOs:**
 
 **LoginRequest Implementation Requirements:**
+
 - Create LoginRequest class in `com.battlearena.auth_service.dto` package
 - Add username field (String) with validation:
   - `@NotBlank` annotation with message "Username is required"
@@ -981,6 +1043,7 @@ Implement complete user login feature including JWT token generation, backend lo
 - Implement getters and setters (or use Lombok @Data annotation)
 
 **LoginResponse Implementation Requirements:**
+
 - Create LoginResponse class in `com.battlearena.auth_service.dto` package
 - Add token field (String) - JWT token
 - Add username field (String) - User's username
@@ -992,6 +1055,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **File:** `com.battlearena.auth_service.controller.AuthController`
 
 **AuthController.login() Implementation Requirements:**
+
 - Add `login(@Valid @RequestBody LoginRequest request)` method to AuthController
 - Add `@PostMapping("/login")` annotation
 - Add `@Operation` annotation for Swagger documentation (summary: "Login user")
@@ -1009,6 +1073,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **File:** `src/app/auth/components/login/login.component.ts`
 
 **LoginComponent Implementation Requirements:**
+
 - Create LoginComponent class in `src/app/auth/components/login/` directory
 - Add `@Component` decorator with selector "app-login", template, and styles
 - Implement OnInit interface
@@ -1029,6 +1094,7 @@ Implement complete user login feature including JWT token generation, backend lo
 **File:** `src/app/services/auth.service.ts`
 
 **AuthService.login() Implementation Requirements:**
+
 - Implement login method that accepts username and password strings
 - Make HTTP POST request to `${apiUrl}/login` endpoint
 - Send username and password in request body
@@ -1064,8 +1130,8 @@ Implement shared authentication infrastructure including JWT storage, HTTP inter
 
 **Related Diagrams & Documents:**
 
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - AuthService, Guards, Interceptors
-- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/session-timeout-flow.puml) - Token validation flow
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - AuthService, Guards, Interceptors
+- [Session Timeout Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Session%20Timeout%20Flow.png) - Token validation flow
 - [Frontend Components Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/FRONTEND/FRONTEND_COMPONENTS.md) - Component architecture
 
 **Acceptance Criteria:**
@@ -1087,6 +1153,7 @@ Implement shared authentication infrastructure including JWT storage, HTTP inter
 **File:** `src/app/interceptors/auth.interceptor.ts`
 
 **AuthInterceptor Implementation Requirements:**
+
 - Create AuthInterceptor class in `src/app/interceptors/` directory
 - Add `@Injectable()` decorator
 - Implement HttpInterceptor interface
@@ -1105,6 +1172,7 @@ Implement shared authentication infrastructure including JWT storage, HTTP inter
 **File:** `src/app/guards/auth.guard.ts`
 
 **AuthGuard Implementation Requirements:**
+
 - Create AuthGuard class in `src/app/guards/` directory
 - Add `@Injectable({ providedIn: "root" })` decorator for singleton service
 - Implement CanActivate interface
@@ -1137,9 +1205,9 @@ Implement complete user logout feature including optional backend logout endpoin
 
 **Related Diagrams & Documents:**
 
-- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/authentication-flow.puml) - Logout flow
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - AuthService logout method
-- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/auth-service.puml) - Logout endpoint
+- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png) - Logout flow
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - AuthService logout method
+- [Auth Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Auth%20Service%20Class%20Diagram.png) - Logout endpoint
 
 **Acceptance Criteria:**
 
@@ -1155,6 +1223,7 @@ Implement complete user logout feature including optional backend logout endpoin
 
 **Backend - Logout Response DTO:**
 **LogoutResponse Implementation Requirements:**
+
 - Create LogoutResponse class in `com.battlearena.auth_service.dto` package
 - Add message field (String) - Success message
 - Add constructor that accepts message parameter
@@ -1164,6 +1233,7 @@ Implement complete user logout feature including optional backend logout endpoin
 **File:** `com.battlearena.auth_service.controller.AuthController`
 
 **AuthController.logout() Implementation Requirements:**
+
 - Add `logout()` method to AuthController
 - Add `@PostMapping("/logout")` annotation
 - Add `@Operation` annotation for Swagger documentation (summary: "Logout user")
@@ -1177,6 +1247,7 @@ Implement complete user logout feature including optional backend logout endpoin
 **File:** `src/app/services/auth.service.ts`
 
 **AuthService.logout() Implementation Requirements:**
+
 - Implement logout method with no parameters
 - Remove JWT token from localStorage using removeItem("token")
 - Clear current user state by setting currentUserSubject to null
@@ -1186,6 +1257,7 @@ Implement complete user logout feature including optional backend logout endpoin
 **File:** `src/app/components/navigation/navigation.component.ts`
 
 **NavigationComponent Implementation Requirements:**
+
 - Create NavigationComponent class in `src/app/components/navigation/` directory
 - Add `@Component` decorator with selector "app-navigation" and template
 - Inject AuthService and Router via constructor
@@ -1217,11 +1289,10 @@ Implement complete user logout feature including optional backend logout endpoin
 
 **Related Diagrams:**
 
-- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/authentication-flow.puml) - Complete authentication flow
+- [Authentication Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Authentication%20Flow.png) - Complete authentication flow
 
 ### End-to-End Test Scenario
 
-```
 1. Navigate to registration page
 2. Fill registration form (username, email, password)
 3. Submit registration
@@ -1234,8 +1305,6 @@ Implement complete user logout feature including optional backend logout endpoin
 10. Click logout
 11. Verify redirected to login
 12. Verify cannot access protected route
-
-```
 
 **Test should pass:** ✅ All steps complete without errors
 
@@ -1353,9 +1422,7 @@ VS-2: Player Authentication & Identity
 
 ## Example Story Issue (VS-2-1)
 
-```
-
-Title: VS-2-1: Implement player registration with username email and password
+**Title:** VS-2-1: Implement player registration with username email and password
 
 Description:
 
@@ -1403,8 +1470,6 @@ story:vertical-slice, backend:auth, frontend, priority:high
 
 VS-2: Player Authentication & Identity
 
-```
-
 ---
 
 **This template demonstrates how to:**
@@ -1414,4 +1479,4 @@ VS-2: Player Authentication & Identity
 3. Break down into player-focused stories
 4. Pull tasks from Phase documents
 5. Define clear acceptance criteria and definitions of done
-````
+```

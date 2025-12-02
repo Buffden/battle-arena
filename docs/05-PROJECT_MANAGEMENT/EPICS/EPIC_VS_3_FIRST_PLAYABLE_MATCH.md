@@ -1,26 +1,27 @@
-# EPIC-VS-3: First Playable Match
-
-**Copy and paste this template directly into GitHub Issues.**
+# EPIC-VS-3: First Playable Match - End-to-End Gameplay from Queue to Match Result
 
 **Note:** All technical implementation details from Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (Frontend - gameplay parts) have been consolidated into this file. You no longer need to reference multiple Phase documents when creating GitHub issues.
 
 ---
 
-## EPIC-VS-3: First Playable Match
+## EPIC-VS-3: First Playable Match - End-to-End Gameplay from Queue to Match Result
 
-### Issue Template:
+### Issue Template
 
-````
-Title: EPIC-VS-3: First Playable Match
+**Title:** EPIC-VS-3: First Playable Match - End-to-End Gameplay from Queue to Match Result
 
-Description:
+**Description:**
+
 ## Overview
+
 Implement the third vertical slice where a player can play a complete match from start to finish. This epic enables the core gameplay experience - players can join a matchmaking queue, get matched, enter a game room, play a turn-based artillery battle, and see the match result. This is the first playable version of the game.
 
 **This is the third vertical slice** - it enables players to actually play the game end-to-end.
 
 ## Vertical Slice Goal
+
 A player can:
+
 1. Click "Play" and join matchmaking queue
 2. Get matched (with bot opponent for MVP)
 3. Enter game room and see arena
@@ -28,6 +29,7 @@ A player can:
 5. See match result (win/loss)
 
 ## Success Criteria
+
 - [ ] Player can click "Play" button and join matchmaking queue
 - [ ] Matchmaking queue shows position and estimated wait time
 - [ ] Player gets matched (bot opponent for MVP)
@@ -43,6 +45,7 @@ A player can:
 ## MVP Scope (Minimal for First Playable Match)
 
 **What's Included:**
+
 - Bot opponent (no real player matching yet)
 - Default hero (no hero selection yet)
 - Default weapon (no weapon selection yet)
@@ -51,6 +54,7 @@ A player can:
 - Simple scoring (basic win/loss, no complex scoring yet)
 
 **What's Deferred:**
+
 - Hero selection (VS-4 or later)
 - Weapon selection (VS-4 or later)
 - Arena selection (VS-4 or later)
@@ -60,6 +64,7 @@ A player can:
 ## Technical References
 
 ### Phase Documents (Technical Implementation Details)
+
 This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (Frontend) for technical specifications.
 
 - **Matchmaking Service:** See Phase 5 (PHASE-5 issue) - STORY-5-1, STORY-5-3, STORY-5-5, STORY-5-6
@@ -69,22 +74,26 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 ### Architecture References
 
 **Sequence Diagrams:**
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Complete matchmaking flow
-- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/gameplay-flow.puml) - Complete gameplay flow
-- [Movement Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/movement-flow.puml) - Hero movement flow
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Match result flow
+
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Complete matchmaking flow
+- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Gameplay%20Flow.png) - Complete gameplay flow
+- [Movement Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Movement%20Flow.png) - Hero movement flow
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Match result flow
 - [Sequence Diagrams Index](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/README.md)
 
 **Class Diagrams:**
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml)
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml)
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml)
+
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png)
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png)
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png)
 
 **State Diagrams:**
-- [Game State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/state-diagrams/game-state.puml) - Game state transitions
-- [Turn State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/state-diagrams/turn-state.puml) - Turn state transitions
+
+- [Game State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/state-diagrams/Game%20State%20Diagram.png) - Game state transitions
+- [Turn State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/state-diagrams/Turn%20State%20Diagram.png) - Turn state transitions
 
 **Architecture Documents:**
+
 - [System Architecture - Matchmaking Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#24-matchmaking-service)
 - [System Architecture - Game Engine Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#25-game-engine-service)
 - [Matchmaking Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md)
@@ -94,11 +103,12 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 ## Stories (Player Experience)
 
-### VS-3-1: Implement matchmaking queue join with WebSocket connection
+### VS-3-1: Matchmaking Queue Join with WebSocket and Real-Time Status Updates
 
 **User Story:** As a player, I want to click "Play" and join a matchmaking queue so that I can find an opponent and play a match.
 
 **Acceptance Criteria:**
+
 - [ ] "Play" button visible on dashboard/home screen
 - [ ] Clicking "Play" opens matchmaking UI
 - [ ] Player joins matchmaking queue via WebSocket
@@ -109,17 +119,19 @@ This epic references Phase 5 (Matchmaking), Phase 6 (Game Engine), and Phase 7 (
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-1-1: Matchmaking Service Foundation Setup (BE)**
+**TASK-VS-3-1-1: Matchmaking Service Foundation - Node.js, Express, Socket.io, Redis Setup (BE)**
 
 **Description:**
 Set up the Node.js project structure, dependencies, and configuration for the Matchmaking Service. This is a prerequisite for all other matchmaking tasks.
 
 **Related Diagrams & Documents:**
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml)
+
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png)
 - [System Architecture - Matchmaking Service](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#24-matchmaking-service)
 - [Matchmaking Service Low-Level Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md)
 
 **Acceptance Criteria:**
+
 - [ ] Node.js project structure created (`backend-services/matchmaking-service/`)
 - [ ] Express HTTP server configured
 - [ ] Socket.io WebSocket server configured
@@ -134,10 +146,12 @@ Set up the Node.js project structure, dependencies, and configuration for the Ma
 **Technical Details:**
 
 **Reference Documentation:**
+
 - [Matchmaking Service Low-Level Design](../../02-ARCHITECTURE/LOW_LEVEL_DESIGN/SERVICES/MATCHMAKING_SERVICE.md) - Complete service architecture and component design
 - [System Architecture - Matchmaking Service](../../02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md#24-matchmaking-service) - Service integration and communication patterns
 
 **Project Structure Setup:**
+
 - Create Node.js/TypeScript project structure in `backend-services/matchmaking-service/` directory
 - Set up TypeScript configuration with appropriate compiler options
 - Create source directory structure following clean architecture:
@@ -156,6 +170,7 @@ Set up the Node.js project structure, dependencies, and configuration for the Ma
 - Create `README.md` documenting service overview, setup, and usage
 
 **Maven Dependencies (package.json):**
+
 - Add express dependency for HTTP server
 - Add socket.io dependency for WebSocket server
 - Add redis dependency for Redis client
@@ -165,6 +180,7 @@ Set up the Node.js project structure, dependencies, and configuration for the Ma
 - Add type definitions: @types/node, @types/express, @types/socket.io
 
 **Environment Variables Configuration:**
+
 - Configure PORT environment variable (default 3002)
 - Configure REDIS_HOST environment variable (default redis)
 - Configure REDIS_PORT environment variable (default 6379)
@@ -173,16 +189,16 @@ Set up the Node.js project structure, dependencies, and configuration for the Ma
 
 ---
 
-**TASK-VS-3-1-2: Join Matchmaking Queue Feature (BE + FE)**
+**TASK-VS-3-1-2: Join Matchmaking Queue - Redis Sorted Sets, Socket.io Events, Matchmaking UI (BE + FE)**
 
 **Description:**
 Implement complete join queue feature including backend queue management and frontend matchmaking UI. This task combines all queue-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Join queue flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - Queue service structure
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - MatchmakingService and components
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Join queue flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - Queue service structure
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - MatchmakingService and components
 
 **Acceptance Criteria:**
 
@@ -206,6 +222,7 @@ Implement complete join queue feature including backend queue management and fro
 **File:** `src/services/QueueManager.ts`
 
 **QueueManager Implementation Requirements:**
+
 - Create QueueManager class in `src/services/` directory
 - Implement `addToQueue(playerId, heroId, globalScore, socketId)` method:
   - Add player to Redis sorted set with key "matchmaking:queue" and score equal to globalScore
@@ -227,6 +244,7 @@ Implement complete join queue feature including backend queue management and fro
 **File:** `src/controllers/MatchmakingController.ts`
 
 **MatchmakingController Implementation Requirements:**
+
 - Create MatchmakingController class in `src/controllers/` directory
 - Set up Socket.io connection handler:
   - Listen for "connection" event on Socket.io server
@@ -251,6 +269,7 @@ Implement complete join queue feature including backend queue management and fro
 **File:** `src/app/matchmaking/components/matchmaking/matchmaking.component.ts`
 
 **MatchmakingComponent Implementation Requirements:**
+
 - Create MatchmakingComponent class in `src/app/matchmaking/components/matchmaking/` directory
 - Add `@Component` decorator with selector "app-matchmaking" and template URL
 - Add queueStatus property (QueueStatus | null) to store current queue status
@@ -273,6 +292,7 @@ Implement complete join queue feature including backend queue management and fro
 **File:** `src/app/services/matchmaking.service.ts`
 
 **MatchmakingService Implementation Requirements:**
+
 - Create MatchmakingService class in `src/app/services/` directory
 - Add `@Injectable()` decorator for Angular dependency injection
 - Maintain private Socket instance for WebSocket connection
@@ -307,7 +327,7 @@ Implement complete join queue feature including backend queue management and fro
 
 ---
 
-### VS-3-2: Implement player matching with bot opponent and game room creation
+### VS-3-2: Player Matching with Bot Opponent and Game Room Creation
 
 **User Story:** As a player, I want to get matched with an opponent so that I can start playing a match.
 
@@ -322,15 +342,15 @@ Implement complete join queue feature including backend queue management and fro
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-2-1: Matchmaking Algorithm (BE)**
+**TASK-VS-3-2-1: Matchmaking Algorithm - Bot Opponent Creation and Match Finding Engine (BE)**
 
 **Description:**
 Implement basic matchmaking algorithm that matches players with bot opponents for MVP. This is a simplified version that will be enhanced in later epics.
 
 **Related Diagrams & Documents:**
 
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Match found flow
-- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/matchmaking-service.puml) - MatchmakingEngine structure
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Match found flow
+- [Matchmaking Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Matchmaking%20Service%20Class%20Diagram.png) - MatchmakingEngine structure
 
 **Acceptance Criteria:**
 
@@ -348,6 +368,7 @@ Implement basic matchmaking algorithm that matches players with bot opponents fo
 **File:** `src/services/MatchmakingEngine.ts`
 
 **MatchmakingEngine Implementation Requirements:**
+
 - Create MatchmakingEngine class in `src/services/` directory
 - Implement `findMatch(playerId)` method:
   - Get player data from queue using QueueManager
@@ -383,16 +404,16 @@ Implement basic matchmaking algorithm that matches players with bot opponents fo
 
 ---
 
-**TASK-VS-3-2-2: Game Room Creation (BE)**
+**TASK-VS-3-2-2: Game Room Creation - GameRoomManager with Default State Initialization (BE)**
 
 **Description:**
 Implement game room creation in Game Engine Service when match is assigned from Matchmaking Service.
 
 **Related Diagrams & Documents:**
 
-- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/gameplay-flow.puml) - Game room creation
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml) - GameRoomManager structure
-- [Game State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/state-diagrams/game-state.puml) - State transitions
+- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Gameplay%20Flow.png) - Game room creation
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png) - GameRoomManager structure
+- [Game State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/state-diagrams/Game%20State%20Diagram.png) - State transitions
 
 **Acceptance Criteria:**
 
@@ -410,6 +431,7 @@ Implement game room creation in Game Engine Service when match is assigned from 
 **File:** `src/service/GameRoomManager.ts`
 
 **GameRoomManager Implementation Requirements:**
+
 - Create GameRoomManager class in `src/service/` directory
 - Implement `createGameRoom(matchId, matchData)` method:
   - Create game room object with match data (players, match ID)
@@ -456,7 +478,7 @@ Implement game room creation in Game Engine Service when match is assigned from 
 
 ---
 
-### VS-3-3: Implement game arena rendering with hero display and HUD
+### VS-3-3: Game Arena Rendering with Hero Display and Real-Time HUD Synchronization
 
 **User Story:** As a player, I want to see the game arena and my hero so that I can understand the game state and prepare for my turn.
 
@@ -471,15 +493,15 @@ Implement game room creation in Game Engine Service when match is assigned from 
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-3-1: Game Arena UI (FE)**
+**TASK-VS-3-3-1: Game Arena UI - Phaser 3 Canvas, Hero Sprites, HUD with Health/Scores/Turn (FE)**
 
 **Description:**
 Implement game arena UI component that displays the game state, heroes, and arena. This includes the game canvas, HUD, and real-time state synchronization.
 
 **Related Diagrams & Documents:**
 
-- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/frontend-components.puml) - GameService and components
-- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/gameplay-flow.puml) - Game state updates
+- [Frontend Components Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Frontend%20Components%20Class%20Diagram.png) - GameService and components
+- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Gameplay%20Flow.png) - Game state updates
 
 **Acceptance Criteria:**
 
@@ -500,6 +522,7 @@ Implement game arena UI component that displays the game state, heroes, and aren
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
 **GameArenaComponent Implementation Requirements:**
+
 - Create GameArenaComponent class in `src/app/arena/components/game-arena/` directory
 - Add `@Component` decorator with selector "app-game-arena" and template URL
 - Implement OnInit and OnDestroy interfaces
@@ -522,6 +545,7 @@ Implement game arena UI component that displays the game state, heroes, and aren
 **File:** `src/app/services/game.service.ts`
 
 **GameService Implementation Requirements:**
+
 - Create GameService class in `src/app/services/` directory
 - Add `@Injectable()` decorator for Angular dependency injection
 - Maintain private Socket instance for WebSocket connection
@@ -557,7 +581,7 @@ Implement game arena UI component that displays the game state, heroes, and aren
 
 ---
 
-### VS-3-4: Implement hero movement and weapon firing with physics engine
+### VS-3-4: Hero Movement, Weapon Firing with Physics Engine, and Turn Management
 
 **User Story:** As a player, I want to move my hero and fire shots so that I can play the game and try to win.
 
@@ -576,15 +600,15 @@ Implement game arena UI component that displays the game state, heroes, and aren
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-4-1: Movement System (BE + FE)**
+**TASK-VS-3-4-1: Movement System - Backend Validation, 4 Moves Limit, Frontend Controls (BE + FE)**
 
 **Description:**
 Implement hero movement system including backend movement validation and frontend movement controls. This task combines all movement-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Movement Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/movement-flow.puml) - Movement flow
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml) - MovementManager structure
+- [Movement Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Movement%20Flow.png) - Movement flow
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png) - MovementManager structure
 
 **Acceptance Criteria:**
 
@@ -605,6 +629,7 @@ Implement hero movement system including backend movement validation and fronten
 **File:** `src/service/MovementManager.ts`
 
 **MovementManager Implementation Requirements:**
+
 - Create MovementManager class in `src/service/` directory
 - Implement `validateMove(gameState, playerId, direction)` method:
   - Check if it's the player's turn (compare playerId with currentTurn in gameState)
@@ -623,6 +648,7 @@ Implement hero movement system including backend movement validation and fronten
 **File:** `src/controller/GameEngineController.ts`
 
 **GameEngineController.player-move Handler Implementation Requirements:**
+
 - Add "player-move" event handler to Socket.io connection
 - Extract matchId, playerId, and direction from event data
 - Retrieve game state from Redis using matchId (key: "game:{matchId}")
@@ -637,6 +663,7 @@ Implement hero movement system including backend movement validation and fronten
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
 **Movement Controls Implementation Requirements:**
+
 - Implement `onMove(direction)` method in GameArenaComponent:
   - Check if it's player's turn (compare currentTurn with playerId)
   - Check if player can move using canMove() method
@@ -670,15 +697,15 @@ Implement hero movement system including backend movement validation and fronten
 
 ---
 
-**TASK-VS-3-4-2: Weapon Firing System (BE + FE)**
+**TASK-VS-3-4-2: Weapon Firing System - Matter.js Physics, Trajectory, Collision, Damage (BE + FE)**
 
 **Description:**
 Implement weapon firing system including backend physics calculation and frontend firing controls. This task combines all firing-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/gameplay-flow.puml) - Weapon firing flow
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml) - PhysicsEngine structure
+- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Gameplay%20Flow.png) - Weapon firing flow
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png) - PhysicsEngine structure
 
 **Acceptance Criteria:**
 
@@ -701,6 +728,7 @@ Implement weapon firing system including backend physics calculation and fronten
 **File:** `src/service/PhysicsEngine.ts`
 
 **PhysicsEngine Implementation Requirements:**
+
 - Create PhysicsEngine class in `src/service/` directory
 - Initialize Matter.js physics engine and world
 - Maintain private engine and world instances
@@ -723,6 +751,7 @@ Implement weapon firing system including backend physics calculation and fronten
 **File:** `src/controller/GameEngineController.ts`
 
 **GameEngineController.player-fire Handler Implementation Requirements:**
+
 - Add "player-fire" event handler to Socket.io connection
 - Extract matchId, playerId, angle, and power from event data
 - Retrieve game state from Redis using matchId
@@ -740,6 +769,7 @@ Implement weapon firing system including backend physics calculation and fronten
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
 **Firing Controls Implementation Requirements:**
+
 - Implement `onFire(angle, power)` method in GameArenaComponent:
   - Check if it's player's turn (compare currentTurn with playerId)
   - If not player's turn, return early
@@ -777,15 +807,15 @@ Implement weapon firing system including backend physics calculation and fronten
 
 ---
 
-**TASK-VS-3-4-3: Turn Management System (BE + FE)**
+**TASK-VS-3-4-3: Turn Management System - 15s Timer, Turn Switching, Timeout Handling (BE + FE)**
 
 **Description:**
 Implement turn management system including turn timers, turn switching, and turn indicators. This is shared infrastructure used by movement and firing features.
 
 **Related Diagrams & Documents:**
 
-- [Turn State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/state-diagrams/turn-state.puml) - Turn state transitions
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml) - TurnManager structure
+- [Turn State Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/state-diagrams/Turn%20State%20Diagram.png) - Turn state transitions
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png) - TurnManager structure
 
 **Acceptance Criteria:**
 
@@ -805,6 +835,7 @@ Implement turn management system including turn timers, turn switching, and turn
 **File:** `src/service/TurnManager.ts`
 
 **TurnManager Implementation Requirements:**
+
 - Create TurnManager class in `src/service/` directory
 - Implement `startTurn(matchId, playerId)` method:
   - Set current turn to playerId in game state
@@ -829,6 +860,7 @@ Implement turn management system including turn timers, turn switching, and turn
 **File:** `src/app/arena/components/game-arena/game-arena.component.ts`
 
 **Turn Indicator Implementation Requirements:**
+
 - Implement `isMyTurn` getter property:
   - Compare gameState.currentTurn with playerId
   - Return boolean indicating if it's the current player's turn
@@ -860,7 +892,7 @@ Implement turn management system including turn timers, turn switching, and turn
 
 ---
 
-### VS-3-5: Implement match result display with win condition detection
+### VS-3-5: Match Result Display with Win Condition Detection and Statistics
 
 **User Story:** As a player, I want to see the match result so that I know if I won or lost and what my score was.
 
@@ -875,15 +907,15 @@ Implement turn management system including turn timers, turn switching, and turn
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-5-1: Win Condition & Match Result (BE + FE)**
+**TASK-VS-3-5-1: Win Condition Detection and Match Result - Winner, Scores, Stats, Storage (BE + FE)**
 
 **Description:**
 Implement win condition detection, match result calculation, and match result display. This task combines all match result-related work for end-to-end testing.
 
 **Related Diagrams & Documents:**
 
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Match result flow
-- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/class-diagrams/game-engine-service.puml) - WinConditionChecker structure
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Match result flow
+- [Game Engine Service Class Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/class-diagrams/Game%20Engine%20Service%20Class%20Diagram.png) - WinConditionChecker structure
 
 **Acceptance Criteria:**
 
@@ -904,6 +936,7 @@ Implement win condition detection, match result calculation, and match result di
 **File:** `src/service/WinConditionChecker.ts`
 
 **WinConditionChecker Implementation Requirements:**
+
 - Create WinConditionChecker class in `src/service/` directory
 - Implement `checkWinCondition(gameState)` method:
   - Check if any player's health is less than or equal to 0
@@ -926,6 +959,7 @@ Implement win condition detection, match result calculation, and match result di
 **File:** `src/service/MatchResultProcessor.ts`
 
 **MatchResultProcessor Implementation Requirements:**
+
 - Create MatchResultProcessor class in `src/service/` directory
 - Implement `processMatchResult(matchId, matchResult)` method:
   - Store match result in MongoDB (match history collection)
@@ -945,6 +979,7 @@ Implement win condition detection, match result calculation, and match result di
 **File:** `src/app/arena/components/match-result/match-result.component.ts`
 
 **MatchResultComponent Implementation Requirements:**
+
 - Create MatchResultComponent class in `src/app/arena/components/match-result/` directory
 - Add `@Component` decorator with selector "app-match-result" and template URL
 - Add matchResult property (MatchResult | null) to store match result data
@@ -986,13 +1021,12 @@ Implement win condition detection, match result calculation, and match result di
 
 **Related Diagrams:**
 
-- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/matchmaking-flow.puml) - Complete matchmaking flow
-- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/gameplay-flow.puml) - Complete gameplay flow
-- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/sequence-diagrams/post-match-flow.puml) - Match result flow
+- [Matchmaking Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Matchmaking%20Flow.png) - Complete matchmaking flow
+- [Gameplay Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Gameplay%20Flow.png) - Complete gameplay flow
+- [Post-Match Flow Sequence Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/sequence-diagrams/Post-Match%20Flow.png) - Match result flow
 
 ### End-to-End Test Scenario
 
-```
 1. Player logs in
 2. Player clicks "Play" button
 3. Player joins matchmaking queue
@@ -1015,7 +1049,6 @@ Implement win condition detection, match result calculation, and match result di
 20. Match continues until win condition
 21. Match result displayed
 22. Player returns to dashboard
-```
 
 **Test should pass:** ✅ All steps complete without errors
 
@@ -1104,8 +1137,6 @@ VS-3: First Playable Match
 - EPIC-VS-4: Profile & Progression (depends on VS-3)
 - EPIC-VS-5: Full Game Features (depends on VS-3)
 
-```
-
 ---
 
 ## How to Use This Template
@@ -1134,11 +1165,10 @@ VS-3: First Playable Match
 ---
 
 **This template demonstrates how to:**
+
 1. Structure vertical slice epics with player focus
 2. Reference Phase documents for technical details
 3. Break down into player-focused stories
 4. Pull tasks from Phase documents
 5. Define clear acceptance criteria and definitions of done
 6. Consolidate BE + FE tasks for end-to-end testing
-```
-````
