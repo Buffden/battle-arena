@@ -1,25 +1,25 @@
 # EPIC-VS-1: Foundation & Infrastructure Setup
 
-**Copy and paste this template directly into GitHub Issues.**
-
 **⚠️ IMPORTANT NOTE:** This epic is implemented exactly like the Phase 1 document in order. All tasks, stories, and technical details follow the Phase 1 Foundation document structure. Refer to [Phase 1 Foundation Document](https://github.com/Buffden/battle-arena/blob/main/docs/05-PROJECT_MANAGEMENT/ISSUE_TEMPLATES/PHASE_1_FOUNDATION.md) for complete implementation details.
 
 ---
 
 ## EPIC-VS-1: Foundation & Infrastructure Setup
 
-### Issue Template:
+### Issue Template
 
-```
-Title: EPIC-VS-1: Foundation & Infrastructure Setup
+**Title:** EPIC-VS-1: Foundation & Infrastructure Setup
 
-Description:
+**Description:**
+
 ## Overview
+
 Set up the complete foundation for the Battle Arena multiplayer artillery battle game project. This epic establishes the microservices architecture foundation with 5 backend services (3 Spring Boot, 2 Node.js), Angular frontend, and infrastructure tooling following clean architecture principles.
 
 **This is the foundation epic** - it must be completed before any gameplay features can be implemented.
 
 ## Goals
+
 - Establish project structure following clean architecture with strict separation of concerns
 - Set up local development environment using Docker Compose (recommended for <1,000 users/month)
 - Configure CI/CD pipelines with GitHub Actions (testing, building, code quality checks)
@@ -27,6 +27,7 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 - Prepare infrastructure for all services following the system architecture
 
 ## Success Criteria
+
 - [ ] All service directories created (Auth:8081, Profile:8082, Leaderboard:8083, Matchmaking:3002, Game Engine:5002 - **internal ports only**)
 - [ ] Docker Compose working locally with MongoDB (27017) and Redis (6379 - **internal ports, host ports only for dev convenience**)
 - [ ] Nginx API Gateway configured (ONLY service with external ports 80/443)
@@ -53,12 +54,14 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 **This foundation epic focuses on infrastructure only.** The following will be implemented in later vertical slice epics:
 
 ### EPIC-VS-2+ (Service Implementation)
+
 - **API Documentation (Swagger/OpenAPI)** - Configured when first REST API service is implemented (EPIC-VS-2: Authentication)
 - **Service-specific Dockerfiles** - Created when implementing each service (EPIC-VS-8: Deployment)
 - **Service configurations** - Added as services are built (application.properties, package.json, etc.)
 - **Service-specific logging** - Added during service implementation when needed
 
 ### EPIC-VS-8 (Deployment & Production)
+
 - **Dockerfiles for all services** - Multi-stage builds, health checks, optimization
 - **Production Docker Compose** - Full service orchestration for production
 - **Kubernetes deployment** - Production orchestration (if needed for >10,000 users/day)
@@ -67,12 +70,14 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 - **Distributed tracing** - Jaeger/Zipkin (optional, for production)
 
 **Rationale:**
+
 - This foundation epic establishes the foundation (structure, dev environment basics, CI/CD, development tooling)
 - API documentation is added in EPIC-VS-2 when first REST APIs are implemented
 - Service-specific implementations (Dockerfiles, logging, monitoring) are added when services are built and need them
 - This follows an incremental approach: build foundation → implement services → add production infrastructure
 
 ## Related Documentation
+
 - [Phase 1 Foundation Document](https://github.com/Buffden/battle-arena/blob/main/docs/05-PROJECT_MANAGEMENT/ISSUE_TEMPLATES/PHASE_1_FOUNDATION.md) - Complete implementation guide (follow this document in order)
 - [System Architecture](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/02-SYSTEM_ARCHITECTURE.md) - Microservices architecture overview
 - [Component Design](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/03-COMPONENT_DESIGN.md) - Service structure and responsibilities
@@ -80,6 +85,7 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 - [Design Principles](https://github.com/Buffden/battle-arena/blob/main/docs/02-ARCHITECTURE/HIGH_LEVEL_DESIGN/11-DESIGN_PRINCIPLES.md) - Critical design principles (REUSABILITY, SOLID, DRY, Clean Code, Secure Programming)
 
 ## Architecture Diagrams
+
 - [System Architecture Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/System%20Architecture.png)
 - [Container Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Container%20Diagram.png)
 - [Component Diagram](https://github.com/Buffden/battle-arena/blob/main/docs/03-DIAGRAMS/exported/architecture/Component%20Diagram%20-%20Game%20Engine%20Service.png)
@@ -96,15 +102,17 @@ Set up the complete foundation for the Battle Arena multiplayer artillery battle
 **For detailed task breakdown, refer to [Phase 1 Foundation Document](https://github.com/Buffden/battle-arena/blob/main/docs/05-PROJECT_MANAGEMENT/ISSUE_TEMPLATES/PHASE_1_FOUNDATION.md) which contains all stories and tasks in order.**
 
 ## Labels
+
 epic:foundation, epic:vertical-slice, infrastructure, priority:high
 
 ## Milestone
+
 VS-1: Foundation & Infrastructure Setup
 
 ## Related Epics
+
 - EPIC-VS-2: Player Authentication & Identity (depends on VS-1)
 - EPIC-VS-3: First Playable Match (depends on VS-1, VS-2)
-```
 
 ---
 
