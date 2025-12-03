@@ -1,0 +1,86 @@
+<div class="matchmaking-page">
+  <!-- Pixel Art Header -->
+  <header class="pixel-header">
+    <div class="pixel-container">
+      <h1 class="logo">BATTLE ARENA</h1>
+      <nav class="pixel-nav">
+        <a routerLink="/dashboard" class="pixel-button secondary">Dashboard</a>
+        <a routerLink="/dashboard" class="pixel-button secondary">Back</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Matchmaking Content -->
+  <main class="matchmaking-main">
+    <div class="pixel-container">
+      <div class="matchmaking-welcome">
+        <h2 class="pixel-title">⚔️ MATCHMAKING</h2>
+        <p class="pixel-text">Find your next opponent and enter the arena!</p>
+      </div>
+
+      <!-- Error Display -->
+      <div *ngIf="error" class="error-card pixel-card">
+        <p class="error-text">{{ error }}</p>
+      </div>
+
+      <!-- Queue Status Card -->
+      <div class="matchmaking-card pixel-card" *ngIf="isInQueue && queueStatus">
+        <div class="queue-status">
+          <h3 class="status-title">IN QUEUE</h3>
+
+          <div class="status-info">
+            <div class="status-item">
+              <span class="status-label">Position:</span>
+              <span class="status-value">{{ queueStatus.position + 1 }}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Queue Size:</span>
+              <span class="status-value">{{ queueStatus.queueSize }}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Est. Wait Time:</span>
+              <span class="status-value">{{ formatTime(queueStatus.estimatedWaitTime) }}</span>
+            </div>
+          </div>
+
+          <div class="loading-indicator" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <span class="loading-text">Processing...</span>
+          </div>
+
+          <button class="pixel-button danger" (click)="leaveQueue()" [disabled]="isLoading">
+            LEAVE QUEUE
+          </button>
+        </div>
+      </div>
+
+      <!-- Join Queue Card -->
+      <div class="matchmaking-card pixel-card" *ngIf="!isInQueue">
+        <div class="join-queue">
+          <h3 class="action-title">READY TO BATTLE?</h3>
+          <p class="pixel-text">
+            Join the matchmaking queue to find an opponent. You'll be matched based on your skill
+            level.
+          </p>
+
+          <div class="loading-indicator" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <span class="loading-text">Joining queue...</span>
+          </div>
+
+          <button class="pixel-button" (click)="joinQueue()" [disabled]="isLoading || isInQueue">
+            <span *ngIf="!isLoading">JOIN QUEUE</span>
+            <span *ngIf="isLoading">JOINING...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="pixel-footer">
+    <div class="pixel-container">
+      <p class="pixel-text footer-text">© 2024 Battle Arena. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
