@@ -12,6 +12,7 @@ const { httpErrorHandler } = require('./src/middleware/error.middleware');
 const { socketAuth } = require('./src/middleware/auth.middleware');
 const healthRoutes = require('./src/routes/health.routes');
 const MatchmakingController = require('./src/controllers/MatchmakingController');
+const QueueManager = require('./src/services/QueueManager');
 const logger = require('./src/utils/logger');
 
 // Initialize Express app
@@ -43,8 +44,11 @@ const io = initializeSocket(httpServer);
 // Apply Socket.io authentication middleware
 io.use(socketAuth);
 
-// Initialize MatchmakingController
-const matchmakingController = new MatchmakingController(io);
+// Initialize QueueManager
+const queueManager = new QueueManager();
+
+// Initialize MatchmakingController with QueueManager
+const matchmakingController = new MatchmakingController(io, {}, queueManager);
 matchmakingController.initialize();
 
 // Graceful shutdown handler
