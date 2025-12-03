@@ -12,6 +12,7 @@ const { Server } = require('socket.io');
  */
 function initializeSocket(httpServer) {
   const io = new Server(httpServer, {
+    path: '/ws/matchmaking/socket.io',
     cors: {
       origin: process.env.CORS_ALLOWED_ORIGINS || '*',
       methods: ['GET', 'POST'],
