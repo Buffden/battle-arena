@@ -5,7 +5,9 @@
       <h1 class="logo">BATTLE ARENA</h1>
       <nav class="pixel-nav">
         <button (click)="goBack()" class="pixel-button secondary">Back</button>
-        <a routerLink="/dashboard" class="pixel-button secondary">Dashboard</a>
+        <a routerLink="/dashboard" class="pixel-button secondary" (click)="onDashboardClick()"
+          >Dashboard</a
+        >
       </nav>
     </div>
   </header>

@@ -47,21 +47,34 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       this.restoreQueueConnection();
     }
 
-    // Listen to router navigation events (including back button)
+    // Listen to router navigation events (including dashboard link, back button, etc.)
     this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationStart))
       .subscribe(event => {
         // Check if navigating away from matchmaking page
         const navigation = event as NavigationStart;
-        if (navigation.url !== '/matchmaking' && this.isInQueue) {
+        // Check if navigating to a different route (not just query params or fragments)
+        const currentUrl = this.router.url.split('?')[0].split('#')[0]; // Remove query params and fragments
+        const targetUrl = navigation.url.split('?')[0].split('#')[0]; // Remove query params and fragments
+
+        if (targetUrl !== '/matchmaking' && currentUrl === '/matchmaking' && this.isInQueue) {
+          // eslint-disable-next-line no-console
+          console.log(`Navigating away from matchmaking to ${targetUrl} - leaving queue`);
           this.leaveQueue();
         }
       });
   }
 
   ngOnDestroy(): void {
-    // Don't leave queue on component destroy - only on explicit actions
-    // This allows queue to persist across page refreshes
+    // Leave queue when component is destroyed (e.g., navigating away)
+    // Note: This will also trigger on page refresh, but that's okay -
+    // the backend will handle reconnection via the reconnect-queue mechanism
+    if (this.isInQueue) {
+      // eslint-disable-next-line no-console
+      console.log('Component destroyed while in queue - leaving queue');
+      this.leaveQueue();
+    }
+
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
@@ -171,6 +184,15 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         next: match => {
           // eslint-disable-next-line no-console
           console.log('🎮 Match found:', match.matchId);
+          // CRITICAL: Only show modal if no match is currently being processed
+          // This prevents showing multiple modals when multiple matches are found
+          if (this.matchFoundData) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `⚠️ Ignoring match-found for ${match.matchId} - already processing match ${this.matchFoundData.matchId}`
+            );
+            return;
+          }
           // Show match acceptance modal
           this.matchFoundData = {
             matchId: match.matchId,
@@ -217,10 +239,10 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         next: rejected => {
           // eslint-disable-next-line no-console
           console.log('❌ Match rejected:', rejected);
-          // Close modal after a short delay
-          setTimeout(() => {
-            this.matchFoundData = null;
-          }, 2000);
+          // Close modal immediately - accepting player will get a new match with new match ID
+          this.matchFoundData = null;
+          // eslint-disable-next-line no-console
+          console.log('✓ Modal closed. Waiting for new match with new match ID...');
         },
         error: error => {
           console.error('Error receiving match rejected:', error);
@@ -253,10 +275,27 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    // Leave queue before navigating back
     if (this.isInQueue) {
+      // eslint-disable-next-line no-console
+      console.log('Back button clicked - leaving queue');
       this.leaveQueue();
     }
     this.location.back();
+  }
+
+  /**
+   * Handle navigation to dashboard
+   * Called when dashboard link is clicked
+   */
+  onDashboardClick(): void {
+    // Leave queue before navigating to dashboard
+    if (this.isInQueue) {
+      // eslint-disable-next-line no-console
+      console.log('Dashboard link clicked - leaving queue');
+      this.leaveQueue();
+    }
+    // Navigation will happen via routerLink
   }
 
   onMatchAccepted(matchId: string): void {
@@ -390,6 +429,15 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         next: match => {
           // eslint-disable-next-line no-console
           console.log('🎮 Match found:', match.matchId);
+          // CRITICAL: Only show modal if no match is currently being processed
+          // This prevents showing multiple modals when multiple matches are found
+          if (this.matchFoundData) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `⚠️ Ignoring match-found for ${match.matchId} - already processing match ${this.matchFoundData.matchId}`
+            );
+            return;
+          }
           // Show match acceptance modal
           this.matchFoundData = {
             matchId: match.matchId,
@@ -436,10 +484,10 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         next: rejected => {
           // eslint-disable-next-line no-console
           console.log('❌ Match rejected:', rejected);
-          // Close modal after a short delay
-          setTimeout(() => {
-            this.matchFoundData = null;
-          }, 2000);
+          // Close modal immediately - accepting player will get a new match with new match ID
+          this.matchFoundData = null;
+          // eslint-disable-next-line no-console
+          console.log('✓ Modal closed. Waiting for new match with new match ID...');
         },
         error: error => {
           console.error('Error receiving match rejected:', error);
