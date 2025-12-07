@@ -2,6 +2,8 @@ const { getRedisClient } = require('../config/redis.config');
 
 const MATCH_ACCEPTANCE_PREFIX = 'match:acceptance:';
 const MATCH_ACCEPTANCE_TTL = 25; // 25 seconds TTL (20s timeout + 5s buffer)
+const TIMEOUT_COUNT_PREFIX = 'matchmaking:timeout-count:';
+const TIMEOUT_COUNT_TTL = 3600; // 1 hour TTL - reset after 1 hour of no timeouts
 
 /**
  * MatchAcceptanceManager handles match acceptance state tracking
@@ -345,6 +347,50 @@ class MatchAcceptanceManager {
     const redis = getRedisClient();
     const key = `${MATCH_ACCEPTANCE_PREFIX}${matchId}`;
     await redis.del(key);
+  }
+
+  /**
+   * Increment timeout count for a user (when they let match acceptance expire)
+   * @param {string} userId - User ID
+   * @returns {Promise<number>} New timeout count
+   */
+  async incrementTimeoutCount(userId) {
+    const redis = getRedisClient();
+    const key = `${TIMEOUT_COUNT_PREFIX}${userId}`;
+    // Get current count first for logging
+    const currentCount = await redis.get(key);
+    const previousCount = currentCount ? Number.parseInt(currentCount, 10) : 0;
+    // Increment (creates key with value 1 if it doesn't exist)
+    const count = await redis.incr(key);
+    await redis.expire(key, TIMEOUT_COUNT_TTL);
+    // eslint-disable-next-line no-console
+    console.log(`Incremented timeout count for user ${userId}: ${previousCount} -> ${count}`);
+    return count;
+  }
+
+  /**
+   * Get timeout count for a user
+   * @param {string} userId - User ID
+   * @returns {Promise<number>} Timeout count (0 if not found)
+   */
+  async getTimeoutCount(userId) {
+    const redis = getRedisClient();
+    const key = `${TIMEOUT_COUNT_PREFIX}${userId}`;
+    const count = await redis.get(key);
+    return count ? Number.parseInt(count, 10) : 0;
+  }
+
+  /**
+   * Reset timeout count for a user (when they successfully accept/reject)
+   * @param {string} userId - User ID
+   * @returns {Promise<void>}
+   */
+  async resetTimeoutCount(userId) {
+    const redis = getRedisClient();
+    const key = `${TIMEOUT_COUNT_PREFIX}${userId}`;
+    await redis.del(key);
+    // eslint-disable-next-line no-console
+    console.log(`Reset timeout count for user ${userId}`);
   }
 
   /**
