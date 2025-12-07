@@ -112,6 +112,24 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
         }
       })
     );
+
+    // Subscribe to match acceptance expired (when timer runs out)
+    // This will close the modal and user will be re-added to queue
+    this.subscriptions.add(
+      this.matchmakingService.getMatchAcceptanceExpired$().subscribe({
+        next: expired => {
+          if (expired.matchId === this.matchData?.matchId) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `⏱️ Match ${expired.matchId} acceptance expired - closing modal, user will be re-added to queue`
+            );
+            this.stopCountdown();
+            this.matchData = null; // Close modal
+            this.acceptanceStatus = null;
+          }
+        }
+      })
+    );
   }
 
   ngOnInit(): void {
@@ -165,10 +183,14 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
 
     // Only start countdown if there's time remaining
     if (this.timeRemaining <= 0) {
-      // Time already expired, reject immediately
+      // Time already expired, just close modal - backend will handle it
       if (this.matchData && !this.hasAttemptedReject && !this.hasAttemptedAccept) {
         this.hasAttemptedReject = true;
-        this.onReject();
+        // Clear match data to close modal - backend will handle the rest
+        this.matchData = null;
+        this.acceptanceStatus = null;
+        // eslint-disable-next-line no-console
+        console.log('⏱️ Match acceptance timer already expired - modal closing');
       }
       return;
     }
@@ -183,10 +205,18 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
       this.timeRemaining--;
       if (this.timeRemaining <= 0) {
         this.stopCountdown();
-        // Auto-reject on timeout (only if not already attempted)
+        // On timeout, just close the modal - backend will handle moving to end of queue
+        // Don't call onReject() as that sends a rejection event
+        // The backend will detect expiration and handle it automatically
         if (this.matchData && !this.hasAttemptedReject && !this.hasAttemptedAccept) {
           this.hasAttemptedReject = true; // Mark as attempted to prevent retries
-          this.onReject();
+          // Clear match data to close modal - backend will handle the rest
+          this.matchData = null;
+          this.acceptanceStatus = null;
+          // eslint-disable-next-line no-console
+          console.log(
+            '⏱️ Match acceptance timer expired - modal closing, backend will handle queue re-adding'
+          );
         }
       }
     }, 1000);
