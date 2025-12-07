@@ -75,3 +75,15 @@ database/redis/
 # Container volumes
 volumes/
 data/
+
+# Test coverage reports
+coverage/
+*.lcov
+.nyc_output/
+*.coverage
+coverage.lcov
+**/coverage/
+**/*.lcov
+
+# Jest
+.jest-cache/
