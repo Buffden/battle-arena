@@ -82,86 +82,86 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
 
     this.queueSubscriptions.add(
       this.matchmakingService.joinQueue().subscribe({
-      next: response => {
-        this.isConnecting = false;
-        if (response.success) {
-          this.isInQueue = true;
-          this.queuePosition = response.position || null;
-          this.estimatedWaitTime = response.estimatedWaitTime || null;
-          this.matchmakingService.saveQueueState({ isInQueue: true });
-        } else {
-          // Handle timeout or other errors
-          this.isInQueue = false;
-          this.queuePosition = null;
-          this.estimatedWaitTime = null;
-          if (response.message?.includes('timed out') || response.message?.includes('timeout')) {
-            this.errorMessage = 'Queue session timed out after 1 minute. Please try again.';
+        next: response => {
+          this.isConnecting = false;
+          if (response.success) {
+            this.isInQueue = true;
+            this.queuePosition = response.position || null;
+            this.estimatedWaitTime = response.estimatedWaitTime || null;
+            this.matchmakingService.saveQueueState({ isInQueue: true });
           } else {
-            this.errorMessage = response.message || 'Failed to join queue. Please try again.';
+            // Handle timeout or other errors
+            this.isInQueue = false;
+            this.queuePosition = null;
+            this.estimatedWaitTime = null;
+            if (response.message?.includes('timed out') || response.message?.includes('timeout')) {
+              this.errorMessage = 'Queue session timed out after 1 minute. Please try again.';
+            } else {
+              this.errorMessage = response.message || 'Failed to join queue. Please try again.';
+            }
+            this.matchmakingService.clearSavedQueueState();
           }
+        },
+        error: error => {
+          this.isConnecting = false;
+          this.isInQueue = false;
+          this.errorMessage = error.message || 'Failed to join queue. Please try again.';
           this.matchmakingService.clearSavedQueueState();
+          console.error('Error joining queue:', error);
         }
-      },
-      error: error => {
-        this.isConnecting = false;
-        this.isInQueue = false;
-        this.errorMessage = error.message || 'Failed to join queue. Please try again.';
-        this.matchmakingService.clearSavedQueueState();
-        console.error('Error joining queue:', error);
-      }
       })
     );
 
     // Subscribe to queue status updates
     this.queueSubscriptions.add(
       this.matchmakingService.getQueueStatus$().subscribe({
-      next: status => {
-        if (status) {
-          this.queuePosition = status.position;
-          this.estimatedWaitTime = status.estimatedWaitTime;
-          this.isInQueue = true; // Ensure we're marked as in queue when status is received
-          this.errorMessage = null; // Clear any previous errors
-        } else {
-          // Queue status cleared (e.g., timeout or leave)
-          this.isInQueue = false;
-          this.queuePosition = null;
-          this.estimatedWaitTime = null;
+        next: status => {
+          if (status) {
+            this.queuePosition = status.position;
+            this.estimatedWaitTime = status.estimatedWaitTime;
+            this.isInQueue = true; // Ensure we're marked as in queue when status is received
+            this.errorMessage = null; // Clear any previous errors
+          } else {
+            // Queue status cleared (e.g., timeout or leave)
+            this.isInQueue = false;
+            this.queuePosition = null;
+            this.estimatedWaitTime = null;
+          }
+        },
+        error: error => {
+          console.error('Error receiving queue status:', error);
         }
-      },
-      error: error => {
-        console.error('Error receiving queue status:', error);
-      }
       })
     );
 
     // Subscribe to queue timeout events (direct listener for immediate UI update)
     this.queueSubscriptions.add(
       this.matchmakingService.getQueueTimeout$().subscribe({
-      next: data => {
-        // Immediately update UI on timeout
-        this.isInQueue = false;
-        this.queuePosition = null;
-        this.estimatedWaitTime = null;
-        this.errorMessage =
-          data.message || 'Queue session timed out after 1 minute. Please try again.';
-      },
-      error: error => {
-        console.error('Error receiving queue timeout:', error);
-      }
+        next: data => {
+          // Immediately update UI on timeout
+          this.isInQueue = false;
+          this.queuePosition = null;
+          this.estimatedWaitTime = null;
+          this.errorMessage =
+            data.message || 'Queue session timed out after 1 minute. Please try again.';
+        },
+        error: error => {
+          console.error('Error receiving queue timeout:', error);
+        }
       })
     );
 
     // Subscribe to match found events
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchFound$().subscribe({
-      next: match => {
-        // Navigate to game when match is found
-        this.matchmakingService.clearSavedQueueState();
-        this.router.navigate(['/game', match.matchId]);
-      },
-      error: error => {
-        console.error('Error receiving match found:', error);
-      }
+        next: match => {
+          // Navigate to game when match is found
+          this.matchmakingService.clearSavedQueueState();
+          this.router.navigate(['/game', match.matchId]);
+        },
+        error: error => {
+          console.error('Error receiving match found:', error);
+        }
       })
     );
   }
