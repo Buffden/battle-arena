@@ -17,11 +17,43 @@ interface QueueResponse {
 
 interface MatchFound {
   matchId: string;
+  gameRoomId: string;
   opponent: {
-    id: string;
-    username: string;
+    userId: string;
+    heroId: string;
   };
-  assignedHero?: string;
+  timestamp: number;
+  timeout: number; // Timeout in milliseconds
+}
+
+interface MatchAcceptanceUpdate {
+  matchId: string;
+  player1Id: string;
+  player2Id: string;
+  player1Accepted: boolean;
+  player2Accepted: boolean;
+  player1Rejected: boolean;
+  player2Rejected: boolean;
+  bothAccepted: boolean;
+}
+
+interface MatchRejected {
+  matchId: string;
+  rejectedBy: string;
+  player1Id: string;
+  player2Id: string;
+  player1Rejected: boolean;
+  player2Rejected: boolean;
+}
+
+interface MatchConfirmed {
+  matchId: string;
+  gameRoomId: string;
+  player1Id: string;
+  player2Id: string;
+  opponentId: string;
+  yourId: string;
+  message: string;
 }
 
 @Injectable({
@@ -37,6 +69,9 @@ export class MatchmakingService {
     estimatedWaitTime: number;
   } | null>(null);
   private readonly matchFoundSubject = new Subject<MatchFound>();
+  private readonly matchAcceptanceUpdateSubject = new Subject<MatchAcceptanceUpdate>();
+  private readonly matchRejectedSubject = new Subject<MatchRejected>();
+  private readonly matchConfirmedSubject = new Subject<MatchConfirmed>();
   private readonly queueTimeoutSubject = new Subject<{ message?: string; reason?: string }>();
   private isConnected = false;
 
@@ -76,18 +111,27 @@ export class MatchmakingService {
           }
         };
 
+        const cleanupAll = () => {
+          cleanup();
+          if (this.socket) {
+            this.socket.off('queue-status', onQueueStatus);
+            this.socket.off('queue-error', onQueueError);
+            this.socket.off('match-found', onMatchFound);
+          }
+        };
+
         connectTimeout = setTimeout(() => {
           if (!this.isConnected && !hasCompleted) {
             hasCompleted = true;
-            cleanup();
+            cleanupAll();
             observer.error(new Error('Connection timeout - please try again'));
           }
         }, 10000); // Increased to 10 seconds for retry scenarios
 
         const onConnect = () => {
           if (hasCompleted) return;
-          hasCompleted = true;
-          cleanup();
+          // Don't set hasCompleted here - wait for queue-status response
+          // Only cleanup the connection-related listeners
           this.isConnected = true;
 
           // Extract userId from token
@@ -106,7 +150,7 @@ export class MatchmakingService {
         const onConnectError = (error: Error) => {
           if (hasCompleted) return;
           hasCompleted = true;
-          cleanup();
+          cleanupAll();
           observer.error(new Error(`Connection failed: ${error.message}`));
         };
 
@@ -118,8 +162,13 @@ export class MatchmakingService {
             position: data.position,
             estimatedWaitTime: data.estimatedWaitTime
           };
-          // Only emit to observer for initial response, then complete
-          // Persistent listener will handle queueStatusSubject updates
+          // Update queueStatusSubject for immediate UI update
+          this.queueStatusSubject.next({
+            position: data.position,
+            estimatedWaitTime: data.estimatedWaitTime
+          });
+          // Emit to observer for initial response, then complete
+          // Persistent listener will handle subsequent queueStatusSubject updates
           observer.next(response);
           observer.complete();
           // Remove this temporary listener after initial response
@@ -131,11 +180,13 @@ export class MatchmakingService {
         const onQueueError = (data: { message?: string }) => {
           if (hasCompleted) return;
           hasCompleted = true;
-          cleanup();
+          cleanupAll();
           observer.error(new Error(data.message || 'Failed to join queue'));
         };
 
         const onMatchFound = (data: MatchFound) => {
+          // eslint-disable-next-line no-console
+          console.log('🎮 MATCH FOUND! Received match-found event:', data);
           this.matchFoundSubject.next(data);
         };
 
@@ -155,12 +206,7 @@ export class MatchmakingService {
 
         // Cleanup
         return () => {
-          cleanup();
-          if (this.socket) {
-            this.socket.off('queue-status', onQueueStatus);
-            this.socket.off('queue-error', onQueueError);
-            this.socket.off('match-found', onMatchFound);
-          }
+          cleanupAll();
         };
       } catch (error) {
         observer.error(error);
@@ -235,8 +281,13 @@ export class MatchmakingService {
             position: data.position,
             estimatedWaitTime: data.estimatedWaitTime
           };
-          // Only emit to observer for initial response
-          // Persistent listener will handle queueStatusSubject updates
+          // Update queueStatusSubject for immediate UI update
+          this.queueStatusSubject.next({
+            position: data.position,
+            estimatedWaitTime: data.estimatedWaitTime
+          });
+          // Emit to observer for initial response, then complete
+          // Persistent listener will handle subsequent queueStatusSubject updates
           observer.next(response);
           observer.complete();
         };
@@ -292,10 +343,90 @@ export class MatchmakingService {
   }
 
   /**
+   * Get match acceptance update events
+   */
+  getMatchAcceptanceUpdate$(): Observable<MatchAcceptanceUpdate> {
+    return this.matchAcceptanceUpdateSubject.asObservable();
+  }
+
+  /**
+   * Get match rejected events
+   */
+  getMatchRejected$(): Observable<MatchRejected> {
+    return this.matchRejectedSubject.asObservable();
+  }
+
+  /**
+   * Get match confirmed events (both players accepted)
+   */
+  getMatchConfirmed$(): Observable<MatchConfirmed> {
+    return this.matchConfirmedSubject.asObservable();
+  }
+
+  /**
    * Get queue timeout events
    */
   getQueueTimeout$(): Observable<{ message?: string; reason?: string }> {
     return this.queueTimeoutSubject.asObservable();
+  }
+
+  /**
+   * Check if socket is connected
+   */
+  isSocketConnected(): boolean {
+    return this.socket !== null && this.isConnected && this.socket.connected === true;
+  }
+
+  /**
+   * Accept a match
+   */
+  acceptMatch(matchId: string): boolean {
+    if (!this.isSocketConnected()) {
+      // eslint-disable-next-line no-console
+      console.warn('⚠️ Cannot accept match: socket not connected');
+      return false;
+    }
+
+    const userId = this.authService.getUserIdFromToken();
+    if (!userId) {
+      // eslint-disable-next-line no-console
+      console.error('❌ Cannot accept match: userId not found');
+      return false;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`📤 Accepting match ${matchId} for user ${userId}`);
+    this.socket!.emit('accept-match', {
+      matchId,
+      userId
+    });
+    return true;
+  }
+
+  /**
+   * Reject a match
+   */
+  rejectMatch(matchId: string): boolean {
+    if (!this.isSocketConnected()) {
+      // eslint-disable-next-line no-console
+      console.warn('⚠️ Cannot reject match: socket not connected');
+      return false;
+    }
+
+    const userId = this.authService.getUserIdFromToken();
+    if (!userId) {
+      // eslint-disable-next-line no-console
+      console.error('❌ Cannot reject match: userId not found');
+      return false;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`📤 Rejecting match ${matchId} for user ${userId}`);
+    this.socket!.emit('reject-match', {
+      matchId,
+      userId
+    });
+    return true;
   }
 
   /**
@@ -396,6 +527,9 @@ export class MatchmakingService {
       return;
     }
 
+    // Remove all existing listeners to prevent duplicates
+    this.socket.removeAllListeners();
+
     this.socket.on('connect', () => {
       this.isConnected = true;
       // eslint-disable-next-line no-console
@@ -428,7 +562,7 @@ export class MatchmakingService {
 
     this.socket.on('reconnect_attempt', () => {
       // eslint-disable-next-line no-console
-      console.log('Socket.io reconnection attempt...');
+      // console.log('Socket.io reconnection attempt...');
     });
 
     this.socket.on('reconnect_error', error => {
@@ -455,10 +589,41 @@ export class MatchmakingService {
 
     // Persistent listener for queue-status updates (always listening while socket is connected)
     this.socket.on('queue-status', (data: { position: number; estimatedWaitTime: number }) => {
+      // Only log if position changed significantly or it's a new status
+      // eslint-disable-next-line no-console
+      // console.log('Received queue-status update:', data);
       this.queueStatusSubject.next({
         position: data.position,
         estimatedWaitTime: data.estimatedWaitTime
       });
+    });
+
+    // Persistent listener for match-found (always listening while socket is connected)
+    this.socket.on('match-found', (data: MatchFound) => {
+      // eslint-disable-next-line no-console
+      console.log('🎮 MATCH FOUND!', data.matchId);
+      this.matchFoundSubject.next(data);
+    });
+
+    // Persistent listener for match-acceptance-update
+    this.socket.on('match-acceptance-update', (data: MatchAcceptanceUpdate) => {
+      // eslint-disable-next-line no-console
+      // console.log('📊 Match acceptance update:', data);
+      this.matchAcceptanceUpdateSubject.next(data);
+    });
+
+    // Persistent listener for match-rejected
+    this.socket.on('match-rejected', (data: MatchRejected) => {
+      // eslint-disable-next-line no-console
+      console.log('❌ Match rejected:', data.matchId);
+      this.matchRejectedSubject.next(data);
+    });
+
+    // Persistent listener for match-confirmed
+    this.socket.on('match-confirmed', (data: MatchConfirmed) => {
+      // eslint-disable-next-line no-console
+      console.log('✅ Match confirmed:', data);
+      this.matchConfirmedSubject.next(data);
     });
   }
 
