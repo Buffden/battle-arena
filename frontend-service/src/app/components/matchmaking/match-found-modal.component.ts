@@ -90,17 +90,13 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
       this.matchmakingService.getMatchRejected$().subscribe({
         next: rejected => {
           if (rejected.matchId === this.matchData?.matchId) {
-            // Update acceptance status with rejection info
-            this.acceptanceStatus = {
-              player1Id: rejected.player1Id,
-              player2Id: rejected.player2Id,
-              player1Accepted: false,
-              player2Accepted: false,
-              player1Rejected: rejected.player1Rejected,
-              player2Rejected: rejected.player2Rejected,
-              bothAccepted: false
-            };
+            // eslint-disable-next-line no-console
+            console.log(`❌ Match ${rejected.matchId} was rejected - closing modal`);
+            // Stop countdown and clear match data immediately
+            // The accepting player will get a new match with a new match ID
             this.stopCountdown();
+            this.matchData = null; // Clear match data so modal closes
+            this.acceptanceStatus = null;
           }
         }
       })
@@ -119,6 +115,8 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit(): void {
+    // Countdown will be started by ngOnChanges when matchData is set
+    // This prevents duplicate countdown starts
     if (this.matchData) {
       this.startCountdown();
     }
@@ -145,11 +143,42 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   startCountdown(): void {
+    // Stop any existing countdown to prevent duplicates
+    this.stopCountdown();
+
     // Reset flags when starting new countdown
     this.hasAttemptedReject = false;
     this.hasAttemptedAccept = false;
 
-    this.timeRemaining = Math.floor((this.matchData?.timeout || 20000) / 1000);
+    // Calculate time remaining based on timeout and timestamp
+    if (this.matchData && this.matchData.timestamp) {
+      const elapsed = Date.now() - this.matchData.timestamp;
+      const remaining = Math.max(0, this.matchData.timeout - elapsed);
+      this.timeRemaining = Math.floor(remaining / 1000);
+    } else if (this.matchData) {
+      // Fallback if timestamp is not available
+      this.timeRemaining = Math.floor(this.matchData.timeout / 1000);
+    } else {
+      // Default fallback
+      this.timeRemaining = 20;
+    }
+
+    // Only start countdown if there's time remaining
+    if (this.timeRemaining <= 0) {
+      // Time already expired, reject immediately
+      if (this.matchData && !this.hasAttemptedReject && !this.hasAttemptedAccept) {
+        this.hasAttemptedReject = true;
+        this.onReject();
+      }
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `[Countdown] Starting countdown for match ${this.matchData?.matchId}: ${this.timeRemaining} seconds remaining`
+    );
+
+    // Start countdown interval (1000ms = 1 second)
     this.countdownInterval = setInterval(() => {
       this.timeRemaining--;
       if (this.timeRemaining <= 0) {
