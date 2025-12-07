@@ -1,0 +1,87 @@
+<div class="matchmaking-page">
+  <!-- Pixel Art Header -->
+  <header class="pixel-header">
+    <div class="pixel-container">
+      <h1 class="logo">BATTLE ARENA</h1>
+      <nav class="pixel-nav">
+        <button (click)="goBack()" class="pixel-button secondary">Back</button>
+        <a routerLink="/dashboard" class="pixel-button secondary">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Matchmaking Content -->
+  <main class="matchmaking-main">
+    <div class="pixel-container">
+      <div class="matchmaking-welcome">
+        <h2 class="pixel-title">MATCHMAKING</h2>
+        <p class="pixel-text">Find your perfect opponent and enter the arena!</p>
+      </div>
+
+      <!-- Matchmaking Card -->
+      <div class="pixel-card matchmaking-card">
+        <!-- Error Message (takes priority - replaces everything) -->
+        <div *ngIf="errorMessage && !isInQueue && !isConnecting" class="error-message">
+          <div class="error-content">
+            <div class="error-icon">⚠️</div>
+            <p class="pixel-text">{{ errorMessage }}</p>
+            <div class="error-actions">
+              <button class="pixel-button secondary" (click)="dismissError()">DISMISS</button>
+              <button class="pixel-button accent" (click)="retryJoinQueue()">RETRY</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Idle State (only show when no error and not in queue) -->
+        <div *ngIf="!errorMessage && !isInQueue && !isConnecting" class="queue-idle">
+          <div class="idle-content">
+            <div class="idle-icon">⚔️</div>
+            <h3 class="idle-title">Ready to Battle?</h3>
+            <p class="pixel-text">Click the button below to join the matchmaking queue</p>
+            <button class="pixel-button accent" (click)="joinQueue()" [disabled]="isConnecting">
+              JOIN QUEUE
+            </button>
+          </div>
+        </div>
+
+        <!-- Connecting State -->
+        <div *ngIf="isConnecting" class="queue-connecting">
+          <div class="connecting-content">
+            <div class="loading-spinner"></div>
+            <h3 class="connecting-title">Connecting...</h3>
+            <p class="pixel-text">Please wait while we connect you to the queue</p>
+          </div>
+        </div>
+
+        <!-- Active Queue State -->
+        <div *ngIf="isInQueue && !isConnecting && !errorMessage" class="queue-active">
+          <div class="queue-content">
+            <div class="queue-icon">🔍</div>
+            <h3 class="queue-title">SEARCHING FOR OPPONENT</h3>
+
+            <div class="queue-stats">
+              <div class="queue-stat">
+                <div class="stat-label">Position in Queue</div>
+                <div class="stat-value">{{ queuePosition ?? 'Calculating...' }}</div>
+              </div>
+              <div class="queue-stat" *ngIf="estimatedWaitTime">
+                <div class="stat-label">Estimated Wait</div>
+                <div class="stat-value">{{ formatWaitTime(estimatedWaitTime) }}</div>
+              </div>
+            </div>
+
+            <div class="queue-animation">
+              <div class="searching-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+
+            <button class="pixel-button danger" (click)="leaveQueue()">LEAVE QUEUE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
