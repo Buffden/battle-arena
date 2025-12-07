@@ -84,4 +84,13 @@
       </div>
     </div>
   </main>
+
+  <!-- Match Found Modal -->
+  <app-match-found-modal
+    *ngIf="matchFoundData"
+    [matchData]="matchFoundData"
+    (matchAccepted)="onMatchAccepted($event)"
+    (matchRejected)="onMatchRejected($event)"
+    (matchConfirmed)="onMatchConfirmed($event)"
+  ></app-match-found-modal>
 </div>

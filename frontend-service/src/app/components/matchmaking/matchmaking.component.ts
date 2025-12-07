@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationStart } from '@angular/router';
 import { Location } from '@angular/common';
@@ -6,11 +6,12 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MatchmakingService } from '../../services/matchmaking.service';
 import { AuthService } from '../../services/auth.service';
+import { MatchFoundModalComponent } from './match-found-modal.component';
 
 @Component({
   selector: 'app-matchmaking',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatchFoundModalComponent],
   templateUrl: './matchmaking.component.html',
   styleUrl: './matchmaking.component.css'
 })
@@ -20,6 +21,13 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   estimatedWaitTime: number | null = null;
   isConnecting = false;
   errorMessage: string | null = null;
+  matchFoundData: {
+    matchId: string;
+    gameRoomId: string;
+    opponent: { userId: string; heroId: string };
+    timestamp: number;
+    timeout: number;
+  } | null = null;
   private routerSubscription?: Subscription;
   private queueSubscriptions = new Subscription();
 
@@ -27,7 +35,8 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     private readonly matchmakingService: MatchmakingService,
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -117,12 +126,17 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       this.matchmakingService.getQueueStatus$().subscribe({
         next: status => {
           if (status) {
+            // Only log significant changes
+            // eslint-disable-next-line no-console
+            // console.log('Queue status update received:', status);
             this.queuePosition = status.position;
             this.estimatedWaitTime = status.estimatedWaitTime;
             this.isInQueue = true; // Ensure we're marked as in queue when status is received
             this.errorMessage = null; // Clear any previous errors
           } else {
             // Queue status cleared (e.g., timeout or leave)
+            // eslint-disable-next-line no-console
+            // console.log('Queue status cleared');
             this.isInQueue = false;
             this.queuePosition = null;
             this.estimatedWaitTime = null;
@@ -155,12 +169,61 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchFound$().subscribe({
         next: match => {
-          // Navigate to game when match is found
-          this.matchmakingService.clearSavedQueueState();
-          this.router.navigate(['/game', match.matchId]);
+          // eslint-disable-next-line no-console
+          console.log('🎮 Match found:', match.matchId);
+          // Show match acceptance modal
+          this.matchFoundData = {
+            matchId: match.matchId,
+            gameRoomId: match.gameRoomId,
+            opponent: match.opponent,
+            timestamp: match.timestamp,
+            timeout: match.timeout
+          };
+          // Force change detection to ensure modal displays
+          this.cdr.detectChanges();
         },
         error: error => {
           console.error('Error receiving match found:', error);
+        }
+      })
+    );
+
+    // Subscribe to match confirmed (both players accepted)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchConfirmed$().subscribe({
+        next: confirmed => {
+          // eslint-disable-next-line no-console
+          console.log('✅ Match confirmed, navigating to game:', confirmed.matchId);
+          // Clear match data and navigate to game with state
+          this.matchFoundData = null;
+          this.matchmakingService.clearSavedQueueState();
+          // Pass opponent info via route state
+          this.router.navigate(['/game', confirmed.matchId], {
+            state: {
+              opponentId: confirmed.opponentId,
+              gameRoomId: confirmed.gameRoomId
+            }
+          });
+        },
+        error: error => {
+          console.error('Error receiving match confirmed:', error);
+        }
+      })
+    );
+
+    // Subscribe to match rejected
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchRejected$().subscribe({
+        next: rejected => {
+          // eslint-disable-next-line no-console
+          console.log('❌ Match rejected:', rejected);
+          // Close modal after a short delay
+          setTimeout(() => {
+            this.matchFoundData = null;
+          }, 2000);
+        },
+        error: error => {
+          console.error('Error receiving match rejected:', error);
         }
       })
     );
@@ -194,6 +257,30 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       this.leaveQueue();
     }
     this.location.back();
+  }
+
+  onMatchAccepted(matchId: string): void {
+    // eslint-disable-next-line no-console
+    console.log('✅ Match accepted in component:', matchId);
+    // Don't close modal yet - wait for both players to accept
+    // Modal will handle the rest via service
+  }
+
+  onMatchRejected(matchId: string): void {
+    // eslint-disable-next-line no-console
+    console.log('❌ Match rejected in component:', matchId);
+    // Close modal immediately on rejection
+    this.matchFoundData = null;
+    // Clear queue status since player rejected
+    this.isInQueue = false;
+    this.queuePosition = null;
+    this.estimatedWaitTime = null;
+  }
+
+  onMatchConfirmed(matchId: string): void {
+    // eslint-disable-next-line no-console
+    console.log('🎮 Match confirmed in component:', matchId);
+    // Navigation is handled by subscription
   }
 
   formatWaitTime(seconds: number): string {
@@ -301,11 +388,61 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchFound$().subscribe({
         next: match => {
-          this.matchmakingService.clearSavedQueueState();
-          this.router.navigate(['/game', match.matchId]);
+          // eslint-disable-next-line no-console
+          console.log('🎮 Match found:', match.matchId);
+          // Show match acceptance modal
+          this.matchFoundData = {
+            matchId: match.matchId,
+            gameRoomId: match.gameRoomId,
+            opponent: match.opponent,
+            timestamp: match.timestamp,
+            timeout: match.timeout
+          };
+          // Force change detection to ensure modal displays
+          this.cdr.detectChanges();
         },
         error: error => {
           console.error('Error receiving match found:', error);
+        }
+      })
+    );
+
+    // Subscribe to match confirmed (both players accepted)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchConfirmed$().subscribe({
+        next: confirmed => {
+          // eslint-disable-next-line no-console
+          console.log('✅ Match confirmed, navigating to game:', confirmed.matchId);
+          // Clear match data and navigate to game with state
+          this.matchFoundData = null;
+          this.matchmakingService.clearSavedQueueState();
+          // Pass opponent info via route state
+          this.router.navigate(['/game', confirmed.matchId], {
+            state: {
+              opponentId: confirmed.opponentId,
+              gameRoomId: confirmed.gameRoomId
+            }
+          });
+        },
+        error: error => {
+          console.error('Error receiving match confirmed:', error);
+        }
+      })
+    );
+
+    // Subscribe to match rejected
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchRejected$().subscribe({
+        next: rejected => {
+          // eslint-disable-next-line no-console
+          console.log('❌ Match rejected:', rejected);
+          // Close modal after a short delay
+          setTimeout(() => {
+            this.matchFoundData = null;
+          }, 2000);
+        },
+        error: error => {
+          console.error('Error receiving match rejected:', error);
         }
       })
     );
