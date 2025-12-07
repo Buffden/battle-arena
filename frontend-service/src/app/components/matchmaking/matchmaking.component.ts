@@ -134,161 +134,8 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to queue status updates
-    this.queueSubscriptions.add(
-      this.matchmakingService.getQueueStatus$().subscribe({
-        next: status => {
-          if (status) {
-            // Only log significant changes
-            // eslint-disable-next-line no-console
-            // console.log('Queue status update received:', status);
-            this.queuePosition = status.position;
-            this.estimatedWaitTime = status.estimatedWaitTime;
-            this.isInQueue = true; // Ensure we're marked as in queue when status is received
-            this.errorMessage = null; // Clear any previous errors
-          } else {
-            // Queue status cleared (e.g., timeout or leave)
-            // eslint-disable-next-line no-console
-            // console.log('Queue status cleared');
-            this.isInQueue = false;
-            this.queuePosition = null;
-            this.estimatedWaitTime = null;
-          }
-        },
-        error: error => {
-          console.error('Error receiving queue status:', error);
-        }
-      })
-    );
-
-    // Subscribe to queue timeout events (direct listener for immediate UI update)
-    this.queueSubscriptions.add(
-      this.matchmakingService.getQueueTimeout$().subscribe({
-        next: data => {
-          // Immediately update UI on timeout
-          this.isInQueue = false;
-          this.queuePosition = null;
-          this.estimatedWaitTime = null;
-          this.errorMessage =
-            data.message || 'Queue session timed out after 1 minute. Please try again.';
-        },
-        error: error => {
-          console.error('Error receiving queue timeout:', error);
-        }
-      })
-    );
-
-    // Subscribe to queue disconnection events (multiple timeouts)
-    this.queueSubscriptions.add(
-      this.matchmakingService.getQueueDisconnected$().subscribe({
-        next: (data: { message?: string; reason?: string; timeoutCount?: number }) => {
-          // Immediately update UI on disconnection
-          this.isInQueue = false;
-          this.queuePosition = null;
-          this.estimatedWaitTime = null;
-          this.errorMessage =
-            data.message ||
-            'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.';
-          this.cdr.detectChanges();
-        },
-        error: (error: unknown) => {
-          console.error('Error receiving queue disconnection:', error);
-        }
-      })
-    );
-
-    // Subscribe to match found events
-    this.queueSubscriptions.add(
-      this.matchmakingService.getMatchFound$().subscribe({
-        next: match => {
-          // eslint-disable-next-line no-console
-          console.log('🎮 Match found:', match.matchId);
-          // CRITICAL: Only show modal if no match is currently being processed
-          // This prevents showing multiple modals when multiple matches are found
-          if (this.matchFoundData) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              `⚠️ Ignoring match-found for ${match.matchId} - already processing match ${this.matchFoundData.matchId}`
-            );
-            return;
-          }
-          // Show match acceptance modal
-          this.matchFoundData = {
-            matchId: match.matchId,
-            gameRoomId: match.gameRoomId,
-            opponent: match.opponent,
-            timestamp: match.timestamp,
-            timeout: match.timeout
-          };
-          // Force change detection to ensure modal displays
-          this.cdr.detectChanges();
-        },
-        error: error => {
-          console.error('Error receiving match found:', error);
-        }
-      })
-    );
-
-    // Subscribe to match confirmed (both players accepted)
-    this.queueSubscriptions.add(
-      this.matchmakingService.getMatchConfirmed$().subscribe({
-        next: confirmed => {
-          // eslint-disable-next-line no-console
-          console.log('✅ Match confirmed, navigating to game:', confirmed.matchId);
-          // Clear match data and navigate to game with state
-          this.matchFoundData = null;
-          this.matchmakingService.clearSavedQueueState();
-          // Pass opponent info via route state
-          this.router.navigate(['/game', confirmed.matchId], {
-            state: {
-              opponentId: confirmed.opponentId,
-              gameRoomId: confirmed.gameRoomId
-            }
-          });
-        },
-        error: error => {
-          console.error('Error receiving match confirmed:', error);
-        }
-      })
-    );
-
-    // Subscribe to match rejected
-    this.queueSubscriptions.add(
-      this.matchmakingService.getMatchRejected$().subscribe({
-        next: rejected => {
-          // eslint-disable-next-line no-console
-          console.log('❌ Match rejected:', rejected);
-          // Close modal immediately - accepting player will get a new match with new match ID
-          this.matchFoundData = null;
-          // eslint-disable-next-line no-console
-          console.log('✓ Modal closed. Waiting for new match with new match ID...');
-        },
-        error: error => {
-          console.error('Error receiving match rejected:', error);
-        }
-      })
-    );
-
-    // Subscribe to match acceptance expired (when timer runs out)
-    this.queueSubscriptions.add(
-      this.matchmakingService.getMatchAcceptanceExpired$().subscribe({
-        next: expired => {
-          // eslint-disable-next-line no-console
-          console.log('⏱️ Match acceptance expired:', expired);
-          // Clear match data so user can receive new matches
-          if (expired.matchId === this.matchFoundData?.matchId) {
-            this.matchFoundData = null;
-            // eslint-disable-next-line no-console
-            console.log(
-              `✓ Match ${expired.matchId} data cleared. User will be re-added to queue and can receive new matches.`
-            );
-          }
-        },
-        error: error => {
-          console.error('Error receiving match acceptance expired:', error);
-        }
-      })
-    );
+    // Setup all queue-related subscriptions
+    this.setupQueueSubscriptions();
   }
 
   leaveQueue(): void {
@@ -430,16 +277,31 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to queue status updates (needed after reconnection)
+    // Setup all queue-related subscriptions
+    this.setupQueueSubscriptions();
+  }
+
+  /**
+   * Sets up all queue-related subscriptions.
+   * This method is called from both joinQueue() and restoreQueueConnection() to avoid code duplication.
+   */
+  private setupQueueSubscriptions(): void {
+    // Subscribe to queue status updates
     this.queueSubscriptions.add(
       this.matchmakingService.getQueueStatus$().subscribe({
         next: status => {
           if (status) {
+            // Only log significant changes
+            // eslint-disable-next-line no-console
+            // console.log('Queue status update received:', status);
             this.queuePosition = status.position;
             this.estimatedWaitTime = status.estimatedWaitTime;
-            this.isInQueue = true;
-            this.errorMessage = null;
+            this.isInQueue = true; // Ensure we're marked as in queue when status is received
+            this.errorMessage = null; // Clear any previous errors
           } else {
+            // Queue status cleared (e.g., timeout or leave)
+            // eslint-disable-next-line no-console
+            // console.log('Queue status cleared');
             this.isInQueue = false;
             this.queuePosition = null;
             this.estimatedWaitTime = null;
@@ -451,10 +313,11 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to queue timeout events
+    // Subscribe to queue timeout events (direct listener for immediate UI update)
     this.queueSubscriptions.add(
       this.matchmakingService.getQueueTimeout$().subscribe({
         next: data => {
+          // Immediately update UI on timeout
           this.isInQueue = false;
           this.queuePosition = null;
           this.estimatedWaitTime = null;
@@ -471,6 +334,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getQueueDisconnected$().subscribe({
         next: (data: { message?: string; reason?: string; timeoutCount?: number }) => {
+          // Immediately update UI on disconnection
           this.isInQueue = false;
           this.queuePosition = null;
           this.estimatedWaitTime = null;
