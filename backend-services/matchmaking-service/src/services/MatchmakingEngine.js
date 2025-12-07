@@ -100,9 +100,15 @@ class MatchmakingEngine {
       // Check queue length
       const queueLength = await queueManager.getQueueLength();
 
+      // eslint-disable-next-line no-console
+      // console.log(`[findMatch] Queue length: ${queueLength}`);
+
       if (queueLength < 2) {
-        // eslint-disable-next-line no-console
-        console.log(`Queue has ${queueLength} player(s), need 2+ for matching`);
+        // Only log if queue length is > 0 to reduce noise
+        if (queueLength > 0) {
+          // eslint-disable-next-line no-console
+          // console.log(`Queue has ${queueLength} player(s), need 2+ for matching`);
+        }
         return null;
       }
 
@@ -110,8 +116,14 @@ class MatchmakingEngine {
       const players = await this.getFirstTwoAvailablePlayers();
 
       if (!players || players.length < 2) {
-        // eslint-disable-next-line no-console
-        console.log('Could not get two players from queue');
+        // Log more details about why matching failed
+        const allPlayers = await queueManager.getAllPlayersWithSockets();
+        if (allPlayers.length >= 2) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `⚠️ Could not get two available players from queue. Total players: ${allPlayers.length}, but some may be in match acceptance sessions.`
+          );
+        }
         return null;
       }
 
