@@ -18,35 +18,6 @@
         <p class="pixel-text">Ready to enter the arena?</p>
       </div>
 
-      <!-- Stats Cards -->
-      <div class="pixel-grid stats-grid">
-        <div class="pixel-card stat-card">
-          <div class="stat-icon">🏆</div>
-          <div class="stat-value">{{ stats.wins }}</div>
-          <div class="stat-label">Wins</div>
-        </div>
-        <div class="pixel-card stat-card">
-          <div class="stat-icon">⚔️</div>
-          <div class="stat-value">{{ stats.losses }}</div>
-          <div class="stat-label">Losses</div>
-        </div>
-        <div class="pixel-card stat-card">
-          <div class="stat-icon">📊</div>
-          <div class="stat-value">{{ stats.winRate }}%</div>
-          <div class="stat-label">Win Rate</div>
-        </div>
-        <div class="pixel-card stat-card">
-          <div class="stat-icon">⭐</div>
-          <div class="stat-value">{{ stats.rank }}</div>
-          <div class="stat-label">Rank</div>
-        </div>
-        <div class="pixel-card stat-card">
-          <div class="stat-icon">🎮</div>
-          <div class="stat-value">Lv. {{ stats.level }}</div>
-          <div class="stat-label">Level</div>
-        </div>
-      </div>
-
       <!-- Quick Actions -->
       <div class="actions-section">
         <h2 class="pixel-title section-title">Quick Actions</h2>
@@ -55,40 +26,6 @@
             <h3 class="action-title">⚔️ Find Match</h3>
             <p class="pixel-text">Join the queue and find an opponent</p>
             <button class="pixel-button" routerLink="/matchmaking">Start Matchmaking</button>
-          </div>
-          <div class="pixel-card action-card">
-            <h3 class="action-title">🏆 Leaderboard</h3>
-            <p class="pixel-text">View top players and rankings</p>
-            <button class="pixel-button secondary">View Leaderboard</button>
-          </div>
-          <div class="pixel-card action-card">
-            <h3 class="action-title">👤 Profile</h3>
-            <p class="pixel-text">Manage your profile and settings</p>
-            <button class="pixel-button accent">Edit Profile</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activity -->
-      <div class="activity-section">
-        <h2 class="pixel-title section-title">Recent Battles</h2>
-        <div class="pixel-card activity-card">
-          <div class="activity-list">
-            <div class="activity-item">
-              <span class="activity-result win">WIN</span>
-              <span class="activity-details">Defeated PlayerX</span>
-              <span class="activity-time">2 hours ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-result loss">LOSS</span>
-              <span class="activity-details">Lost to Champion</span>
-              <span class="activity-time">5 hours ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-result win">WIN</span>
-              <span class="activity-details">Defeated Newbie</span>
-              <span class="activity-time">1 day ago</span>
-            </div>
           </div>
         </div>
       </div>

@@ -15,14 +15,6 @@ export class DashboardComponent {
   // Future enhancement: Load username from AuthService or ProfileService
   username = 'Warrior';
 
-  stats = {
-    wins: 42,
-    losses: 28,
-    winRate: 60,
-    rank: 1250,
-    level: 15
-  };
-
   constructor(private readonly authService: AuthService) {}
 
   logout(): void {
