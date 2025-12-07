@@ -140,7 +140,11 @@ io.on('connection', socket => {
   // Handle match acceptance
   socket.on('accept-match', async data => {
     // eslint-disable-next-line no-console
-    console.log('Accept match request:', data);
+    console.log('=== ACCEPT MATCH REQUEST ===');
+    // eslint-disable-next-line no-console
+    console.log('Socket ID:', socket.id);
+    // eslint-disable-next-line no-console
+    console.log('Request data:', JSON.stringify(data, null, 2));
 
     try {
       const { matchId } = data;
@@ -172,6 +176,16 @@ io.on('connection', socket => {
       // Get updated acceptance data
       const acceptanceData = result.data;
 
+      // eslint-disable-next-line no-console
+      console.log(
+        `[accept-match handler] Match ${matchId}, User ${userId}: Sending update - P1: ${acceptanceData.player1Id} (accepted: ${acceptanceData.player1Accepted}), P2: ${acceptanceData.player2Id} (accepted: ${acceptanceData.player2Accepted}), Both: ${result.bothAccepted}`
+      );
+      // eslint-disable-next-line no-console
+      console.log(
+        '[accept-match handler] Full acceptanceData object:',
+        JSON.stringify(acceptanceData, null, 2)
+      );
+
       // Notify both players of updated acceptance status
       const socket1 = io.sockets.sockets.get(acceptanceData.player1SocketId);
       const socket2 = io.sockets.sockets.get(acceptanceData.player2SocketId);
@@ -182,16 +196,41 @@ io.on('connection', socket => {
         player2Id: acceptanceData.player2Id,
         player1Accepted: acceptanceData.player1Accepted,
         player2Accepted: acceptanceData.player2Accepted,
-        player1Rejected: acceptanceData.player1Rejected,
-        player2Rejected: acceptanceData.player2Rejected,
+        player1Rejected: acceptanceData.player1Rejected || false,
+        player2Rejected: acceptanceData.player2Rejected || false,
         bothAccepted: result.bothAccepted
       };
 
+      // eslint-disable-next-line no-console
+      console.log(
+        '[accept-match handler] Status update being sent:',
+        JSON.stringify(statusUpdate, null, 2)
+      );
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `[accept-match handler] Emitting match-acceptance-update to socket1 (${acceptanceData.player1SocketId})`
+      );
       if (socket1) {
         socket1.emit('match-acceptance-update', statusUpdate);
+        // eslint-disable-next-line no-console
+        console.log(`✓ Sent update to Player 1 socket: ${acceptanceData.player1SocketId}`);
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(`✗ Player 1 socket ${acceptanceData.player1SocketId} not found`);
       }
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `[accept-match handler] Emitting match-acceptance-update to socket2 (${acceptanceData.player2SocketId})`
+      );
       if (socket2) {
         socket2.emit('match-acceptance-update', statusUpdate);
+        // eslint-disable-next-line no-console
+        console.log(`✓ Sent update to Player 2 socket: ${acceptanceData.player2SocketId}`);
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(`✗ Player 2 socket ${acceptanceData.player2SocketId} not found`);
       }
 
       // eslint-disable-next-line no-console
@@ -317,15 +356,54 @@ io.on('connection', socket => {
         console.error('Error moving rejecting player to end of queue:', queueError);
       }
 
-      // Accepting player stays in queue (no action needed)
-      // Clean up acceptance session
+      // Accepting player stays in queue (no action needed - they keep their position)
+      const acceptingUserId =
+        userId === acceptanceData.player1Id ? acceptanceData.player2Id : acceptanceData.player1Id;
+
+      // CRITICAL: Clean up the old match acceptance session (drop the old match ID)
+      // Do this BEFORE notifying players to ensure it's deleted immediately
       await matchAcceptanceManager.deleteMatchAcceptance(matchId);
+      // eslint-disable-next-line no-console
+      console.log(`✓ Deleted old match acceptance session for match ${matchId}`);
+
+      // Verify the accepting player is no longer in a match acceptance session
+      const acceptingPlayerStillInMatch =
+        await matchAcceptanceManager.getMatchAcceptanceByUserId(acceptingUserId);
+      if (acceptingPlayerStillInMatch) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `⚠️ WARNING: Accepting player ${acceptingUserId} still appears to be in match ${acceptingPlayerStillInMatch.matchId} after deletion - this should not happen`
+        );
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(
+          `✓ Verified: Accepting player ${acceptingUserId} is no longer in any match acceptance session and is available for matching`
+        );
+      }
 
       // Notify all players of updated queue positions
       await notifyAllPlayersQueueStatus();
 
       // eslint-disable-next-line no-console
-      console.log(`✓ Match ${matchId} rejected by player ${userId}`);
+      console.log(
+        `✓ Match ${matchId} rejected by player ${userId}. Accepting player ${acceptingUserId} stays in queue and will get a new match on next check.`
+      );
+
+      // Trigger an immediate match check for the accepting player
+      // This ensures they get matched quickly if another player is available
+      // Note: This is a fire-and-forget call, don't await it
+      setImmediate(async () => {
+        try {
+          // eslint-disable-next-line no-console
+          console.log(
+            `🔄 Triggering immediate match check for accepting player ${acceptingUserId}`
+          );
+          await checkForMatches();
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Error in immediate match check after rejection:', error);
+        }
+      });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error rejecting match:', error);
@@ -441,6 +519,9 @@ async function checkForMatches() {
     const match = await matchmakingEngine.findMatch();
 
     if (match) {
+      // Note: Players are already filtered in findMatch() to exclude those in match acceptance sessions
+      // So we don't need to check again here - the match is guaranteed to have available players
+
       // eslint-disable-next-line no-console
       console.log('=== MATCH FOUND ===');
       // eslint-disable-next-line no-console
@@ -533,7 +614,8 @@ async function checkForMatches() {
       if (notifiedCount === 2) {
         // eslint-disable-next-line no-console
         console.log(
-          `✓ Match acceptance session created - both players notified simultaneously at ${timestamp}`
+          '✓ Match acceptance session created - both players notified simultaneously at ' +
+            timestamp
         );
       } else {
         // eslint-disable-next-line no-console
@@ -591,16 +673,54 @@ async function checkExpiredMatchAcceptances() {
   try {
     const expiredMatches = await matchAcceptanceManager.cleanupExpiredAcceptances();
 
-    for (const matchId of expiredMatches) {
+    for (const expiredMatch of expiredMatches) {
+      const { matchId, player1Id, player2Id, player1SocketId, player2SocketId } = expiredMatch;
+
       // eslint-disable-next-line no-console
-      console.log(`Match acceptance expired for match ${matchId} - treating as rejection`);
+      console.log(
+        `Match acceptance expired for match ${matchId} - re-adding both players to queue`
+      );
 
-      // Get the acceptance data before it was deleted (if still available)
-      // We'll need to get player info from the match data
-      // For now, just log - the acceptance data is already cleaned up
-      // In a real scenario, we might want to store match data separately
+      // Move both players to end of queue (same as rejection behavior)
+      try {
+        // Remove both players from queue
+        await queueManager.removeFromQueueByUserId(player1Id);
+        await queueManager.removeFromQueueByUserId(player2Id);
 
-      // Notify all players in queue of updated positions
+        // Re-add both players to queue (will be at the end)
+        const socket1 = io.sockets.sockets.get(player1SocketId);
+        const socket2 = io.sockets.sockets.get(player2SocketId);
+
+        if (socket1) {
+          const metadata = {}; // Could retrieve from Redis if needed
+          await queueManager.addToQueue(player1SocketId, player1Id, metadata);
+          // Notify player 1 that match expired
+          socket1.emit('match-acceptance-expired', {
+            matchId,
+            message: 'Match acceptance expired. You have been moved to the end of the queue.'
+          });
+        }
+
+        if (socket2) {
+          const metadata = {}; // Could retrieve from Redis if needed
+          await queueManager.addToQueue(player2SocketId, player2Id, metadata);
+          // Notify player 2 that match expired
+          socket2.emit('match-acceptance-expired', {
+            matchId,
+            message: 'Match acceptance expired. You have been moved to the end of the queue.'
+          });
+        }
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `✓ Moved both players (${player1Id}, ${player2Id}) to end of queue due to expiration`
+        );
+      } catch (queueError) {
+        // eslint-disable-next-line no-console
+        console.error('Error moving expired match players to end of queue:', queueError);
+      }
+
+      // Notify all players of updated queue positions
       await notifyAllPlayersQueueStatus();
     }
 
@@ -622,6 +742,9 @@ async function checkExpiredMatchAcceptances() {
     await initializeRedis();
     // eslint-disable-next-line no-console
     console.log('Redis initialized successfully');
+
+    // Set MatchAcceptanceManager in MatchmakingEngine to enable filtering
+    matchmakingEngine.setMatchAcceptanceManager(matchAcceptanceManager);
 
     // Start HTTP server
     server.listen(PORT, () => {
