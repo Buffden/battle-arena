@@ -5,6 +5,9 @@ const http = require('node:http');
  */
 class GameEngineClient {
   constructor() {
+    // Note: HTTP is used for internal service-to-service communication within Docker network
+    // This is safe as it's not exposed to external networks
+    // For production with external services, use HTTPS via GAME_ENGINE_URL environment variable
     this.baseUrl = process.env.GAME_ENGINE_URL || 'http://game-engine:5002';
     this.timeout = 5000; // 5 seconds timeout
   }

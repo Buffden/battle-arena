@@ -26,7 +26,9 @@ COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_mod
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
 # Copy server.js and src/ directory
-# Files: read-only (444), Directories: read+execute (555) needed for traversal
+# Security: Files set to read-only (444 = r--r--r--), no write permissions
+# Directories set to read+execute (555 = r-xr-xr-x), no write permissions
+# This prevents modification of source files at runtime
 COPY --chown=nodejs:nodejs --chmod=444 server.js ./
 COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/
 
