@@ -1,9 +1,14 @@
 const { getRedisClient } = require('../config/redis.config');
+const matchmakingConfig = require('../config/matchmaking.config');
 
-const MATCH_ACCEPTANCE_PREFIX = 'match:acceptance:';
-const MATCH_ACCEPTANCE_TTL = 25; // 25 seconds TTL (20s timeout + 5s buffer)
-const TIMEOUT_COUNT_PREFIX = 'matchmaking:timeout-count:';
-const TIMEOUT_COUNT_TTL = 3600; // 1 hour TTL - reset after 1 hour of no timeouts
+const MATCH_ACCEPTANCE_PREFIX = matchmakingConfig.matchAcceptance.redisKeyPrefix;
+// TTL = timeout + buffer (convert timeout from ms to seconds, then add buffer)
+const MATCH_ACCEPTANCE_TTL = Math.ceil(
+  matchmakingConfig.matchAcceptance.timeoutMs / 1000 +
+    matchmakingConfig.matchAcceptance.ttlBufferSeconds
+);
+const TIMEOUT_COUNT_PREFIX = matchmakingConfig.timeoutCount.redisKeyPrefix;
+const TIMEOUT_COUNT_TTL = matchmakingConfig.timeoutCount.ttlSeconds;
 
 /**
  * MatchAcceptanceManager handles match acceptance state tracking
@@ -42,7 +47,7 @@ class MatchAcceptanceManager {
       player1Rejected: false,
       player2Rejected: false,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 20000 // 20 seconds from now
+      expiresAt: Date.now() + matchmakingConfig.matchAcceptance.timeoutMs
     };
 
     await redis.setex(key, MATCH_ACCEPTANCE_TTL, JSON.stringify(acceptanceData));
@@ -131,7 +136,7 @@ class MatchAcceptanceManager {
     const key = `${MATCH_ACCEPTANCE_PREFIX}${matchId}`;
 
     // Retry logic to handle race conditions
-    const maxRetries = 5;
+    const maxRetries = matchmakingConfig.matchAcceptance.maxRetries;
     let retries = 0;
 
     while (retries < maxRetries) {
@@ -265,7 +270,9 @@ class MatchAcceptanceManager {
             `⚠ Race condition detected, retrying acceptMatch (attempt ${retries}/${maxRetries})`
           );
           // Small delay before retry to allow the other transaction to complete
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve =>
+            setTimeout(resolve, matchmakingConfig.matchAcceptance.retryDelayMs)
+          );
           continue;
         }
 

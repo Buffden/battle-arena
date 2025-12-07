@@ -3,23 +3,46 @@ const http = require('node:http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const { initializeRedis } = require('./src/config/redis.config');
+const matchmakingConfig = require('./src/config/matchmaking.config');
 const queueManager = require('./src/services/QueueManager');
 const matchmakingEngine = require('./src/services/MatchmakingEngine');
 const matchAcceptanceManager = require('./src/services/MatchAcceptanceManager');
 
 const app = express();
 const server = http.createServer(app);
+
+const PORT = matchmakingConfig.server.port;
+
+// CORS configuration - restrict to allowed origins for security
+// In production, set ALLOWED_ORIGINS environment variable with comma-separated origins
+// Note: Frontend is served through nginx on port 80, not directly on service ports
+const allowedOrigins = matchmakingConfig.server.allowedOrigins;
+
+// Socket.io CORS configuration - use same allowed origins as Express
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   },
-  path: '/ws/matchmaking'
+  path: matchmakingConfig.server.socketPath
 });
 
-const PORT = process.env.PORT || 3002;
-
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.) in development
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
 app.use(express.json());
 
 app.get('/health', (req, res) => {
@@ -37,9 +60,6 @@ app.get('/', (req, res) => {
 
 // Store pending disconnections with timers
 const pendingDisconnections = new Map();
-
-// Grace period for reconnection (10 seconds)
-const RECONNECTION_GRACE_PERIOD_MS = 10000;
 
 // WebSocket connection handling
 io.on('connection', socket => {
@@ -267,7 +287,7 @@ io.on('connection', socket => {
             gameRoomId: acceptanceData.gameRoomId || matchId,
             player1Id: acceptanceData.player1Id,
             player2Id: acceptanceData.player2Id,
-            message: 'Match confirmed! Starting game...'
+            message: matchmakingConfig.messages.matchConfirmed
           };
 
           if (socket1) {
@@ -451,7 +471,7 @@ io.on('connection', socket => {
       if (userId) {
         // eslint-disable-next-line no-console
         console.log(
-          `Scheduling delayed removal for user ${userId} (grace period: ${RECONNECTION_GRACE_PERIOD_MS}ms)`
+          `Scheduling delayed removal for user ${userId} (grace period: ${matchmakingConfig.queue.reconnectionGracePeriodMs}ms)`
         );
 
         const timer = setTimeout(async () => {
@@ -465,7 +485,7 @@ io.on('connection', socket => {
             // Notify all remaining players of their updated positions
             await notifyAllPlayersQueueStatus();
           }
-        }, RECONNECTION_GRACE_PERIOD_MS);
+        }, matchmakingConfig.queue.reconnectionGracePeriodMs);
 
         pendingDisconnections.set(userId, {
           socketId: socket.id,
@@ -488,9 +508,7 @@ io.on('connection', socket => {
   });
 });
 
-// Queue timeout configuration (1 minute = 60000ms)
-const QUEUE_TIMEOUT_MS = 60000;
-const TIMEOUT_CHECK_INTERVAL_MS = 10000; // Check every 10 seconds
+// Queue timeout configuration loaded from config
 
 /**
  * Notify all remaining players in queue about their updated positions
@@ -578,7 +596,7 @@ async function checkForMatches() {
         matchId: match.matchId,
         gameRoomId: match.gameRoomId || match.matchId,
         timestamp,
-        timeout: 20000 // 20 seconds
+        timeout: matchmakingConfig.matchAcceptance.timeoutMs
       };
 
       // Get both sockets first
@@ -658,7 +676,9 @@ async function checkForMatches() {
  */
 async function checkQueueTimeouts() {
   try {
-    const removedPlayers = await queueManager.removeTimedOutPlayers(QUEUE_TIMEOUT_MS);
+    const removedPlayers = await queueManager.removeTimedOutPlayers(
+      matchmakingConfig.queue.timeoutMs
+    );
 
     if (removedPlayers.length > 0) {
       // eslint-disable-next-line no-console
@@ -670,7 +690,7 @@ async function checkQueueTimeouts() {
           const socket = io.sockets.sockets.get(socketId);
           if (socket) {
             socket.emit('queue-timeout', {
-              message: 'Queue session timed out after 1 minute. Please try again.',
+              message: matchmakingConfig.messages.queueTimeout,
               reason: 'timeout'
             });
             // eslint-disable-next-line no-console
@@ -720,15 +740,15 @@ async function checkExpiredMatchAcceptances() {
           // eslint-disable-next-line no-console
           console.log(`Player timeout count: ${previousCount} -> ${timeoutCount}`);
 
-          // If 3 or more consecutive timeouts, disconnect player (allows 2 timeouts before disconnection)
+          // If threshold or more consecutive timeouts, disconnect player
           // timeoutCount = 1: first timeout, move to end
           // timeoutCount = 2: second timeout, move to end
-          // timeoutCount = 3: third timeout, disconnect
-          if (timeoutCount >= 3) {
+          // timeoutCount = threshold: threshold timeout, disconnect
+          if (timeoutCount >= matchmakingConfig.timeoutCount.disconnectionThreshold) {
             // Log without exposing user ID for security
             // eslint-disable-next-line no-console
             console.log(
-              `⚠️ Player has ${timeoutCount} consecutive timeouts (3rd timeout) - removing from queue and disconnecting`
+              `⚠️ Player has ${timeoutCount} consecutive timeouts (${matchmakingConfig.timeoutCount.disconnectionThreshold}rd timeout) - removing from queue and disconnecting`
             );
 
             // Remove from queue
@@ -738,8 +758,7 @@ async function checkExpiredMatchAcceptances() {
             const socket = io.sockets.sockets.get(player.socketId);
             if (socket) {
               socket.emit('queue-disconnected', {
-                message:
-                  'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.',
+                message: matchmakingConfig.messages.queueDisconnected,
                 reason: 'multiple-timeouts',
                 timeoutCount
               });
@@ -772,8 +791,8 @@ async function checkExpiredMatchAcceptances() {
                 matchId,
                 message:
                   timeoutCount === 1
-                    ? 'Match acceptance expired. You have been moved to the end of the queue. Please respond promptly to future matches.'
-                    : 'Match acceptance expired again. You have been moved to the end of the queue. One more timeout will result in disconnection.',
+                    ? matchmakingConfig.messages.matchAcceptanceExpiredFirst
+                    : matchmakingConfig.messages.matchAcceptanceExpiredSecond,
                 timeoutCount
               });
             }
@@ -821,30 +840,31 @@ async function checkExpiredMatchAcceptances() {
       // eslint-disable-next-line no-console
       console.log('WebSocket server listening on /ws/matchmaking');
       // eslint-disable-next-line no-console
-      console.log(`Queue timeout: ${QUEUE_TIMEOUT_MS / 1000} seconds`);
+      console.log(`Queue timeout: ${matchmakingConfig.queue.timeoutMs / 1000} seconds`);
     });
 
     // Start periodic queue timeout checking
-    setInterval(checkQueueTimeouts, TIMEOUT_CHECK_INTERVAL_MS);
+    setInterval(checkQueueTimeouts, matchmakingConfig.queue.timeoutCheckIntervalMs);
     // eslint-disable-next-line no-console
     console.log(
-      `Queue timeout checker started (checking every ${TIMEOUT_CHECK_INTERVAL_MS / 1000} seconds)`
+      `Queue timeout checker started (checking every ${matchmakingConfig.queue.timeoutCheckIntervalMs / 1000} seconds)`
     );
 
     // Start periodic match checking
-    const MATCHING_CHECK_INTERVAL_MS = 3000; // Check every 3 seconds
-    setInterval(checkForMatches, MATCHING_CHECK_INTERVAL_MS);
+    setInterval(checkForMatches, matchmakingConfig.matchmaking.checkIntervalMs);
     // eslint-disable-next-line no-console
     console.log(
-      `Match checking started (checking every ${MATCHING_CHECK_INTERVAL_MS / 1000} seconds)`
+      `Match checking started (checking every ${matchmakingConfig.matchmaking.checkIntervalMs / 1000} seconds)`
     );
 
     // Start periodic match acceptance expiration checking
-    const ACCEPTANCE_CHECK_INTERVAL_MS = 2000; // Check every 2 seconds
-    setInterval(checkExpiredMatchAcceptances, ACCEPTANCE_CHECK_INTERVAL_MS);
+    setInterval(
+      checkExpiredMatchAcceptances,
+      matchmakingConfig.matchmaking.acceptanceCheckIntervalMs
+    );
     // eslint-disable-next-line no-console
     console.log(
-      `Match acceptance expiration checker started (checking every ${ACCEPTANCE_CHECK_INTERVAL_MS / 1000} seconds)`
+      `Match acceptance expiration checker started (checking every ${matchmakingConfig.matchmaking.acceptanceCheckIntervalMs / 1000} seconds)`
     );
   } catch (error) {
     // eslint-disable-next-line no-console

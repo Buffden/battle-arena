@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const matchmakingConfig = require('../config/matchmaking.config');
 const queueManager = require('./QueueManager');
 const gameEngineClient = require('./GameEngineClient');
 
@@ -11,7 +12,7 @@ class MatchmakingEngine {
     // Class fields (ES2022) require Node.js 14+ with experimental flag or Node.js 16+
     // ESLint configuration may not support class fields, so using constructor assignment
     // This is a static configuration value that doesn't change after initialization
-    this.defaultHeroId = 'default-hero';
+    this.defaultHeroId = matchmakingConfig.matchmaking.defaultHeroId;
     // MatchAcceptanceManager will be injected via setMatchAcceptanceManager
     this.matchAcceptanceManager = null;
   }
