@@ -178,6 +178,25 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       })
     );
 
+    // Subscribe to queue disconnection events (multiple timeouts)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueDisconnected$().subscribe({
+        next: (data: { message?: string; reason?: string; timeoutCount?: number }) => {
+          // Immediately update UI on disconnection
+          this.isInQueue = false;
+          this.queuePosition = null;
+          this.estimatedWaitTime = null;
+          this.errorMessage =
+            data.message ||
+            'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.';
+          this.cdr.detectChanges();
+        },
+        error: (error: unknown) => {
+          console.error('Error receiving queue disconnection:', error);
+        }
+      })
+    );
+
     // Subscribe to match found events
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchFound$().subscribe({
@@ -246,6 +265,27 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         },
         error: error => {
           console.error('Error receiving match rejected:', error);
+        }
+      })
+    );
+
+    // Subscribe to match acceptance expired (when timer runs out)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchAcceptanceExpired$().subscribe({
+        next: expired => {
+          // eslint-disable-next-line no-console
+          console.log('⏱️ Match acceptance expired:', expired);
+          // Clear match data so user can receive new matches
+          if (expired.matchId === this.matchFoundData?.matchId) {
+            this.matchFoundData = null;
+            // eslint-disable-next-line no-console
+            console.log(
+              `✓ Match ${expired.matchId} data cleared. User will be re-added to queue and can receive new matches.`
+            );
+          }
+        },
+        error: error => {
+          console.error('Error receiving match acceptance expired:', error);
         }
       })
     );
@@ -347,14 +387,18 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queuePosition = null;
     this.estimatedWaitTime = null;
     this.isConnecting = false;
+    // Also clear any stale match data
+    this.matchFoundData = null;
 
     // Reset connection state
     this.matchmakingService.resetConnection();
 
     // Wait a bit longer for socket to fully disconnect and cleanup
     setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.log('🔄 Retrying to join queue...');
       this.joinQueue();
-    }, 300);
+    }, 500); // Increased delay to ensure clean disconnect
   }
 
   private restoreQueueConnection(): void {
@@ -419,6 +463,24 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         },
         error: error => {
           console.error('Error receiving queue timeout:', error);
+        }
+      })
+    );
+
+    // Subscribe to queue disconnection events (multiple timeouts)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueDisconnected$().subscribe({
+        next: (data: { message?: string; reason?: string; timeoutCount?: number }) => {
+          this.isInQueue = false;
+          this.queuePosition = null;
+          this.estimatedWaitTime = null;
+          this.errorMessage =
+            data.message ||
+            'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.';
+          this.cdr.detectChanges();
+        },
+        error: (error: unknown) => {
+          console.error('Error receiving queue disconnection:', error);
         }
       })
     );
@@ -491,6 +553,27 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         },
         error: error => {
           console.error('Error receiving match rejected:', error);
+        }
+      })
+    );
+
+    // Subscribe to match acceptance expired (when timer runs out)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchAcceptanceExpired$().subscribe({
+        next: expired => {
+          // eslint-disable-next-line no-console
+          console.log('⏱️ Match acceptance expired:', expired);
+          // Clear match data so user can receive new matches
+          if (expired.matchId === this.matchFoundData?.matchId) {
+            this.matchFoundData = null;
+            // eslint-disable-next-line no-console
+            console.log(
+              `✓ Match ${expired.matchId} data cleared. User will be re-added to queue and can receive new matches.`
+            );
+          }
+        },
+        error: error => {
+          console.error('Error receiving match acceptance expired:', error);
         }
       })
     );
