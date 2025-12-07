@@ -28,7 +28,7 @@ COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_mod
 # Copy server.js and src/ directory
 # Files: read-only (444), Directories: read+execute (555) needed for traversal
 COPY --chown=nodejs:nodejs --chmod=444 server.js ./
-COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/
+COPY --chown=nodejs:nodejs src/ ./src/
 
 # Switch to non-root user
 USER nodejs
