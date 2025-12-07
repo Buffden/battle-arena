@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
+import { matchmakingConfig } from '../config/matchmaking.config';
 
 interface QueueState {
   isInQueue: boolean;
@@ -60,8 +61,8 @@ interface MatchConfirmed {
   providedIn: 'root'
 })
 export class MatchmakingService {
-  private readonly QUEUE_STATE_KEY = 'battle_arena_queue_state';
-  private readonly WS_URL = '/ws/matchmaking';
+  private readonly QUEUE_STATE_KEY = matchmakingConfig.queue.stateKey;
+  private readonly WS_URL = matchmakingConfig.websocket.path;
 
   private socket: Socket | null = null;
   private readonly queueStatusSubject = new BehaviorSubject<{
@@ -134,9 +135,9 @@ export class MatchmakingService {
           if (!this.isConnected && !hasCompleted) {
             hasCompleted = true;
             cleanupAll();
-            observer.error(new Error('Connection timeout - please try again'));
+            observer.error(new Error(matchmakingConfig.messages.connectionTimeout));
           }
-        }, 10000); // Increased to 10 seconds for retry scenarios
+        }, matchmakingConfig.websocket.connectionTimeoutMs);
 
         const onConnect = () => {
           if (hasCompleted) return;
@@ -162,7 +163,9 @@ export class MatchmakingService {
           if (hasCompleted) return;
           hasCompleted = true;
           cleanupAll();
-          observer.error(new Error(`Connection failed: ${error.message}`));
+          observer.error(
+            new Error(`${matchmakingConfig.messages.connectionFailed}: ${error.message}`)
+          );
         };
 
         const onQueueStatus = (data: { position: number; estimatedWaitTime: number }) => {
@@ -265,10 +268,13 @@ export class MatchmakingService {
 
         const connectTimeout = setTimeout(() => {
           if (!this.isConnected) {
-            observer.next({ success: false, message: 'Connection timeout' });
+            observer.next({
+              success: false,
+              message: matchmakingConfig.messages.connectionTimeout
+            });
             observer.complete();
           }
-        }, 5000);
+        }, matchmakingConfig.websocket.connectionTimeoutMs);
 
         const onConnect = () => {
           clearTimeout(connectTimeout);
@@ -490,8 +496,11 @@ export class MatchmakingService {
       if (saved) {
         try {
           const state = JSON.parse(saved) as QueueState & { timestamp?: number };
-          // Check if state is not too old (e.g., 1 hour)
-          if (state.timestamp && Date.now() - state.timestamp < 3600000) {
+          // Check if state is not too old
+          if (
+            state.timestamp &&
+            Date.now() - state.timestamp < matchmakingConfig.queue.stateExpiryMs
+          ) {
             return state;
           }
         } catch (error) {
@@ -540,11 +549,11 @@ export class MatchmakingService {
     this.socket = io(globalThis.window.location.origin, {
       path: this.WS_URL,
       transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: Infinity, // Keep trying to reconnect
-      reconnectionDelayMax: 5000,
-      timeout: 20000,
+      reconnection: matchmakingConfig.websocket.reconnection.enabled,
+      reconnectionDelay: matchmakingConfig.websocket.reconnection.delayMs,
+      reconnectionAttempts: matchmakingConfig.websocket.reconnection.attempts,
+      reconnectionDelayMax: matchmakingConfig.websocket.reconnection.delayMaxMs,
+      timeout: matchmakingConfig.websocket.timeoutMs,
       autoConnect: true,
       // Force new connection when socket was reset
       forceNew: true // Force new connection to ensure clean state

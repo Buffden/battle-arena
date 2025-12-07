@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MatchmakingService } from '../../services/matchmaking.service';
 import { AuthService } from '../../services/auth.service';
+import { matchmakingConfig } from '../../config/matchmaking.config';
 import { MatchFoundModalComponent } from './match-found-modal.component';
 
 @Component({
@@ -116,7 +117,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
             this.queuePosition = null;
             this.estimatedWaitTime = null;
             if (response.message?.includes('timed out') || response.message?.includes('timeout')) {
-              this.errorMessage = 'Queue session timed out after 1 minute. Please try again.';
+              this.errorMessage = matchmakingConfig.messages.queueTimeout;
             } else {
               this.errorMessage = response.message || 'Failed to join queue. Please try again.';
             }
@@ -244,7 +245,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       // eslint-disable-next-line no-console
       console.log('🔄 Retrying to join queue...');
       this.joinQueue();
-    }, 500); // Increased delay to ensure clean disconnect
+    }, matchmakingConfig.queue.retryDelayMs);
   }
 
   private restoreQueueConnection(): void {
@@ -320,8 +321,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.isInQueue = false;
           this.queuePosition = null;
           this.estimatedWaitTime = null;
-          this.errorMessage =
-            data.message || 'Queue session timed out after 1 minute. Please try again.';
+          this.errorMessage = data.message || matchmakingConfig.messages.queueTimeout;
         },
         error: error => {
           console.error('Error receiving queue timeout:', error);
@@ -337,9 +337,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.isInQueue = false;
           this.queuePosition = null;
           this.estimatedWaitTime = null;
-          this.errorMessage =
-            data.message ||
-            'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.';
+          this.errorMessage = data.message || matchmakingConfig.messages.queueDisconnected;
           this.cdr.detectChanges();
         },
         error: (error: unknown) => {

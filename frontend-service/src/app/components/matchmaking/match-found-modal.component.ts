@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { MatchmakingService } from '../../services/matchmaking.service';
 import { AuthService } from '../../services/auth.service';
+import { matchmakingConfig } from '../../config/matchmaking.config';
 
 interface MatchFoundData {
   matchId: string;
@@ -48,7 +49,7 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
   @Output() matchConfirmed = new EventEmitter<string>();
 
   acceptanceStatus: AcceptanceStatus | null = null;
-  timeRemaining = 20;
+  timeRemaining = matchmakingConfig.matchAcceptance.defaultTimeoutSeconds;
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
   private readonly subscriptions = new Subscription();
   private readonly currentUserId: string | null;
@@ -178,7 +179,7 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
       this.timeRemaining = Math.floor(this.matchData.timeout / 1000);
     } else {
       // Default fallback
-      this.timeRemaining = 20;
+      this.timeRemaining = matchmakingConfig.matchAcceptance.defaultTimeoutSeconds;
     }
 
     // Only start countdown if there's time remaining
@@ -200,7 +201,7 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
       `[Countdown] Starting countdown for match ${this.matchData?.matchId}: ${this.timeRemaining} seconds remaining`
     );
 
-    // Start countdown interval (1000ms = 1 second)
+    // Start countdown interval
     this.countdownInterval = setInterval(() => {
       this.timeRemaining--;
       if (this.timeRemaining <= 0) {
@@ -219,7 +220,7 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
           );
         }
       }
-    }, 1000);
+    }, matchmakingConfig.matchAcceptance.countdownIntervalMs);
   }
 
   stopCountdown(): void {
