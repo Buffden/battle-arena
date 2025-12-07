@@ -7,21 +7,69 @@ const gameEngineClient = require('./GameEngineClient');
 class MatchmakingEngine {
   constructor() {
     this.defaultHeroId = 'default-hero';
+    // MatchAcceptanceManager will be injected via setMatchAcceptanceManager
+    this.matchAcceptanceManager = null;
   }
 
   /**
-   * Get first two players from queue (FIFO order)
+   * Set the MatchAcceptanceManager instance (to avoid circular dependency)
+   * @param {Object} matchAcceptanceManager - MatchAcceptanceManager instance
+   */
+  setMatchAcceptanceManager(matchAcceptanceManager) {
+    this.matchAcceptanceManager = matchAcceptanceManager;
+  }
+
+  /**
+   * Get first two available players from queue (FIFO order)
+   * Filters out players who are already in a match acceptance session
    * @returns {Promise<Array<{playerId: string, socketId: string, userId?: string}>>}
    */
-  async getFirstTwoPlayers() {
+  async getFirstTwoAvailablePlayers() {
     const players = await queueManager.getAllPlayersWithSockets();
 
     if (players.length < 2) {
       return null;
     }
 
-    // Return first two players (already in FIFO order from Redis sorted set)
-    return players.slice(0, 2);
+    // If no matchAcceptanceManager is set, fall back to original behavior
+    if (!this.matchAcceptanceManager) {
+      return players.slice(0, 2);
+    }
+
+    // Filter out players who are already in a match acceptance session
+    const availablePlayers = [];
+    for (const player of players) {
+      const existingMatch = await this.matchAcceptanceManager.getMatchAcceptanceByUserId(
+        player.playerId
+      );
+      if (!existingMatch) {
+        availablePlayers.push(player);
+        // Stop once we have 2 available players
+        if (availablePlayers.length >= 2) {
+          break;
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(
+          `⏸️ Skipping player ${player.playerId} - already in match acceptance session ${existingMatch.matchId}`
+        );
+      }
+    }
+
+    if (availablePlayers.length < 2) {
+      return null;
+    }
+
+    return availablePlayers;
+  }
+
+  /**
+   * Get first two players from queue (FIFO order)
+   * @deprecated Use getFirstTwoAvailablePlayers() instead
+   * @returns {Promise<Array<{playerId: string, socketId: string, userId?: string}>>}
+   */
+  async getFirstTwoPlayers() {
+    return this.getFirstTwoAvailablePlayers();
   }
 
   /**
@@ -58,8 +106,8 @@ class MatchmakingEngine {
         return null;
       }
 
-      // Get first two players
-      const players = await this.getFirstTwoPlayers();
+      // Get first two available players (skip those already in match acceptance sessions)
+      const players = await this.getFirstTwoAvailablePlayers();
 
       if (!players || players.length < 2) {
         // eslint-disable-next-line no-console
