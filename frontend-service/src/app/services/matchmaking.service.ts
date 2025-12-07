@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, BehaviorSubject, filter } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
 
@@ -116,11 +116,9 @@ export class MatchmakingService {
             position: data.position,
             estimatedWaitTime: data.estimatedWaitTime
           };
+          // Only emit to observer for initial response
+          // Persistent listener will handle queueStatusSubject updates
           observer.next(response);
-          this.queueStatusSubject.next({
-            position: data.position,
-            estimatedWaitTime: data.estimatedWaitTime
-          });
         };
 
         const onQueueError = (data: { message?: string }) => {
@@ -134,33 +132,13 @@ export class MatchmakingService {
           this.matchFoundSubject.next(data);
         };
 
-        const onQueueTimeout = (data: { message?: string; reason?: string }) => {
-          if (hasCompleted) return;
-          hasCompleted = true;
-          cleanup();
-          // Clear queue state on timeout
-          this.queueStatusSubject.next(null);
-          this.clearSavedQueueState();
-          observer.next({
-            success: false,
-            message: data.message || 'Queue session timed out'
-          });
-          observer.complete();
-        };
-
-        const onDisconnect = () => {
-          this.isConnected = false;
-        };
-
         // Set up event listeners
         if (this.socket) {
           this.socket.on('connect', onConnect);
           this.socket.on('connect_error', onConnectError);
           this.socket.on('queue-status', onQueueStatus);
           this.socket.on('queue-error', onQueueError);
-          this.socket.on('queue-timeout', onQueueTimeout);
           this.socket.on('match-found', onMatchFound);
-          this.socket.on('disconnect', onDisconnect);
         }
 
         // If socket is already connected, trigger onConnect immediately
@@ -174,9 +152,7 @@ export class MatchmakingService {
           if (this.socket) {
             this.socket.off('queue-status', onQueueStatus);
             this.socket.off('queue-error', onQueueError);
-            this.socket.off('queue-timeout', onQueueTimeout);
             this.socket.off('match-found', onMatchFound);
-            this.socket.off('disconnect', onDisconnect);
           }
         };
       } catch (error) {
@@ -252,27 +228,14 @@ export class MatchmakingService {
             position: data.position,
             estimatedWaitTime: data.estimatedWaitTime
           };
+          // Only emit to observer for initial response
+          // Persistent listener will handle queueStatusSubject updates
           observer.next(response);
           observer.complete();
-          this.queueStatusSubject.next({
-            position: data.position,
-            estimatedWaitTime: data.estimatedWaitTime
-          });
         };
 
         const onQueueError = (data: { message?: string }) => {
           observer.next({ success: false, message: data.message || 'Reconnection failed' });
-          observer.complete();
-        };
-
-        const onQueueTimeout = (data: { message?: string; reason?: string }) => {
-          // Clear queue state on timeout
-          this.queueStatusSubject.next(null);
-          this.clearSavedQueueState();
-          observer.next({
-            success: false,
-            message: data.message || 'Queue session timed out'
-          });
           observer.complete();
         };
 
@@ -287,7 +250,6 @@ export class MatchmakingService {
         this.socket.on('connect', onConnect);
         this.socket.on('queue-status', onQueueStatus);
         this.socket.on('queue-error', onQueueError);
-        this.socket.on('queue-timeout', onQueueTimeout);
         this.socket.on('connect_error', onConnectError);
 
         // Cleanup
@@ -297,7 +259,6 @@ export class MatchmakingService {
             this.socket.off('connect', onConnect);
             this.socket.off('queue-status', onQueueStatus);
             this.socket.off('queue-error', onQueueError);
-            this.socket.off('queue-timeout', onQueueTimeout);
             this.socket.off('connect_error', onConnectError);
           }
         };
@@ -314,19 +275,6 @@ export class MatchmakingService {
    */
   getQueueStatus$(): Observable<{ position: number; estimatedWaitTime: number } | null> {
     return this.queueStatusSubject.asObservable();
-  }
-
-  /**
-   * Get queue status updates (non-null only)
-   */
-  getActiveQueueStatus$(): Observable<{ position: number; estimatedWaitTime: number }> {
-    return this.queueStatusSubject
-      .asObservable()
-      .pipe(
-        filter(
-          (status): status is { position: number; estimatedWaitTime: number } => status !== null
-        )
-      );
   }
 
   /**

@@ -64,11 +64,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     }
   }
 
-  startMatchmaking(): void {
-    // Navigate to matchmaking page (already here, but this can be used for initial state)
-    this.errorMessage = null;
-  }
-
   joinQueue(): void {
     if (this.isInQueue || this.isConnecting) {
       return;
