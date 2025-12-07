@@ -66,6 +66,58 @@ class MatchAcceptanceManager {
   }
 
   /**
+   * Find match acceptance session for a user (if they're in one)
+   * @param {string} userId - User ID
+   * @returns {Promise<Object | null>} Match acceptance data or null if not found
+   */
+  async getMatchAcceptanceByUserId(userId) {
+    const redis = getRedisClient();
+    const keys = await redis.keys(`${MATCH_ACCEPTANCE_PREFIX}*`);
+
+    for (const key of keys) {
+      const data = await redis.get(key);
+      if (data) {
+        const acceptanceData = JSON.parse(data);
+        // Check if user is player1 or player2
+        if (acceptanceData.player1Id === userId || acceptanceData.player2Id === userId) {
+          // Check if not expired
+          if (Date.now() <= acceptanceData.expiresAt) {
+            return acceptanceData;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Delete all match acceptance sessions for a user
+   * @param {string} userId - User ID
+   * @returns {Promise<Array<string>>} Array of deleted match IDs
+   */
+  async deleteMatchAcceptancesByUserId(userId) {
+    const redis = getRedisClient();
+    const keys = await redis.keys(`${MATCH_ACCEPTANCE_PREFIX}*`);
+    const deletedMatchIds = [];
+
+    for (const key of keys) {
+      const data = await redis.get(key);
+      if (data) {
+        const acceptanceData = JSON.parse(data);
+        // Check if user is player1 or player2
+        if (acceptanceData.player1Id === userId || acceptanceData.player2Id === userId) {
+          const matchId = key.replace(MATCH_ACCEPTANCE_PREFIX, '');
+          await redis.del(key);
+          deletedMatchIds.push(matchId);
+        }
+      }
+    }
+
+    return deletedMatchIds;
+  }
+
+  /**
    * Accept match for a player
    * @param {string} matchId - Match ID
    * @param {string} userId - User ID of the accepting player
@@ -75,37 +127,180 @@ class MatchAcceptanceManager {
     const redis = getRedisClient();
     const key = `${MATCH_ACCEPTANCE_PREFIX}${matchId}`;
 
-    const data = await this.getMatchAcceptance(matchId);
-    if (!data) {
-      return { success: false, bothAccepted: false, data: null };
+    // Retry logic to handle race conditions
+    const maxRetries = 5;
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      try {
+        // Watch the key to detect concurrent modifications (ioredis API)
+        await redis.watch(key);
+
+        // Get current data (must be done after WATCH)
+        const dataStr = await redis.get(key);
+        if (!dataStr) {
+          await redis.unwatch();
+          return { success: false, bothAccepted: false, data: null };
+        }
+
+        const data = JSON.parse(dataStr);
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `[acceptMatch] Match ${matchId}, User ${userId}: Current state (attempt ${retries + 1}) - P1: ${data.player1Id} (accepted: ${data.player1Accepted}), P2: ${data.player2Id} (accepted: ${data.player2Accepted})`
+        );
+
+        // Check if already expired
+        if (Date.now() > data.expiresAt) {
+          await redis.del(key);
+          await redis.unwatch();
+          return { success: false, bothAccepted: false, data: null, expired: true };
+        }
+
+        // Check if already accepted (idempotent - return current state)
+        if (data.player1Id === userId && data.player1Accepted) {
+          await redis.unwatch();
+          const bothAccepted = data.player1Accepted && data.player2Accepted;
+          // eslint-disable-next-line no-console
+          console.log(
+            `[acceptMatch] Match ${matchId}, User ${userId}: Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
+          );
+          return {
+            success: true,
+            bothAccepted,
+            data
+          };
+        }
+        if (data.player2Id === userId && data.player2Accepted) {
+          await redis.unwatch();
+          const bothAccepted = data.player1Accepted && data.player2Accepted;
+          // eslint-disable-next-line no-console
+          console.log(
+            `[acceptMatch] Match ${matchId}, User ${userId}: Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
+          );
+          return {
+            success: true,
+            bothAccepted,
+            data
+          };
+        }
+
+        // CRITICAL: Re-read the data right before updating to get the absolute latest state
+        // This is necessary because another player might have accepted between our WATCH and now
+        // WATCH only prevents the transaction from succeeding if the key was modified, but doesn't
+        // prevent us from reading the latest value to merge acceptance states
+        const latestDataStr = await redis.get(key);
+        let sourceData = data;
+
+        if (latestDataStr) {
+          const latestData = JSON.parse(latestDataStr);
+
+          // Check if acceptance states changed (another player accepted)
+          const acceptanceChanged =
+            latestData.player1Accepted !== data.player1Accepted ||
+            latestData.player2Accepted !== data.player2Accepted;
+
+          if (acceptanceChanged) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `[acceptMatch] Match ${matchId}, User ${userId}: ⚠️ ACCEPTANCE STATE CHANGED - latest (P1: ${latestData.player1Accepted}, P2: ${latestData.player2Accepted}) vs original (P1: ${data.player1Accepted}, P2: ${data.player2Accepted})`
+            );
+          }
+
+          // CRITICAL: Use latestData as source, but merge acceptance states with OR logic
+          // This ensures we never lose an acceptance that was set by the other player
+          sourceData = {
+            ...latestData,
+            // Preserve any true values from either source (never lose an acceptance)
+            player1Accepted: Boolean(latestData.player1Accepted || data.player1Accepted),
+            player2Accepted: Boolean(latestData.player2Accepted || data.player2Accepted)
+          };
+
+          if (acceptanceChanged) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `[acceptMatch] Match ${matchId}, User ${userId}: Merged acceptance states - P1: ${sourceData.player1Accepted}, P2: ${sourceData.player2Accepted}`
+            );
+          }
+        }
+
+        // Create updatedData with current player's acceptance set to true
+        // CRITICAL: Preserve the other player's acceptance from sourceData
+        const updatedData = {
+          ...sourceData,
+          // Set current player's acceptance to true
+          player1Accepted: sourceData.player1Id === userId ? true : sourceData.player1Accepted,
+          player2Accepted: sourceData.player2Id === userId ? true : sourceData.player2Accepted
+        };
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `[acceptMatch] Match ${matchId}, User ${userId}: Final state before save - P1: ${sourceData.player1Id} (accepted: ${updatedData.player1Accepted}), P2: ${sourceData.player2Id} (accepted: ${updatedData.player2Accepted})`
+        );
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `[acceptMatch] Match ${matchId}, User ${userId}: After update - P1 accepted: ${updatedData.player1Accepted}, P2 accepted: ${updatedData.player2Accepted}`
+        );
+
+        // Check if both players accepted
+        const bothAccepted = updatedData.player1Accepted && updatedData.player2Accepted;
+
+        // Use MULTI/EXEC for atomic update (ioredis returns a promise)
+        const pipeline = redis.pipeline();
+        pipeline.setex(key, MATCH_ACCEPTANCE_TTL, JSON.stringify(updatedData));
+        const results = await pipeline.exec();
+
+        // If results is null, the transaction was aborted (key was modified)
+        // This means another player accepted concurrently - retry
+        if (results === null) {
+          retries++;
+          // eslint-disable-next-line no-console
+          console.log(
+            `⚠ Race condition detected for match ${matchId}, retrying acceptMatch for user ${userId} (attempt ${retries}/${maxRetries})`
+          );
+          // Small delay before retry to allow the other transaction to complete
+          await new Promise(resolve => setTimeout(resolve, 100));
+          continue;
+        }
+
+        // Check if pipeline execution had errors
+        if (results && results[0] && results[0][0]) {
+          // eslint-disable-next-line no-console
+          console.error('Pipeline error:', results[0][0]);
+          await redis.unwatch();
+          return { success: false, bothAccepted: false, data: null };
+        }
+
+        // Success - return the updated data
+        // eslint-disable-next-line no-console
+        console.log(
+          `✓ [acceptMatch] Match ${matchId}, User ${userId}: Successfully saved - Final state - P1: ${updatedData.player1Id} (accepted: ${updatedData.player1Accepted}), P2: ${updatedData.player2Id} (accepted: ${updatedData.player2Accepted}), Both: ${bothAccepted}`
+        );
+
+        return {
+          success: true,
+          bothAccepted,
+          data: updatedData
+        };
+      } catch (error) {
+        try {
+          await redis.unwatch();
+        } catch (unwatchError) {
+          // Ignore unwatch errors
+        }
+        // eslint-disable-next-line no-console
+        console.error(`Error in acceptMatch for match ${matchId}, user ${userId}:`, error);
+        return { success: false, bothAccepted: false, data: null };
+      }
     }
 
-    // Check if already expired
-    if (Date.now() > data.expiresAt) {
-      await redis.del(key);
-      return { success: false, bothAccepted: false, data: null, expired: true };
-    }
-
-    // Update acceptance status
-    if (data.player1Id === userId) {
-      data.player1Accepted = true;
-    } else if (data.player2Id === userId) {
-      data.player2Accepted = true;
-    } else {
-      return { success: false, bothAccepted: false, data: null };
-    }
-
-    // Check if both players accepted
-    const bothAccepted = data.player1Accepted && data.player2Accepted;
-
-    // Save updated data
-    await redis.setex(key, MATCH_ACCEPTANCE_TTL, JSON.stringify(data));
-
-    return {
-      success: true,
-      bothAccepted,
-      data
-    };
+    // Max retries exceeded
+    // eslint-disable-next-line no-console
+    console.error(
+      `Max retries exceeded for acceptMatch on match ${matchId}, user ${userId}. Returning failure.`
+    );
+    return { success: false, bothAccepted: false, data: null };
   }
 
   /**
@@ -154,7 +349,7 @@ class MatchAcceptanceManager {
 
   /**
    * Check for expired match acceptances and clean them up
-   * @returns {Promise<Array<string>>} Array of expired match IDs
+   * @returns {Promise<Array<Object>>} Array of expired match acceptance data (before deletion)
    */
   async cleanupExpiredAcceptances() {
     const redis = getRedisClient();
@@ -169,7 +364,11 @@ class MatchAcceptanceManager {
         const acceptanceData = JSON.parse(data);
         if (Date.now() > acceptanceData.expiresAt) {
           const matchId = key.replace(MATCH_ACCEPTANCE_PREFIX, '');
-          expiredMatches.push(matchId);
+          // Store acceptance data before deleting
+          expiredMatches.push({
+            matchId,
+            ...acceptanceData
+          });
           await redis.del(key);
         }
       }
