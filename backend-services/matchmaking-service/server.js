@@ -57,6 +57,31 @@ io.on('connection', socket => {
         heroIds: data?.heroIds || []
       };
 
+      // Check if user has a stale timeout count (shouldn't happen, but safety check)
+      if (userId) {
+        const existingTimeoutCount = await matchAcceptanceManager.getTimeoutCount(userId);
+        if (existingTimeoutCount > 0) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `⚠️ User ${userId} joining queue with existing timeout count: ${existingTimeoutCount} - this should have been reset`
+          );
+          // Don't reset here - let it persist so they get penalized if they timeout again
+          // But log it for debugging
+        }
+
+        // Clean up any stale match acceptance sessions for this user
+        // This ensures they can be matched immediately after retry
+        const staleMatchAcceptances =
+          await matchAcceptanceManager.deleteMatchAcceptancesByUserId(userId);
+        if (staleMatchAcceptances.length > 0) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `🧹 Cleaned up ${staleMatchAcceptances.length} stale match acceptance session(s) for user ${userId}:`,
+            staleMatchAcceptances
+          );
+        }
+      }
+
       const queueStatus = await queueManager.addToQueue(socket.id, userId, metadata);
 
       // eslint-disable-next-line no-console
@@ -175,6 +200,9 @@ io.on('connection', socket => {
 
       // Get updated acceptance data
       const acceptanceData = result.data;
+
+      // Reset timeout count on successful accept
+      await matchAcceptanceManager.resetTimeoutCount(userId);
 
       // eslint-disable-next-line no-console
       console.log(
@@ -312,6 +340,9 @@ io.on('connection', socket => {
         });
         return;
       }
+
+      // Reset timeout count on successful reject
+      await matchAcceptanceManager.resetTimeoutCount(userId);
 
       const acceptanceData = result.data;
 
@@ -516,6 +547,8 @@ async function notifyAllPlayersQueueStatus() {
  */
 async function checkForMatches() {
   try {
+    // eslint-disable-next-line no-console
+    // console.log('[checkForMatches] Checking for matches...');
     const match = await matchmakingEngine.findMatch();
 
     if (match) {
@@ -678,46 +711,92 @@ async function checkExpiredMatchAcceptances() {
 
       // eslint-disable-next-line no-console
       console.log(
-        `Match acceptance expired for match ${matchId} - re-adding both players to queue`
+        `Match acceptance expired for match ${matchId} - checking timeout counts for both players`
       );
 
-      // Move both players to end of queue (same as rejection behavior)
-      try {
-        // Remove both players from queue
-        await queueManager.removeFromQueueByUserId(player1Id);
-        await queueManager.removeFromQueueByUserId(player2Id);
+      // Process each player separately
+      const players = [
+        { userId: player1Id, socketId: player1SocketId },
+        { userId: player2Id, socketId: player2SocketId }
+      ];
 
-        // Re-add both players to queue (will be at the end)
-        const socket1 = io.sockets.sockets.get(player1SocketId);
-        const socket2 = io.sockets.sockets.get(player2SocketId);
+      for (const player of players) {
+        try {
+          // Get current timeout count BEFORE incrementing (for logging)
+          const previousCount = await matchAcceptanceManager.getTimeoutCount(player.userId);
 
-        if (socket1) {
-          const metadata = {}; // Could retrieve from Redis if needed
-          await queueManager.addToQueue(player1SocketId, player1Id, metadata);
-          // Notify player 1 that match expired
-          socket1.emit('match-acceptance-expired', {
-            matchId,
-            message: 'Match acceptance expired. You have been moved to the end of the queue.'
-          });
+          // Increment timeout count
+          const timeoutCount = await matchAcceptanceManager.incrementTimeoutCount(player.userId);
+
+          // eslint-disable-next-line no-console
+          console.log(
+            `Player ${player.userId} timeout count: ${previousCount} -> ${timeoutCount} (match ${matchId})`
+          );
+
+          // If 3 or more consecutive timeouts, disconnect player (allows 2 timeouts before disconnection)
+          // timeoutCount = 1: first timeout, move to end
+          // timeoutCount = 2: second timeout, move to end
+          // timeoutCount = 3: third timeout, disconnect
+          if (timeoutCount >= 3) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `⚠️ Player ${player.userId} has ${timeoutCount} consecutive timeouts (3rd timeout) - removing from queue and disconnecting`
+            );
+
+            // Remove from queue
+            await queueManager.removeFromQueueByUserId(player.userId);
+
+            // Get socket and disconnect
+            const socket = io.sockets.sockets.get(player.socketId);
+            if (socket) {
+              socket.emit('queue-disconnected', {
+                message:
+                  'You have been disconnected from the queue due to multiple match acceptance timeouts. Please try again later.',
+                reason: 'multiple-timeouts',
+                timeoutCount
+              });
+              socket.disconnect(true);
+              // eslint-disable-next-line no-console
+              console.log(
+                `✓ Disconnected player ${player.userId} from queue (socket ${player.socketId})`
+              );
+            } else {
+              // Socket not found, but still remove from queue
+              // eslint-disable-next-line no-console
+              console.log(
+                `✓ Removed player ${player.userId} from queue (socket ${player.socketId} not found)`
+              );
+            }
+          } else {
+            // First or second timeout - move to end of queue
+            // eslint-disable-next-line no-console
+            console.log(
+              `Player ${player.userId} timeout #${timeoutCount} - moving to end of queue`
+            );
+
+            // Remove from queue
+            await queueManager.removeFromQueueByUserId(player.userId);
+
+            // Re-add to queue (will be at the end)
+            const socket = io.sockets.sockets.get(player.socketId);
+            if (socket) {
+              const metadata = {}; // Could retrieve from Redis if needed
+              await queueManager.addToQueue(player.socketId, player.userId, metadata);
+              // Notify player that match expired
+              socket.emit('match-acceptance-expired', {
+                matchId,
+                message:
+                  timeoutCount === 1
+                    ? 'Match acceptance expired. You have been moved to the end of the queue. Please respond promptly to future matches.'
+                    : 'Match acceptance expired again. You have been moved to the end of the queue. One more timeout will result in disconnection.',
+                timeoutCount
+              });
+            }
+          }
+        } catch (playerError) {
+          // eslint-disable-next-line no-console
+          console.error(`Error processing expired match for player ${player.userId}:`, playerError);
         }
-
-        if (socket2) {
-          const metadata = {}; // Could retrieve from Redis if needed
-          await queueManager.addToQueue(player2SocketId, player2Id, metadata);
-          // Notify player 2 that match expired
-          socket2.emit('match-acceptance-expired', {
-            matchId,
-            message: 'Match acceptance expired. You have been moved to the end of the queue.'
-          });
-        }
-
-        // eslint-disable-next-line no-console
-        console.log(
-          `✓ Moved both players (${player1Id}, ${player2Id}) to end of queue due to expiration`
-        );
-      } catch (queueError) {
-        // eslint-disable-next-line no-console
-        console.error('Error moving expired match players to end of queue:', queueError);
       }
 
       // Notify all players of updated queue positions
