@@ -72,7 +72,17 @@ export class MatchmakingService {
   private readonly matchAcceptanceUpdateSubject = new Subject<MatchAcceptanceUpdate>();
   private readonly matchRejectedSubject = new Subject<MatchRejected>();
   private readonly matchConfirmedSubject = new Subject<MatchConfirmed>();
+  private readonly matchAcceptanceExpiredSubject = new Subject<{
+    matchId: string;
+    message?: string;
+    timeoutCount?: number;
+  }>();
   private readonly queueTimeoutSubject = new Subject<{ message?: string; reason?: string }>();
+  private readonly queueDisconnectedSubject = new Subject<{
+    message?: string;
+    reason?: string;
+    timeoutCount?: number;
+  }>();
   private isConnected = false;
 
   constructor(private readonly authService: AuthService) {}
@@ -371,6 +381,28 @@ export class MatchmakingService {
   }
 
   /**
+   * Get match acceptance expired events (when timer runs out)
+   */
+  getMatchAcceptanceExpired$(): Observable<{
+    matchId: string;
+    message?: string;
+    timeoutCount?: number;
+  }> {
+    return this.matchAcceptanceExpiredSubject.asObservable();
+  }
+
+  /**
+   * Get observable for queue disconnection events (when player is removed due to multiple timeouts)
+   */
+  getQueueDisconnected$(): Observable<{
+    message?: string;
+    reason?: string;
+    timeoutCount?: number;
+  }> {
+    return this.queueDisconnectedSubject.asObservable();
+  }
+
+  /**
    * Check if socket is connected
    */
   isSocketConnected(): boolean {
@@ -587,6 +619,22 @@ export class MatchmakingService {
       console.log('Queue timeout received:', data.message);
     });
 
+    // Persistent listener for queue-disconnected (when player is removed due to multiple timeouts)
+    this.socket.on(
+      'queue-disconnected',
+      (data: { message?: string; reason?: string; timeoutCount?: number }) => {
+        // Clear queue state on disconnection
+        this.queueStatusSubject.next(null);
+        this.clearSavedQueueState();
+        // Disconnect socket
+        this.disconnectWebSocket();
+        // Emit disconnection event so component can react
+        this.queueDisconnectedSubject.next(data);
+        // eslint-disable-next-line no-console
+        console.log('Queue disconnected due to multiple timeouts:', data);
+      }
+    );
+
     // Persistent listener for queue-status updates (always listening while socket is connected)
     this.socket.on('queue-status', (data: { position: number; estimatedWaitTime: number }) => {
       // Only log if position changed significantly or it's a new status
@@ -625,6 +673,16 @@ export class MatchmakingService {
       console.log('✅ Match confirmed:', data);
       this.matchConfirmedSubject.next(data);
     });
+
+    // Persistent listener for match-acceptance-expired (when timer runs out)
+    this.socket.on(
+      'match-acceptance-expired',
+      (data: { matchId: string; message?: string; timeoutCount?: number }) => {
+        // eslint-disable-next-line no-console
+        console.log('⏱️ Match acceptance expired:', data);
+        this.matchAcceptanceExpiredSubject.next(data);
+      }
+    );
   }
 
   /**
