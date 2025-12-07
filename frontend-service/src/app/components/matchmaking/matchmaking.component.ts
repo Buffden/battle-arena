@@ -21,6 +21,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   isConnecting = false;
   errorMessage: string | null = null;
   private routerSubscription?: Subscription;
+  private queueSubscriptions = new Subscription();
 
   constructor(
     private readonly matchmakingService: MatchmakingService,
@@ -55,6 +56,8 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
+    // Unsubscribe from all queue-related subscriptions to prevent memory leaks
+    this.queueSubscriptions.unsubscribe();
   }
 
   @HostListener('window:popstate', ['$event'])
@@ -73,7 +76,12 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.isConnecting = true;
 
-    this.matchmakingService.joinQueue().subscribe({
+    // Unsubscribe from any existing subscriptions to prevent duplicates
+    this.queueSubscriptions.unsubscribe();
+    this.queueSubscriptions = new Subscription();
+
+    this.queueSubscriptions.add(
+      this.matchmakingService.joinQueue().subscribe({
       next: response => {
         this.isConnecting = false;
         if (response.success) {
@@ -101,10 +109,12 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         this.matchmakingService.clearSavedQueueState();
         console.error('Error joining queue:', error);
       }
-    });
+      })
+    );
 
     // Subscribe to queue status updates
-    this.matchmakingService.getQueueStatus$().subscribe({
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueStatus$().subscribe({
       next: status => {
         if (status) {
           this.queuePosition = status.position;
@@ -121,10 +131,12 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       error: error => {
         console.error('Error receiving queue status:', error);
       }
-    });
+      })
+    );
 
     // Subscribe to queue timeout events (direct listener for immediate UI update)
-    this.matchmakingService.getQueueTimeout$().subscribe({
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueTimeout$().subscribe({
       next: data => {
         // Immediately update UI on timeout
         this.isInQueue = false;
@@ -136,10 +148,12 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       error: error => {
         console.error('Error receiving queue timeout:', error);
       }
-    });
+      })
+    );
 
     // Subscribe to match found events
-    this.matchmakingService.getMatchFound$().subscribe({
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchFound$().subscribe({
       next: match => {
         // Navigate to game when match is found
         this.matchmakingService.clearSavedQueueState();
@@ -148,7 +162,8 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       error: error => {
         console.error('Error receiving match found:', error);
       }
-    });
+      })
+    );
   }
 
   leaveQueue(): void {
@@ -219,23 +234,80 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   private restoreQueueConnection(): void {
     // Attempt to reconnect to queue
     this.isConnecting = true;
-    this.matchmakingService.reconnectToQueue().subscribe({
-      next: response => {
-        this.isConnecting = false;
-        if (response.success) {
-          this.isInQueue = true;
-          this.queuePosition = response.position || null;
-          this.estimatedWaitTime = response.estimatedWaitTime || null;
-        } else {
-          // Queue state was lost, clear it
+
+    // Unsubscribe from any existing subscriptions to prevent duplicates
+    this.queueSubscriptions.unsubscribe();
+    this.queueSubscriptions = new Subscription();
+
+    this.queueSubscriptions.add(
+      this.matchmakingService.reconnectToQueue().subscribe({
+        next: response => {
+          this.isConnecting = false;
+          if (response.success) {
+            this.isInQueue = true;
+            this.queuePosition = response.position || null;
+            this.estimatedWaitTime = response.estimatedWaitTime || null;
+          } else {
+            // Queue state was lost, clear it
+            this.matchmakingService.clearSavedQueueState();
+          }
+        },
+        error: error => {
+          this.isConnecting = false;
           this.matchmakingService.clearSavedQueueState();
+          console.error('Error reconnecting to queue:', error);
         }
-      },
-      error: error => {
-        this.isConnecting = false;
-        this.matchmakingService.clearSavedQueueState();
-        console.error('Error reconnecting to queue:', error);
-      }
-    });
+      })
+    );
+
+    // Subscribe to queue status updates (needed after reconnection)
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueStatus$().subscribe({
+        next: status => {
+          if (status) {
+            this.queuePosition = status.position;
+            this.estimatedWaitTime = status.estimatedWaitTime;
+            this.isInQueue = true;
+            this.errorMessage = null;
+          } else {
+            this.isInQueue = false;
+            this.queuePosition = null;
+            this.estimatedWaitTime = null;
+          }
+        },
+        error: error => {
+          console.error('Error receiving queue status:', error);
+        }
+      })
+    );
+
+    // Subscribe to queue timeout events
+    this.queueSubscriptions.add(
+      this.matchmakingService.getQueueTimeout$().subscribe({
+        next: data => {
+          this.isInQueue = false;
+          this.queuePosition = null;
+          this.estimatedWaitTime = null;
+          this.errorMessage =
+            data.message || 'Queue session timed out after 1 minute. Please try again.';
+        },
+        error: error => {
+          console.error('Error receiving queue timeout:', error);
+        }
+      })
+    );
+
+    // Subscribe to match found events
+    this.queueSubscriptions.add(
+      this.matchmakingService.getMatchFound$().subscribe({
+        next: match => {
+          this.matchmakingService.clearSavedQueueState();
+          this.router.navigate(['/game', match.matchId]);
+        },
+        error: error => {
+          console.error('Error receiving match found:', error);
+        }
+      })
+    );
   }
 }
