@@ -111,14 +111,21 @@ export class MatchmakingService {
         };
 
         const onQueueStatus = (data: { position: number; estimatedWaitTime: number }) => {
+          if (hasCompleted) return;
+          hasCompleted = true;
           const response: QueueResponse = {
             success: true,
             position: data.position,
             estimatedWaitTime: data.estimatedWaitTime
           };
-          // Only emit to observer for initial response
+          // Only emit to observer for initial response, then complete
           // Persistent listener will handle queueStatusSubject updates
           observer.next(response);
+          observer.complete();
+          // Remove this temporary listener after initial response
+          if (this.socket) {
+            this.socket.off('queue-status', onQueueStatus);
+          }
         };
 
         const onQueueError = (data: { message?: string }) => {
