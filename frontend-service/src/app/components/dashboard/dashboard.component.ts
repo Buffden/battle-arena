@@ -11,7 +11,8 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
-  // TODO: Load from AuthService when user profile integration is complete
+  // Note: Using hardcoded username until user profile integration is complete
+  // Future enhancement: Load username from AuthService or ProfileService
   username = 'Warrior';
 
   stats = {

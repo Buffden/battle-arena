@@ -40,8 +40,8 @@ export class GameComponent implements OnInit {
       this.gameRoomId = state.gameRoomId;
     }
 
-    // For now, we'll use userIds as names
-    // TODO: Fetch actual usernames from profile service
+    // Note: Currently using userIds as display names
+    // Future enhancement: Fetch actual usernames from profile service
     if (this.matchId) {
       this.currentUserName = this.currentUserId || 'You';
       this.opponentName = this.opponentId || 'Opponent';

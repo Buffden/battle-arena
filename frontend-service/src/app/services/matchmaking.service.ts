@@ -152,7 +152,8 @@ export class MatchmakingService {
             this.socket.emit('join-queue', {
               token: token,
               userId: userId,
-              heroIds: [] // TODO: Get selected heroes from hero selection
+              // Note: heroIds will be populated when hero selection feature is implemented
+              heroIds: []
             });
           }
         };

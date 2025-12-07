@@ -6,6 +6,9 @@ const gameEngineClient = require('./GameEngineClient');
  */
 class MatchmakingEngine {
   constructor() {
+    // Note: Using constructor assignment instead of class field declaration
+    // Class fields (ES2022) require Node.js 14+ with experimental flag or Node.js 16+
+    // This is a static configuration value that doesn't change after initialization
     this.defaultHeroId = 'default-hero';
     // MatchAcceptanceManager will be injected via setMatchAcceptanceManager
     this.matchAcceptanceManager = null;
@@ -150,8 +153,9 @@ class MatchmakingEngine {
       } else {
         // eslint-disable-next-line no-console
         console.error(`Failed to create game room: ${gameRoomResult.error}`);
-        // For now, still return match (Game Engine endpoint might not exist yet)
-        // TODO: Step 3 - Handle this error properly (notify players or retry)
+        // Note: Still returning match even if game room creation fails
+        // This allows matchmaking to proceed even if Game Engine is temporarily unavailable
+        // Future enhancement: Implement retry logic or notify players of the error
         return match;
       }
     } catch (error) {
