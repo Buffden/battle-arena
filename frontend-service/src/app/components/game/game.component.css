@@ -1,16 +1,41 @@
 .game-page {
-  min-height: 100vh;
-  background: var(--pixel-bg);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--pixel-bg-darker) 0%, var(--pixel-bg-dark) 100%);
   color: var(--pixel-text);
+  overflow: hidden;
+}
+
+.game-page .pixel-header {
+  flex-shrink: 0;
+  z-index: 100;
+  background-color: var(--pixel-bg-darker);
+  border-bottom: 4px solid var(--pixel-text);
+  box-shadow: 0 4px 0 0 var(--pixel-shadow);
+  padding: 16px 0;
 }
 
 .game-main {
-  padding: 32px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.game-main .pixel-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
 }
 
 .game-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 .game-header .pixel-title {
@@ -26,8 +51,9 @@
   align-items: center;
   justify-content: center;
   gap: 32px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .player-card {
@@ -97,12 +123,13 @@
 }
 
 .game-area {
-  padding: 48px;
+  flex: 1;
+  padding: 24px;
   text-align: center;
-  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 0;
 }
 
 .game-placeholder {
