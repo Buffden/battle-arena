@@ -169,7 +169,7 @@ export class MatchFoundModalComponent implements OnInit, OnDestroy, OnChanges {
     this.hasAttemptedAccept = false;
 
     // Calculate time remaining based on timeout and timestamp
-    if (this.matchData && this.matchData.timestamp) {
+    if (this.matchData?.timestamp) {
       const elapsed = Date.now() - this.matchData.timestamp;
       const remaining = Math.max(0, this.matchData.timeout - elapsed);
       this.timeRemaining = Math.floor(remaining / 1000);

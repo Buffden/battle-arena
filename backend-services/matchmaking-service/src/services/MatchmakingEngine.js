@@ -1,3 +1,4 @@
+const crypto = require('node:crypto');
 const queueManager = require('./QueueManager');
 const gameEngineClient = require('./GameEngineClient');
 
@@ -8,6 +9,7 @@ class MatchmakingEngine {
   constructor() {
     // Note: Using constructor assignment instead of class field declaration
     // Class fields (ES2022) require Node.js 14+ with experimental flag or Node.js 16+
+    // ESLint configuration may not support class fields, so using constructor assignment
     // This is a static configuration value that doesn't change after initialization
     this.defaultHeroId = 'default-hero';
     // MatchAcceptanceManager will be injected via setMatchAcceptanceManager
@@ -45,17 +47,16 @@ class MatchmakingEngine {
       const existingMatch = await this.matchAcceptanceManager.getMatchAcceptanceByUserId(
         player.playerId
       );
-      if (!existingMatch) {
+      if (existingMatch) {
+        // Log without exposing player IDs or match IDs for security
+        // eslint-disable-next-line no-console
+        console.log('Skipping player - already in match acceptance session');
+      } else {
         availablePlayers.push(player);
         // Stop once we have 2 available players
         if (availablePlayers.length >= 2) {
           break;
         }
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(
-          `⏸️ Skipping player ${player.playerId} - already in match acceptance session ${existingMatch.matchId}`
-        );
       }
     }
 
@@ -81,7 +82,9 @@ class MatchmakingEngine {
    * @returns {Object} Match object
    */
   createMatchObject(players) {
-    const matchId = `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    // Use crypto.randomBytes for secure random number generation
+    const randomBytes = crypto.randomBytes(6).toString('hex');
+    const matchId = `match-${Date.now()}-${randomBytes}`;
 
     return {
       matchId,
@@ -130,37 +133,40 @@ class MatchmakingEngine {
         return null;
       }
 
+      // Log match creation without exposing player IDs for security
       // eslint-disable-next-line no-console
-      console.log(
-        `Found two players for matching: ${players[0].playerId} and ${players[1].playerId}`
-      );
+      console.log('Found two players for matching');
 
       // Create match object
       const match = this.createMatchObject(players);
 
+      // Log match creation without exposing match ID for security
       // eslint-disable-next-line no-console
-      console.log(`Match created: ${match.matchId}`);
+      console.log('Match created successfully');
 
       // Step 2: Send match to Game Engine Service
       const gameRoomResult = await gameEngineClient.createGameRoom(match);
 
       if (gameRoomResult.success) {
+        // Log game room creation without exposing IDs for security
         // eslint-disable-next-line no-console
-        console.log(`Game room created: ${gameRoomResult.gameRoomId} for match ${match.matchId}`);
+        console.log('Game room created successfully');
         // Add gameRoomId to match object
         match.gameRoomId = gameRoomResult.gameRoomId;
         return match;
       } else {
+        // Log error without exposing internal details for security
         // eslint-disable-next-line no-console
-        console.error(`Failed to create game room: ${gameRoomResult.error}`);
+        console.error('Failed to create game room');
         // Note: Still returning match even if game room creation fails
         // This allows matchmaking to proceed even if Game Engine is temporarily unavailable
         // Future enhancement: Implement retry logic or notify players of the error
         return match;
       }
     } catch (error) {
+      // Log error without exposing full error details for security
       // eslint-disable-next-line no-console
-      console.error('Error in findMatch:', error);
+      console.error('Error in findMatch:', error.message || 'Unknown error');
       return null;
     }
   }

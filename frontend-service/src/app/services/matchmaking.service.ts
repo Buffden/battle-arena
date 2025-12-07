@@ -211,7 +211,7 @@ export class MatchmakingService {
         }
 
         // If socket is already connected, trigger onConnect immediately
-        if (this.socket && this.socket.connected) {
+        if (this.socket?.connected) {
           onConnect();
         }
 
@@ -332,7 +332,8 @@ export class MatchmakingService {
           }
         };
       } catch (error) {
-        observer.next({ success: false, message: 'Failed to reconnect' });
+        const errorMessage = error instanceof Error ? error.message : 'Failed to reconnect';
+        observer.next({ success: false, message: errorMessage });
         observer.complete();
         return () => {}; // Return empty cleanup function on error
       }
@@ -427,8 +428,9 @@ export class MatchmakingService {
       return false;
     }
 
+    // Log without exposing IDs for security
     // eslint-disable-next-line no-console
-    console.log(`📤 Accepting match ${matchId} for user ${userId}`);
+    console.log('📤 Accepting match');
     this.socket!.emit('accept-match', {
       matchId,
       userId
@@ -453,8 +455,9 @@ export class MatchmakingService {
       return false;
     }
 
+    // Log without exposing IDs for security
     // eslint-disable-next-line no-console
-    console.log(`📤 Rejecting match ${matchId} for user ${userId}`);
+    console.log('📤 Rejecting match');
     this.socket!.emit('reject-match', {
       matchId,
       userId
@@ -515,7 +518,7 @@ export class MatchmakingService {
    */
   private connectWebSocket(): void {
     // If socket exists and is connected, reuse it
-    if (this.socket && this.socket.connected) {
+    if (this.socket?.connected) {
       return;
     }
 
@@ -649,8 +652,9 @@ export class MatchmakingService {
 
     // Persistent listener for match-found (always listening while socket is connected)
     this.socket.on('match-found', (data: MatchFound) => {
+      // Log without exposing match ID for security
       // eslint-disable-next-line no-console
-      console.log('🎮 MATCH FOUND!', data.matchId);
+      console.log('🎮 MATCH FOUND!');
       this.matchFoundSubject.next(data);
     });
 
@@ -663,8 +667,9 @@ export class MatchmakingService {
 
     // Persistent listener for match-rejected
     this.socket.on('match-rejected', (data: MatchRejected) => {
+      // Log without exposing match ID for security
       // eslint-disable-next-line no-console
-      console.log('❌ Match rejected:', data.matchId);
+      console.log('❌ Match rejected');
       this.matchRejectedSubject.next(data);
     });
 

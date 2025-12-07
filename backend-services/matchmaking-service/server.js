@@ -204,14 +204,10 @@ io.on('connection', socket => {
       // Reset timeout count on successful accept
       await matchAcceptanceManager.resetTimeoutCount(userId);
 
+      // Log without exposing IDs for security
       // eslint-disable-next-line no-console
       console.log(
-        `[accept-match handler] Match ${matchId}, User ${userId}: Sending update - P1: ${acceptanceData.player1Id} (accepted: ${acceptanceData.player1Accepted}), P2: ${acceptanceData.player2Id} (accepted: ${acceptanceData.player2Accepted}), Both: ${result.bothAccepted}`
-      );
-      // eslint-disable-next-line no-console
-      console.log(
-        '[accept-match handler] Full acceptanceData object:',
-        JSON.stringify(acceptanceData, null, 2)
+        `[accept-match handler] Sending update - P1 accepted: ${acceptanceData.player1Accepted}, P2 accepted: ${acceptanceData.player2Accepted}, Both: ${result.bothAccepted}`
       );
 
       // Notify both players of updated acceptance status
@@ -235,36 +231,28 @@ io.on('connection', socket => {
         JSON.stringify(statusUpdate, null, 2)
       );
 
-      // eslint-disable-next-line no-console
-      console.log(
-        `[accept-match handler] Emitting match-acceptance-update to socket1 (${acceptanceData.player1SocketId})`
-      );
+      // Log without exposing socket IDs for security
       if (socket1) {
         socket1.emit('match-acceptance-update', statusUpdate);
         // eslint-disable-next-line no-console
-        console.log(`✓ Sent update to Player 1 socket: ${acceptanceData.player1SocketId}`);
+        console.log('✓ Sent update to Player 1');
       } else {
         // eslint-disable-next-line no-console
-        console.warn(`✗ Player 1 socket ${acceptanceData.player1SocketId} not found`);
+        console.warn('✗ Player 1 socket not found');
       }
 
-      // eslint-disable-next-line no-console
-      console.log(
-        `[accept-match handler] Emitting match-acceptance-update to socket2 (${acceptanceData.player2SocketId})`
-      );
       if (socket2) {
         socket2.emit('match-acceptance-update', statusUpdate);
         // eslint-disable-next-line no-console
-        console.log(`✓ Sent update to Player 2 socket: ${acceptanceData.player2SocketId}`);
+        console.log('✓ Sent update to Player 2');
       } else {
         // eslint-disable-next-line no-console
-        console.warn(`✗ Player 2 socket ${acceptanceData.player2SocketId} not found`);
+        console.warn('✗ Player 2 socket not found');
       }
 
+      // Log without exposing IDs for security
       // eslint-disable-next-line no-console
-      console.log(
-        `✓ Player ${userId} accepted match ${matchId}. Both accepted: ${result.bothAccepted}`
-      );
+      console.log(`✓ Match accepted. Both accepted: ${result.bothAccepted}`);
 
       // If both players accepted, remove them from queue and notify them
       if (result.bothAccepted) {
@@ -297,8 +285,9 @@ io.on('connection', socket => {
             });
           }
 
+          // Log without exposing match ID for security
           // eslint-disable-next-line no-console
-          console.log(`✓ Match ${matchId} confirmed - both players accepted`);
+          console.log('✓ Match confirmed - both players accepted');
           // eslint-disable-next-line no-console
           console.log('✓ Removed both players from queue');
         } catch (removeError) {
@@ -709,10 +698,9 @@ async function checkExpiredMatchAcceptances() {
     for (const expiredMatch of expiredMatches) {
       const { matchId, player1Id, player2Id, player1SocketId, player2SocketId } = expiredMatch;
 
+      // Log without exposing match ID for security
       // eslint-disable-next-line no-console
-      console.log(
-        `Match acceptance expired for match ${matchId} - checking timeout counts for both players`
-      );
+      console.log('Match acceptance expired - checking timeout counts for both players');
 
       // Process each player separately
       const players = [
@@ -728,19 +716,19 @@ async function checkExpiredMatchAcceptances() {
           // Increment timeout count
           const timeoutCount = await matchAcceptanceManager.incrementTimeoutCount(player.userId);
 
+          // Log without exposing user ID or match ID for security
           // eslint-disable-next-line no-console
-          console.log(
-            `Player ${player.userId} timeout count: ${previousCount} -> ${timeoutCount} (match ${matchId})`
-          );
+          console.log(`Player timeout count: ${previousCount} -> ${timeoutCount}`);
 
           // If 3 or more consecutive timeouts, disconnect player (allows 2 timeouts before disconnection)
           // timeoutCount = 1: first timeout, move to end
           // timeoutCount = 2: second timeout, move to end
           // timeoutCount = 3: third timeout, disconnect
           if (timeoutCount >= 3) {
+            // Log without exposing user ID for security
             // eslint-disable-next-line no-console
             console.log(
-              `⚠️ Player ${player.userId} has ${timeoutCount} consecutive timeouts (3rd timeout) - removing from queue and disconnecting`
+              `⚠️ Player has ${timeoutCount} consecutive timeouts (3rd timeout) - removing from queue and disconnecting`
             );
 
             // Remove from queue
@@ -756,23 +744,20 @@ async function checkExpiredMatchAcceptances() {
                 timeoutCount
               });
               socket.disconnect(true);
+              // Log without exposing IDs for security
               // eslint-disable-next-line no-console
-              console.log(
-                `✓ Disconnected player ${player.userId} from queue (socket ${player.socketId})`
-              );
+              console.log('✓ Disconnected player from queue');
             } else {
               // Socket not found, but still remove from queue
+              // Log without exposing IDs for security
               // eslint-disable-next-line no-console
-              console.log(
-                `✓ Removed player ${player.userId} from queue (socket ${player.socketId} not found)`
-              );
+              console.log('✓ Removed player from queue (socket not found)');
             }
           } else {
             // First or second timeout - move to end of queue
+            // Log without exposing user ID for security
             // eslint-disable-next-line no-console
-            console.log(
-              `Player ${player.userId} timeout #${timeoutCount} - moving to end of queue`
-            );
+            console.log(`Player timeout #${timeoutCount} - moving to end of queue`);
 
             // Remove from queue
             await queueManager.removeFromQueueByUserId(player.userId);
@@ -794,8 +779,12 @@ async function checkExpiredMatchAcceptances() {
             }
           }
         } catch (playerError) {
+          // Log without exposing user ID for security
           // eslint-disable-next-line no-console
-          console.error(`Error processing expired match for player ${player.userId}:`, playerError);
+          console.error(
+            'Error processing expired match for player:',
+            playerError.message || playerError
+          );
         }
       }
 

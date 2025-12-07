@@ -46,8 +46,9 @@ class MatchAcceptanceManager {
     };
 
     await redis.setex(key, MATCH_ACCEPTANCE_TTL, JSON.stringify(acceptanceData));
+    // Log without exposing match ID for security
     // eslint-disable-next-line no-console
-    console.log(`Created match acceptance session for match ${matchId}`);
+    console.log('Created match acceptance session');
   }
 
   /**
@@ -147,9 +148,10 @@ class MatchAcceptanceManager {
 
         const data = JSON.parse(dataStr);
 
+        // Log without exposing match ID, user ID, or player IDs for security
         // eslint-disable-next-line no-console
         console.log(
-          `[acceptMatch] Match ${matchId}, User ${userId}: Current state (attempt ${retries + 1}) - P1: ${data.player1Id} (accepted: ${data.player1Accepted}), P2: ${data.player2Id} (accepted: ${data.player2Accepted})`
+          `[acceptMatch] Current state (attempt ${retries + 1}) - P1 accepted: ${data.player1Accepted}, P2 accepted: ${data.player2Accepted}`
         );
 
         // Check if already expired
@@ -163,9 +165,10 @@ class MatchAcceptanceManager {
         if (data.player1Id === userId && data.player1Accepted) {
           await redis.unwatch();
           const bothAccepted = data.player1Accepted && data.player2Accepted;
+          // Log without exposing IDs for security
           // eslint-disable-next-line no-console
           console.log(
-            `[acceptMatch] Match ${matchId}, User ${userId}: Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
+            `[acceptMatch] Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
           );
           return {
             success: true,
@@ -176,9 +179,10 @@ class MatchAcceptanceManager {
         if (data.player2Id === userId && data.player2Accepted) {
           await redis.unwatch();
           const bothAccepted = data.player1Accepted && data.player2Accepted;
+          // Log without exposing IDs for security
           // eslint-disable-next-line no-console
           console.log(
-            `[acceptMatch] Match ${matchId}, User ${userId}: Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
+            `[acceptMatch] Already accepted - P1: ${data.player1Accepted}, P2: ${data.player2Accepted}, Both: ${bothAccepted}`
           );
           return {
             success: true,
@@ -203,9 +207,10 @@ class MatchAcceptanceManager {
             latestData.player2Accepted !== data.player2Accepted;
 
           if (acceptanceChanged) {
+            // Log without exposing IDs for security
             // eslint-disable-next-line no-console
             console.log(
-              `[acceptMatch] Match ${matchId}, User ${userId}: ⚠️ ACCEPTANCE STATE CHANGED - latest (P1: ${latestData.player1Accepted}, P2: ${latestData.player2Accepted}) vs original (P1: ${data.player1Accepted}, P2: ${data.player2Accepted})`
+              `[acceptMatch] ⚠️ ACCEPTANCE STATE CHANGED - latest (P1: ${latestData.player1Accepted}, P2: ${latestData.player2Accepted}) vs original (P1: ${data.player1Accepted}, P2: ${data.player2Accepted})`
             );
           }
 
@@ -219,9 +224,10 @@ class MatchAcceptanceManager {
           };
 
           if (acceptanceChanged) {
+            // Log without exposing IDs for security
             // eslint-disable-next-line no-console
             console.log(
-              `[acceptMatch] Match ${matchId}, User ${userId}: Merged acceptance states - P1: ${sourceData.player1Accepted}, P2: ${sourceData.player2Accepted}`
+              `[acceptMatch] Merged acceptance states - P1: ${sourceData.player1Accepted}, P2: ${sourceData.player2Accepted}`
             );
           }
         }
@@ -235,14 +241,10 @@ class MatchAcceptanceManager {
           player2Accepted: sourceData.player2Id === userId ? true : sourceData.player2Accepted
         };
 
+        // Log without exposing IDs for security
         // eslint-disable-next-line no-console
         console.log(
-          `[acceptMatch] Match ${matchId}, User ${userId}: Final state before save - P1: ${sourceData.player1Id} (accepted: ${updatedData.player1Accepted}), P2: ${sourceData.player2Id} (accepted: ${updatedData.player2Accepted})`
-        );
-
-        // eslint-disable-next-line no-console
-        console.log(
-          `[acceptMatch] Match ${matchId}, User ${userId}: After update - P1 accepted: ${updatedData.player1Accepted}, P2 accepted: ${updatedData.player2Accepted}`
+          `[acceptMatch] Final state before save - P1 accepted: ${updatedData.player1Accepted}, P2 accepted: ${updatedData.player2Accepted}`
         );
 
         // Check if both players accepted
@@ -257,9 +259,10 @@ class MatchAcceptanceManager {
         // This means another player accepted concurrently - retry
         if (results === null) {
           retries++;
+          // Log without exposing IDs for security
           // eslint-disable-next-line no-console
           console.log(
-            `⚠ Race condition detected for match ${matchId}, retrying acceptMatch for user ${userId} (attempt ${retries}/${maxRetries})`
+            `⚠ Race condition detected, retrying acceptMatch (attempt ${retries}/${maxRetries})`
           );
           // Small delay before retry to allow the other transaction to complete
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -275,9 +278,10 @@ class MatchAcceptanceManager {
         }
 
         // Success - return the updated data
+        // Log without exposing IDs for security
         // eslint-disable-next-line no-console
         console.log(
-          `✓ [acceptMatch] Match ${matchId}, User ${userId}: Successfully saved - Final state - P1: ${updatedData.player1Id} (accepted: ${updatedData.player1Accepted}), P2: ${updatedData.player2Id} (accepted: ${updatedData.player2Accepted}), Both: ${bothAccepted}`
+          `✓ [acceptMatch] Successfully saved - P1 accepted: ${updatedData.player1Accepted}, P2 accepted: ${updatedData.player2Accepted}, Both: ${bothAccepted}`
         );
 
         return {
@@ -289,19 +293,21 @@ class MatchAcceptanceManager {
         try {
           await redis.unwatch();
         } catch (unwatchError) {
-          // Ignore unwatch errors
+          // Log unwatch error but continue with main error handling
+          // eslint-disable-next-line no-console
+          console.error('Error unwatching Redis key:', unwatchError.message || unwatchError);
         }
+        // Log error without exposing sensitive data
         // eslint-disable-next-line no-console
-        console.error(`Error in acceptMatch for match ${matchId}, user ${userId}:`, error);
+        console.error('Error in acceptMatch:', error.message || 'Unknown error');
         return { success: false, bothAccepted: false, data: null };
       }
     }
 
     // Max retries exceeded
+    // Log without exposing IDs for security
     // eslint-disable-next-line no-console
-    console.error(
-      `Max retries exceeded for acceptMatch on match ${matchId}, user ${userId}. Returning failure.`
-    );
+    console.error('Max retries exceeded for acceptMatch. Returning failure.');
     return { success: false, bothAccepted: false, data: null };
   }
 
@@ -363,8 +369,9 @@ class MatchAcceptanceManager {
     // Increment (creates key with value 1 if it doesn't exist)
     const count = await redis.incr(key);
     await redis.expire(key, TIMEOUT_COUNT_TTL);
+    // Log without exposing user ID for security
     // eslint-disable-next-line no-console
-    console.log(`Incremented timeout count for user ${userId}: ${previousCount} -> ${count}`);
+    console.log(`Incremented timeout count: ${previousCount} -> ${count}`);
     return count;
   }
 
@@ -389,8 +396,9 @@ class MatchAcceptanceManager {
     const redis = getRedisClient();
     const key = `${TIMEOUT_COUNT_PREFIX}${userId}`;
     await redis.del(key);
+    // Log without exposing user ID for security
     // eslint-disable-next-line no-console
-    console.log(`Reset timeout count for user ${userId}`);
+    console.log('Reset timeout count');
   }
 
   /**

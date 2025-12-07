@@ -83,7 +83,8 @@ class QueueManager {
     if (metadata && metadata.userId) {
       // If userId in metadata is different from playerId, return it
       // Otherwise, playerId itself is the userId
-      return metadata.userId !== playerId ? metadata.userId : playerId;
+      const userId = metadata.userId;
+      return userId === playerId ? playerId : userId;
     }
 
     // Fallback: assume playerId might be userId (for backward compatibility)
