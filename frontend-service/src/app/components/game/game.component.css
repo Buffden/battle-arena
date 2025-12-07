@@ -1,0 +1,133 @@
+.game-page {
+  min-height: 100vh;
+  background: var(--pixel-bg);
+  color: var(--pixel-text);
+}
+
+.game-main {
+  padding: 32px 0;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.game-header .pixel-title {
+  font-size: 32px;
+  margin-bottom: 8px;
+  text-shadow:
+    2px 2px 0 var(--pixel-shadow),
+    4px 4px 0 var(--pixel-primary);
+}
+
+.players-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.player-card {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 24px;
+  text-align: center;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.player-avatar {
+  font-size: 64px;
+  filter: drop-shadow(4px 4px 0 var(--pixel-shadow));
+}
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-label {
+  font-size: 10px;
+  color: var(--pixel-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-name {
+  font-size: 18px;
+  color: var(--pixel-primary);
+  text-shadow:
+    2px 2px 0 var(--pixel-shadow),
+    4px 4px 0 var(--pixel-text);
+  font-weight: bold;
+  word-break: break-word;
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.vs-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--pixel-primary);
+  text-shadow:
+    2px 2px 0 var(--pixel-shadow),
+    4px 4px 0 var(--pixel-text);
+  padding: 16px 24px;
+  background-color: var(--pixel-bg-darker);
+  border: 3px solid var(--pixel-text);
+  box-shadow:
+    0 0 0 3px var(--pixel-shadow),
+    0 4px 0 0 var(--pixel-shadow),
+    inset 4px 4px 0 0 var(--pixel-shadow);
+}
+
+.game-area {
+  padding: 48px;
+  text-align: center;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.game-placeholder .pixel-text {
+  font-size: 16px;
+  color: var(--pixel-text-dim);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .players-section {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .vs-divider {
+    transform: rotate(90deg);
+  }
+
+  .player-card {
+    max-width: 100%;
+  }
+}
