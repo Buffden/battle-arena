@@ -11,7 +11,7 @@ const {
   createGameRoomResponse,
   triggerHttpResponse,
   createEnvManager
-} = require('./test-helpers');
+} = require('./utils/test-helpers');
 
 // Mock dependencies
 jest.mock('node:http');
