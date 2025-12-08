@@ -80,8 +80,10 @@ describe('GameEngineClient', () => {
     it('should log security error when HTTP is used in production', () => {
       envManager.set('NODE_ENV', 'production');
       // SonarQube: Intentional HTTP usage for testing security warnings in production
+      // This test verifies that the security warning is correctly logged when HTTP is used
+      // NOSONAR: HTTP is intentionally used here to test the security warning mechanism
       // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      envManager.set('GAME_ENGINE_URL', 'http://nginx');
+      envManager.set('GAME_ENGINE_URL', 'http://nginx'); // NOSONAR
       jest.resetModules();
       require('../GameEngineClient');
 
