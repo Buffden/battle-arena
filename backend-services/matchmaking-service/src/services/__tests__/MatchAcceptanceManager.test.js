@@ -1,6 +1,12 @@
 const MatchAcceptanceManager = require('../MatchAcceptanceManager');
 const { getRedisClient } = require('../../config/redis.config');
-const { createConsoleSpies, restoreConsoleSpies } = require('./utils/test-helpers');
+const {
+  createConsoleSpies,
+  restoreConsoleSpies,
+  createMatchAcceptanceData,
+  createMockPipeline,
+  setupRedisMocksForAcceptance
+} = require('./utils/test-helpers');
 
 // Mock Redis client - must define inline (Jest doesn't allow out-of-scope vars in jest.mock)
 jest.mock('../../config/redis.config', () => {
@@ -139,17 +145,7 @@ describe('MatchAcceptanceManager', () => {
 
   describe('deleteMatchAcceptancesByUserId', () => {
     it('should delete match acceptance sessions for a user as player1', async () => {
-      const matchAcceptanceData = {
-        matchId: 'match-123',
-        player1Id: 'user123',
-        player2Id: 'user456',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
-        player1Accepted: false,
-        player2Accepted: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
+      const matchAcceptanceData = createMatchAcceptanceData();
 
       redis.keys.mockResolvedValue(['match:acceptance:match-123']);
       redis.get.mockResolvedValue(JSON.stringify(matchAcceptanceData));
@@ -165,17 +161,13 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should delete match acceptance sessions for a user as player2', async () => {
-      const matchAcceptanceData = {
+      const matchAcceptanceData = createMatchAcceptanceData({
         matchId: 'match-456',
         player1Id: 'user789',
         player2Id: 'user123',
         player1SocketId: 'socket3',
-        player2SocketId: 'socket4',
-        player1Accepted: false,
-        player2Accepted: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
+        player2SocketId: 'socket4'
+      });
 
       redis.keys.mockResolvedValue(['match:acceptance:match-456']);
       redis.get.mockResolvedValue(JSON.stringify(matchAcceptanceData));
@@ -188,29 +180,19 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should delete multiple match acceptance sessions for a user', async () => {
-      const match1 = {
+      const match1 = createMatchAcceptanceData({
         matchId: 'match-1',
         player1Id: 'user123',
-        player2Id: 'user456',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
-        player1Accepted: false,
-        player2Accepted: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
+        player2Id: 'user456'
+      });
 
-      const match2 = {
+      const match2 = createMatchAcceptanceData({
         matchId: 'match-2',
         player1Id: 'user789',
         player2Id: 'user123',
         player1SocketId: 'socket3',
-        player2SocketId: 'socket4',
-        player1Accepted: false,
-        player2Accepted: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
+        player2SocketId: 'socket4'
+      });
 
       redis.keys.mockResolvedValue([
         'match:acceptance:match-1',
@@ -402,13 +384,11 @@ describe('MatchAcceptanceManager', () => {
 
   describe('getMatchAcceptance', () => {
     it('should return match acceptance data', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
-        player2Id: 'user2',
-        player1Accepted: false,
-        player2Accepted: false
-      };
+        player2Id: 'user2'
+      });
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
       const result = await MatchAcceptanceManager.getMatchAcceptance('match-123');
@@ -428,12 +408,11 @@ describe('MatchAcceptanceManager', () => {
 
   describe('getMatchAcceptanceByUserId', () => {
     it('should return match acceptance for user as player1', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
-        player2Id: 'user2',
-        expiresAt: Date.now() + 20000
-      };
+        player2Id: 'user2'
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-123']);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
@@ -443,12 +422,11 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return match acceptance for user as player2', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
-        player2Id: 'user2',
-        expiresAt: Date.now() + 20000
-      };
+        player2Id: 'user2'
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-123']);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
@@ -458,12 +436,12 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return null when match is expired', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
         expiresAt: Date.now() - 1000 // Expired
-      };
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-123']);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
@@ -473,12 +451,11 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return null when user not in any match', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
-        player2Id: 'user2',
-        expiresAt: Date.now() + 20000
-      };
+        player2Id: 'user2'
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-123']);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
@@ -490,30 +467,18 @@ describe('MatchAcceptanceManager', () => {
 
   describe('acceptMatch', () => {
     it('should accept match for player1', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         gameRoomId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
-        player1Accepted: false,
-        player2Accepted: false,
         player1Rejected: false,
-        player2Rejected: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
-      redis.watch.mockResolvedValue('OK');
+        player2Rejected: false
+      });
       redis.get
         .mockResolvedValueOnce(JSON.stringify(acceptanceData)) // First read after WATCH
         .mockResolvedValueOnce(JSON.stringify(acceptanceData)); // Latest data read before update
-      redis.unwatch.mockResolvedValue('OK');
-      const mockPipeline = {
-        setex: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([[null, 'OK']]) // [error, result] format
-      };
-      redis.pipeline.mockReturnValue(mockPipeline);
+      setupRedisMocksForAcceptance(redis, acceptanceData);
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user1');
 
@@ -524,30 +489,18 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should accept match for player2', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         gameRoomId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
-        player1Accepted: false,
-        player2Accepted: false,
         player1Rejected: false,
-        player2Rejected: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
-      redis.watch.mockResolvedValue('OK');
+        player2Rejected: false
+      });
       redis.get
         .mockResolvedValueOnce(JSON.stringify(acceptanceData))
         .mockResolvedValueOnce(JSON.stringify(acceptanceData));
-      redis.unwatch.mockResolvedValue('OK');
-      const mockPipeline = {
-        setex: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([[null, 'OK']]) // [error, result] format
-      };
-      redis.pipeline.mockReturnValue(mockPipeline);
+      setupRedisMocksForAcceptance(redis, acceptanceData);
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user2');
 
@@ -558,30 +511,19 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return bothAccepted true when both players accept', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         gameRoomId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
         player1Accepted: true,
-        player2Accepted: false,
         player1Rejected: false,
-        player2Rejected: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
-      redis.watch.mockResolvedValue('OK');
+        player2Rejected: false
+      });
       redis.get
         .mockResolvedValueOnce(JSON.stringify(acceptanceData))
         .mockResolvedValueOnce(JSON.stringify(acceptanceData));
-      redis.unwatch.mockResolvedValue('OK');
-      const mockPipeline = {
-        setex: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([[null, 'OK']]) // [error, result] format
-      };
-      redis.pipeline.mockReturnValue(mockPipeline);
+      setupRedisMocksForAcceptance(redis, acceptanceData);
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user2');
 
@@ -592,9 +534,8 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return false when match not found', async () => {
-      redis.watch.mockResolvedValue('OK');
+      setupRedisMocksForAcceptance(redis, null);
       redis.get.mockResolvedValue(null);
-      redis.unwatch.mockResolvedValue('OK');
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user1');
 
@@ -604,16 +545,15 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return false when match expired', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
         expiresAt: Date.now() - 1000 // Expired
-      };
-      redis.watch.mockResolvedValue('OK');
+      });
+      setupRedisMocksForAcceptance(redis, acceptanceData);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
       redis.del.mockResolvedValue(1);
-      redis.unwatch.mockResolvedValue('OK');
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user1');
 
@@ -623,20 +563,14 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should handle race condition with retry', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         gameRoomId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
-        player1SocketId: 'socket1',
-        player2SocketId: 'socket2',
-        player1Accepted: false,
-        player2Accepted: false,
         player1Rejected: false,
-        player2Rejected: false,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 20000
-      };
+        player2Rejected: false
+      });
       redis.watch.mockResolvedValue('OK');
       redis.get
         .mockResolvedValueOnce(JSON.stringify(acceptanceData))
@@ -644,14 +578,9 @@ describe('MatchAcceptanceManager', () => {
         .mockResolvedValueOnce(JSON.stringify(acceptanceData))
         .mockResolvedValueOnce(JSON.stringify(acceptanceData));
       redis.unwatch.mockResolvedValue('OK');
-      const mockPipeline1 = {
-        setex: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue(null) // First attempt fails (race condition)
-      };
-      const mockPipeline2 = {
-        setex: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([[null, 'OK']]) // Second attempt succeeds
-      };
+      const mockPipeline1 = createMockPipeline();
+      mockPipeline1.exec.mockResolvedValue(null); // First attempt fails (race condition)
+      const mockPipeline2 = createMockPipeline(); // Second attempt succeeds
       redis.pipeline.mockReturnValueOnce(mockPipeline1).mockReturnValueOnce(mockPipeline2);
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user1');
@@ -661,17 +590,14 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return idempotent result when already accepted', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
-        player1Accepted: true,
-        player2Accepted: false,
-        expiresAt: Date.now() + 20000
-      };
-      redis.watch.mockResolvedValue('OK');
+        player1Accepted: true
+      });
+      setupRedisMocksForAcceptance(redis, acceptanceData);
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
-      redis.unwatch.mockResolvedValue('OK');
 
       const result = await MatchAcceptanceManager.acceptMatch('match-123', 'user1');
 
@@ -683,14 +609,13 @@ describe('MatchAcceptanceManager', () => {
 
   describe('rejectMatch', () => {
     it('should reject match for player1', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
         player1Rejected: false,
-        player2Rejected: false,
-        expiresAt: Date.now() + 20000
-      };
+        player2Rejected: false
+      });
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
       redis.setex.mockResolvedValue('OK');
 
@@ -703,14 +628,13 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should reject match for player2', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
         player1Rejected: false,
-        player2Rejected: false,
-        expiresAt: Date.now() + 20000
-      };
+        player2Rejected: false
+      });
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
       redis.setex.mockResolvedValue('OK');
 
@@ -731,12 +655,11 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return false when user not in match', async () => {
-      const acceptanceData = {
+      const acceptanceData = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
-        player2Id: 'user2',
-        expiresAt: Date.now() + 20000
-      };
+        player2Id: 'user2'
+      });
       redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
 
       const result = await MatchAcceptanceManager.rejectMatch('match-123', 'user999');
@@ -758,18 +681,18 @@ describe('MatchAcceptanceManager', () => {
 
   describe('cleanupExpiredAcceptances', () => {
     it('should cleanup expired match acceptances', async () => {
-      const expiredMatch = {
+      const expiredMatch = createMatchAcceptanceData({
         matchId: 'match-123',
         player1Id: 'user1',
         player2Id: 'user2',
         expiresAt: Date.now() - 1000 // Expired
-      };
-      const activeMatch = {
+      });
+      const activeMatch = createMatchAcceptanceData({
         matchId: 'match-456',
         player1Id: 'user3',
         player2Id: 'user4',
         expiresAt: Date.now() + 20000 // Not expired
-      };
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-123', 'match:acceptance:match-456']);
       redis.get
         .mockResolvedValueOnce(JSON.stringify(expiredMatch))
@@ -785,12 +708,12 @@ describe('MatchAcceptanceManager', () => {
     });
 
     it('should return empty array when no expired matches', async () => {
-      const activeMatch = {
+      const activeMatch = createMatchAcceptanceData({
         matchId: 'match-456',
         player1Id: 'user3',
         player2Id: 'user4',
         expiresAt: Date.now() + 20000
-      };
+      });
       redis.keys.mockResolvedValue(['match:acceptance:match-456']);
       redis.get.mockResolvedValue(JSON.stringify(activeMatch));
 

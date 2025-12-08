@@ -204,7 +204,7 @@ describe('GameEngineClient', () => {
       expect(mockRequest.end).toHaveBeenCalled();
     });
 
-    it('should create game room successfully with HTTPS', async () => {
+    it('should create game room with custom match data', async () => {
       envManager.set('GAME_ENGINE_URL', 'https://nginx');
       jest.resetModules();
 

@@ -211,6 +211,27 @@ function createPlayers(count = 2, options = {}) {
 }
 
 /**
+ * Creates match acceptance data for testing
+ * @param {Object} overrides - Properties to override defaults
+ * @returns {Object} Match acceptance data object
+ */
+function createMatchAcceptanceData(overrides = {}) {
+  const now = Date.now();
+  return {
+    matchId: 'match-123',
+    player1Id: 'user123',
+    player2Id: 'user456',
+    player1SocketId: 'socket1',
+    player2SocketId: 'socket2',
+    player1Accepted: false,
+    player2Accepted: false,
+    createdAt: now,
+    expiresAt: now + 20000,
+    ...overrides
+  };
+}
+
+/**
  * Saves and restores environment variables
  * @returns {Object} Object with save and restore methods
  */
@@ -248,6 +269,42 @@ function setupHttpMocksAfterReset(httpModule, httpsModule, mockRequest) {
   return setupHttpMocks(httpModule, httpsModule, mockRequest);
 }
 
+/**
+ * Creates a mock Redis pipeline for testing
+ * @returns {Object} Mock pipeline object
+ */
+function createMockPipeline() {
+  return {
+    setex: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue([[null, 'OK']]) // [error, result] format
+  };
+}
+
+/**
+ * Sets up common Redis mocks for match acceptance tests
+ * @param {Object} redis - Mock Redis client
+ * @param {Object} acceptanceData - Match acceptance data
+ * @param {Object} options - Options for setup
+ * @param {boolean} options.watch - Whether to mock watch
+ * @param {boolean} options.unwatch - Whether to mock unwatch
+ * @param {Object} options.pipeline - Custom pipeline mock
+ * @returns {Object} Mock pipeline
+ */
+function setupRedisMocksForAcceptance(redis, acceptanceData, options = {}) {
+  if (options.watch !== false) {
+    redis.watch.mockResolvedValue('OK');
+  }
+  if (options.unwatch !== false) {
+    redis.unwatch.mockResolvedValue('OK');
+  }
+  if (acceptanceData) {
+    redis.get.mockResolvedValue(JSON.stringify(acceptanceData));
+  }
+  const pipeline = options.pipeline || createMockPipeline();
+  redis.pipeline.mockReturnValue(pipeline);
+  return pipeline;
+}
+
 module.exports = {
   createMockRequest,
   createMockResponse,
@@ -261,5 +318,8 @@ module.exports = {
   createMockRedis,
   createPlayerData,
   createPlayers,
+  createMatchAcceptanceData,
+  createMockPipeline,
+  setupRedisMocksForAcceptance,
   createEnvManager
 };
