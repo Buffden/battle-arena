@@ -1,7 +1,7 @@
 const QueueManager = require('../QueueManager');
 const { getRedisClient } = require('../../config/redis.config');
 
-// Mock Redis client
+// Mock Redis client - must define inline (Jest doesn't allow out-of-scope vars in jest.mock)
 jest.mock('../../config/redis.config', () => {
   const mockRedis = {
     zadd: jest.fn(),

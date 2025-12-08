@@ -1,6 +1,7 @@
 const MatchmakingEngine = require('../MatchmakingEngine');
 const queueManager = require('../QueueManager');
 const gameEngineClient = require('../GameEngineClient');
+const { createPlayers } = require('./utils/test-helpers');
 
 // Mock dependencies
 jest.mock('../QueueManager');
@@ -10,7 +11,6 @@ describe('MatchmakingEngine', () => {
   let matchAcceptanceManager;
 
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
 
     // Create a mock MatchAcceptanceManager
@@ -37,9 +37,7 @@ describe('MatchmakingEngine', () => {
 
   describe('getFirstTwoAvailablePlayers', () => {
     it('should return null when queue has less than 2 players', async () => {
-      queueManager.getAllPlayersWithSockets.mockResolvedValue([
-        { playerId: 'player1', socketId: 'socket1' }
-      ]);
+      queueManager.getAllPlayersWithSockets.mockResolvedValue(createPlayers(1));
 
       const result = await MatchmakingEngine.getFirstTwoAvailablePlayers();
 
@@ -56,19 +54,12 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should return first two players when matchAcceptanceManager is not set', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' },
-        { playerId: 'player3', socketId: 'socket3' }
-      ];
+      const players = createPlayers(3);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
 
       const result = await MatchmakingEngine.getFirstTwoAvailablePlayers();
 
-      expect(result).toEqual([
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ]);
+      expect(result).toEqual(createPlayers(2));
       expect(matchAcceptanceManager.getMatchAcceptanceByUserId).not.toHaveBeenCalled();
     });
 

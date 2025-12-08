@@ -193,14 +193,21 @@ function createPlayerData(overrides = {}) {
 /**
  * Creates an array of players for testing
  * @param {number} count - Number of players to create
+ * @param {Object} options - Options for player creation
+ * @param {boolean} options.includeUserId - Whether to include userId property
  * @returns {Array} Array of player objects
  */
-function createPlayers(count = 2) {
-  return Array.from({ length: count }, (_, i) => ({
-    playerId: `player${i + 1}`,
-    socketId: `socket${i + 1}`,
-    userId: `user${i + 1}`
-  }));
+function createPlayers(count = 2, options = {}) {
+  return Array.from({ length: count }, (_, i) => {
+    const player = {
+      playerId: `player${i + 1}`,
+      socketId: `socket${i + 1}`
+    };
+    if (options.includeUserId) {
+      player.userId = `user${i + 1}`;
+    }
+    return player;
+  });
 }
 
 /**

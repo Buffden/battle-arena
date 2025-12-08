@@ -1,7 +1,8 @@
 const MatchAcceptanceManager = require('../MatchAcceptanceManager');
 const { getRedisClient } = require('../../config/redis.config');
+const { createConsoleSpies, restoreConsoleSpies } = require('./utils/test-helpers');
 
-// Mock Redis client
+// Mock Redis client - must define inline (Jest doesn't allow out-of-scope vars in jest.mock)
 jest.mock('../../config/redis.config', () => {
   const mockRedis = {
     get: jest.fn(),
@@ -25,19 +26,16 @@ jest.mock('../../config/redis.config', () => {
 
 describe('MatchAcceptanceManager', () => {
   let redis;
-  let consoleLogSpy;
-  let consoleErrorSpy;
+  let consoleSpies;
 
   beforeEach(() => {
     jest.clearAllMocks();
     redis = getRedisClient();
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleSpies = createConsoleSpies();
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    restoreConsoleSpies(consoleSpies);
   });
 
   describe('incrementTimeoutCount', () => {
