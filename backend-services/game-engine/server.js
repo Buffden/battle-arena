@@ -57,7 +57,16 @@ app.post('/api/game/create-room', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Game engine service running on port ${PORT}`);
-});
+// Export app for testing
+module.exports = app;
+
+// Only start server if this is the main module (not being imported for tests)
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Game engine service running on port ${PORT}`);
+  });
+
+  // Export server for graceful shutdown if needed
+  module.exports.server = server;
+}
