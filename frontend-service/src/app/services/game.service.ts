@@ -17,6 +17,11 @@ export class GameService {
   private socket: Socket | null = null;
   private readonly gameStateSubject = new BehaviorSubject<GameState | null>(null);
   private readonly gameErrorSubject = new Subject<GameErrorEvent>();
+  private readonly gameJoinedSubject = new BehaviorSubject<{
+    matchId: string;
+    message: string;
+  } | null>(null);
+  public readonly gameJoined$ = this.gameJoinedSubject.asObservable();
   private isConnected = false;
   private currentMatchId: string | null = null;
 
@@ -105,15 +110,18 @@ export class GameService {
             clearTimeout(connectTimeout);
             connectTimeout = null;
           }
+          // Only remove connection-related listeners, NOT game event listeners
+          // Game event listeners should remain active throughout the game session
           if (this.socket) {
             this.socket.off('connect', onConnect);
             this.socket.off('connect_error', onConnectError);
-            this.socket.off('game-joined', onGameJoined);
+            // Don't remove game-joined here - it might be needed after connection
           }
         };
 
         const cleanupAll = () => {
           cleanup();
+          // Only cleanup all listeners when disconnecting completely
           if (this.socket) {
             this.socket.off('game-joined', onGameJoined);
             this.socket.off('game-started', onGameStarted);
@@ -140,15 +148,38 @@ export class GameService {
             );
             console.log('Socket transport:', (this.socket as any).io?.engine?.transport?.name);
             console.log('Socket.io URI:', (this.socket as any).io?.uri);
+
+            // Test: Try to receive a test event to verify connection
+            console.log('=== GameService: Testing event reception ===');
+            // The onAny listener should catch this if events are working
           }
 
-          // Send join-game event with matchId and token (similar to matchmaking's join-queue)
+          // Send join-game event with matchId, token, userId, and heroId
+          // This allows backend to initialize game state with correct player info
           if (this.socket && matchId) {
+            const userId = this.authService.getUserIdFromToken();
+            // TODO: Get heroId from match data or user profile
+            // For now, use default heroId - this should come from matchmaking match data
+            // When hero selection is implemented, this should be retrieved from:
+            // 1. Match data passed from matchmaking component
+            // 2. User profile/preferences
+            // 3. Matchmaking service match details
+            const heroId = 'default-hero';
+
             this.socket.emit('join-game', {
               matchId,
-              token
+              token,
+              userId,
+              heroId
             });
-            console.log('Sent join-game event for match:', matchId);
+            console.log(
+              'Sent join-game event for match:',
+              matchId,
+              'userId:',
+              userId,
+              'heroId:',
+              heroId
+            );
           }
 
           observer.next(true);
@@ -191,12 +222,21 @@ export class GameService {
         const onGameJoined = (data: { matchId: string; message: string }) => {
           console.log('=== GameService: Successfully joined game ===');
           console.log('Game joined data:', data);
-          // Connection is now fully established
+          // Emit to subscribers so components can show "Waiting for opponent..." message
+          this.gameJoinedSubject.next(data);
+          console.log('=== GameService: Emitted game-joined to subscribers ===');
         };
 
         const onGameStarted = (event: GameStartedEvent) => {
+          console.log('=== GameService: Received game-started event ===');
+          console.log('Game started event:', event);
           if (event.gameState) {
+            console.log('=== GameService: Updating game state ===');
+            console.log('Game state:', event.gameState);
             this.gameStateSubject.next(event.gameState);
+            console.log('=== GameService: Game state updated in subject ===');
+          } else {
+            console.warn('=== GameService: game-started event missing gameState ===');
           }
         };
 
@@ -223,13 +263,38 @@ export class GameService {
         };
 
         // Register event listeners
+        console.log('=== GameService: Registering event listeners ===');
         this.socket.on('connect', onConnect);
         this.socket.on('connect_error', onConnectError);
         this.socket.on('game-joined', onGameJoined);
-        this.socket.on('game-started', onGameStarted);
+
+        // Add explicit logging for game-started listener
+        this.socket.on('game-started', (event: GameStartedEvent) => {
+          console.log('=== GameService: game-started listener triggered! ===');
+          console.log('Raw event received:', event);
+          onGameStarted(event);
+        });
+
         this.socket.on('game-state-update', onGameStateUpdate);
         this.socket.on('game-error', onGameError);
         this.socket.on('disconnect', onDisconnect);
+
+        // Test: Listen to all events to see if ANY events are being received
+        this.socket.onAny((eventName, ...args) => {
+          console.log(`=== GameService: Received ANY event: ${eventName} ===`, args);
+        });
+
+        // Also listen for test event
+        this.socket.on('test-event', data => {
+          console.log('=== GameService: Received test-event ===', data);
+        });
+
+        console.log('=== GameService: All event listeners registered ===');
+        console.log('Registered listeners:', {
+          'game-joined': !!onGameJoined,
+          'game-started': !!onGameStarted,
+          'game-state-update': !!onGameStateUpdate
+        });
 
         // Return cleanup function
         return () => {
@@ -285,6 +350,7 @@ export class GameService {
     this.isConnected = false;
     this.currentMatchId = null;
     this.gameStateSubject.next(null);
+    this.gameJoinedSubject.next(null); // Reset game-joined state
   }
 
   /**
