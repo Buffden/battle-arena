@@ -23,9 +23,10 @@ RUN apk add --no-cache wget && \
 COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
-# Only copy server.js - no src/ directory needed as server.js is standalone
+# Copy server.js and src/ directory (server.js now requires modules from src/)
 # Set read-only permissions for security (no write/execute needed - Node.js interprets, not executes)
 COPY --chown=nodejs:nodejs --chmod=444 server.js ./
+COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/
 
 # Switch to non-root user
 USER nodejs
