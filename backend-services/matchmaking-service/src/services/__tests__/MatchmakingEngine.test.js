@@ -194,10 +194,7 @@ describe('MatchmakingEngine', () => {
 
   describe('createMatchObject', () => {
     it('should create a match object with correct structure', () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       const match = MatchmakingEngine.createMatchObject(players);
 
@@ -220,10 +217,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should generate unique match IDs', () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       const match1 = MatchmakingEngine.createMatchObject(players);
       // Small delay to ensure different timestamp
@@ -233,10 +227,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should assign default hero ID to all players', () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       const match = MatchmakingEngine.createMatchObject(players);
 
@@ -245,10 +236,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should handle players with userId property', () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1', userId: 'user1' },
-        { playerId: 'player2', socketId: 'socket2', userId: 'user2' }
-      ];
+      const players = createPlayers(2, { includeUserId: true });
 
       const match = MatchmakingEngine.createMatchObject(players);
 
@@ -314,10 +302,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should create match and return it when Game Engine succeeds', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       queueManager.getQueueLength.mockResolvedValue(2);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
@@ -349,10 +334,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should return match even when Game Engine fails (with error logged)', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       queueManager.getQueueLength.mockResolvedValue(2);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
@@ -410,10 +392,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should handle errors from gameEngineClient.createGameRoom', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       const error = new Error('Game Engine request failed');
       queueManager.getQueueLength.mockResolvedValue(2);
@@ -433,10 +412,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should handle errors from createMatchObject', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       queueManager.getQueueLength.mockResolvedValue(2);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
@@ -462,10 +438,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should use gameRoomId from Game Engine response when provided', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       queueManager.getQueueLength.mockResolvedValue(2);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
@@ -481,10 +454,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should handle queue with exactly 2 players', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' }
-      ];
+      const players = createPlayers(2);
 
       queueManager.getQueueLength.mockResolvedValue(2);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
@@ -501,11 +471,7 @@ describe('MatchmakingEngine', () => {
     });
 
     it('should handle queue with more than 2 players', async () => {
-      const players = [
-        { playerId: 'player1', socketId: 'socket1' },
-        { playerId: 'player2', socketId: 'socket2' },
-        { playerId: 'player3', socketId: 'socket3' }
-      ];
+      const players = createPlayers(3);
 
       queueManager.getQueueLength.mockResolvedValue(3);
       queueManager.getAllPlayersWithSockets.mockResolvedValue(players);
