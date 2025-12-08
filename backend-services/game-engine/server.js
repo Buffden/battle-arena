@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('node:http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const gameStateManager = require('./src/services/GameStateManager');
+const gameConfig = require('./src/config/game.config');
+const TurnManager = require('./src/services/TurnManager');
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5002;
@@ -24,6 +27,9 @@ const io = new Server(server, {
   },
   path: '/ws/game'
 });
+
+// Initialize turn manager after io is created
+const turnManager = new TurnManager(io);
 
 // Express CORS middleware (should be after Socket.io initialization, like in matchmaking service)
 app.use(
@@ -97,6 +103,9 @@ io.engine.on('connection_error', err => {
   console.error('Context:', err.context);
 });
 
+// Player tracking: matchId -> Map<userId, { socketId, userId, heroId }>
+const playerTracking = new Map();
+
 // Socket.io connection handling
 io.on('connection', socket => {
   // eslint-disable-next-line no-console
@@ -117,9 +126,11 @@ io.on('connection', socket => {
     try {
       const matchId = data?.matchId;
       const token = data?.token;
+      const userId = data?.userId;
+      const heroId = data?.heroId || 'default-hero';
 
       // eslint-disable-next-line no-console
-      console.log('Join game request:', { matchId, hasToken: !!token });
+      console.log('Join game request:', { matchId, userId, heroId, hasToken: !!token });
 
       if (!matchId) {
         // eslint-disable-next-line no-console
@@ -127,6 +138,16 @@ io.on('connection', socket => {
         socket.emit('game-error', {
           error: 'Invalid request',
           message: 'matchId is required'
+        });
+        return;
+      }
+
+      if (!userId) {
+        // eslint-disable-next-line no-console
+        console.warn('Join-game called without userId');
+        socket.emit('game-error', {
+          error: 'Invalid request',
+          message: 'userId is required'
         });
         return;
       }
@@ -143,12 +164,113 @@ io.on('connection', socket => {
       // eslint-disable-next-line no-console
       console.log(`Client joined match room: match:${matchId}`);
 
-      // TODO: Initialize game state and emit 'game-started' event
-      // For now, just confirm the join
-      socket.emit('game-joined', {
-        matchId,
-        message: 'Successfully joined game room'
+      // Track player
+      if (!playerTracking.has(matchId)) {
+        playerTracking.set(matchId, new Map());
+      }
+      const matchPlayers = playerTracking.get(matchId);
+
+      // Store player info
+      matchPlayers.set(userId, {
+        socketId: socket.id,
+        userId,
+        heroId
       });
+
+      const connectedPlayers = Array.from(matchPlayers.values());
+
+      // eslint-disable-next-line no-console
+      console.log(`Match ${matchId}: ${connectedPlayers.length} player(s) connected`);
+
+      if (connectedPlayers.length === 1) {
+        // First player - just confirm join
+        socket.emit('game-joined', {
+          matchId,
+          message: 'Waiting for opponent...'
+        });
+      } else if (connectedPlayers.length === 2) {
+        // Both players joined - initialize game
+        // eslint-disable-next-line no-console
+        console.log(`Both players joined match ${matchId}, initializing game state...`);
+
+        const players = connectedPlayers.map(p => ({
+          userId: p.userId,
+          heroId: p.heroId
+        }));
+
+        // Initialize game state
+        const gameState = gameStateManager.initializeGameState(matchId, players);
+        gameState.gameStatus = gameConfig.game.activeStatus;
+
+        // eslint-disable-next-line no-console
+        console.log('Game state initialized:', {
+          matchId,
+          player1: gameState.player1.userId,
+          player2: gameState.player2.userId,
+          currentTurn: gameState.currentTurn
+        });
+
+        // Use setImmediate to ensure both sockets have fully joined the room
+        // This prevents race conditions where the event is emitted before the second socket joins
+        setImmediate(() => {
+          // Verify both sockets are in the room before emitting
+          const room = io.sockets.adapter.rooms.get(`match:${matchId}`);
+          const socketCount = room ? room.size : 0;
+          // eslint-disable-next-line no-console
+          console.log(
+            `Room 'match:${matchId}' has ${socketCount} socket(s) before emitting game-started`
+          );
+
+          // Emit game-started event to all players in the match room
+          const eventData = {
+            matchId,
+            gameRoomId: matchId,
+            gameState
+          };
+
+          // eslint-disable-next-line no-console
+          console.log("Emitting 'game-started' with data:", JSON.stringify(eventData, null, 2));
+
+          io.to(`match:${matchId}`).emit('game-started', eventData);
+
+          // Also try emitting directly to each socket as a fallback
+          connectedPlayers.forEach(player => {
+            const playerSocket = io.sockets.sockets.get(player.socketId);
+            if (playerSocket) {
+              // eslint-disable-next-line no-console
+              console.log(`Also emitting 'game-started' directly to socket ${player.socketId}`);
+              // eslint-disable-next-line no-console
+              console.log(
+                `Socket ${player.socketId} connected: ${playerSocket.connected}, rooms:`,
+                Array.from(playerSocket.rooms)
+              );
+              playerSocket.emit('game-started', eventData);
+
+              // Also try a test event to verify the socket can receive events
+              playerSocket.emit('test-event', { message: 'test' });
+            } else {
+              // eslint-disable-next-line no-console
+              console.warn(`Socket ${player.socketId} not found for direct emission`);
+            }
+          });
+
+          // eslint-disable-next-line no-console
+          console.log(`Emitted 'game-started' event to all players in match:${matchId}`);
+        });
+
+        // Start turn timer
+        turnManager.startTurn(matchId);
+        // eslint-disable-next-line no-console
+        console.log(`Started turn timer for match:${matchId}`);
+      } else {
+        // More than 2 players (shouldn't happen, but handle gracefully)
+        // eslint-disable-next-line no-console
+        console.warn(`Match ${matchId} has ${connectedPlayers.length} players (expected 2)`);
+        socket.emit('game-error', {
+          error: 'Match full',
+          message: 'This match already has 2 players'
+        });
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error handling join-game:', error);
@@ -163,6 +285,28 @@ io.on('connection', socket => {
   socket.on('disconnect', reason => {
     // eslint-disable-next-line no-console
     console.log(`Client disconnected, reason: ${reason}`);
+
+    // Remove player from tracking
+    for (const [matchId, players] of playerTracking.entries()) {
+      for (const [userId, playerData] of players.entries()) {
+        if (playerData.socketId === socket.id) {
+          players.delete(userId);
+          // eslint-disable-next-line no-console
+          console.log(`Removed player ${userId} from match ${matchId} tracking`);
+
+          // Clean up empty match tracking
+          if (players.size === 0) {
+            playerTracking.delete(matchId);
+            // Clean up game state and turn timer
+            gameStateManager.deleteGameState(matchId);
+            turnManager.cleanup(matchId);
+            // eslint-disable-next-line no-console
+            console.log(`Removed empty match tracking for ${matchId}`);
+          }
+          break;
+        }
+      }
+    }
   });
 
   // Handle connection errors
