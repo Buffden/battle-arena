@@ -92,7 +92,7 @@ describe('GameEngineClient', () => {
 
   describe('Constructor', () => {
     it('should load baseUrl from config', () => {
-      expect(GameEngineClient.baseUrl).toBe('http://nginx');
+      expect(GameEngineClient.baseUrl).toBe('https://nginx');
     });
 
     it('should load timeout from config', () => {
@@ -108,6 +108,7 @@ describe('GameEngineClient', () => {
 
     it('should log security error when HTTP is used in production', () => {
       process.env.NODE_ENV = 'production';
+      process.env.GAME_ENGINE_URL = 'http://nginx';
       jest.resetModules();
       require('../GameEngineClient');
 
@@ -128,11 +129,13 @@ describe('GameEngineClient', () => {
 
     it('should not log warnings in development with HTTP', () => {
       process.env.NODE_ENV = 'development';
+      process.env.GAME_ENGINE_URL = 'http://nginx';
       jest.resetModules();
-      require('../GameEngineClient');
+      const devClient = require('../GameEngineClient');
 
       expect(consoleErrorSpy).not.toHaveBeenCalled();
       expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(devClient.baseUrl).toBe('http://nginx');
     });
   });
 
@@ -185,6 +188,11 @@ describe('GameEngineClient', () => {
     });
 
     it('should use http module for http:// URLs', async () => {
+      // Set HTTP URL explicitly for this test (local development scenario)
+      process.env.GAME_ENGINE_URL = 'http://nginx';
+      jest.resetModules();
+      const httpClient = require('../GameEngineClient');
+
       const httpMock = require('node:http');
       httpMock.request.mockImplementation((options, callback) => {
         if (callback) {
@@ -207,7 +215,7 @@ describe('GameEngineClient', () => {
         matchId: 'match-http-test'
       });
 
-      const promise = GameEngineClient.createGameRoom(matchData);
+      const promise = httpClient.createGameRoom(matchData);
 
       setImmediate(() => {
         if (responseCallback) {
@@ -227,6 +235,32 @@ describe('GameEngineClient', () => {
 
   describe('createGameRoom', () => {
     it('should create game room successfully with HTTP', async () => {
+      // Set HTTP URL explicitly for this test (local development scenario)
+      process.env.GAME_ENGINE_URL = 'http://nginx';
+      jest.resetModules();
+
+      // Re-require http and https after reset (they're mocked)
+      const httpMock = require('node:http');
+      const httpsMock = require('node:https');
+
+      // Re-setup http.request mock - capture callback
+      httpMock.request.mockImplementation((options, callback) => {
+        if (callback) {
+          responseCallback = callback;
+        }
+        return mockRequest;
+      });
+
+      // Setup https.request mock
+      httpsMock.request.mockImplementation((options, callback) => {
+        if (callback) {
+          responseCallback = callback;
+        }
+        return mockRequest;
+      });
+
+      const httpClient = require('../GameEngineClient');
+
       const matchData = {
         matchId: 'match-123',
         players: [
@@ -241,7 +275,7 @@ describe('GameEngineClient', () => {
         matchId: 'match-123'
       });
 
-      const promise = GameEngineClient.createGameRoom(matchData);
+      const promise = httpClient.createGameRoom(matchData);
 
       // Trigger response callback first (this sets up the handlers)
       setImmediate(() => {
@@ -257,7 +291,6 @@ describe('GameEngineClient', () => {
 
       const result = await promise;
 
-      const httpMock = require('node:http');
       expect(result.success).toBe(true);
       expect(result.gameRoomId).toBe('room-123');
       expect(result.matchId).toBe('match-123');
@@ -492,6 +525,32 @@ describe('GameEngineClient', () => {
     });
 
     it('should send correct request options', async () => {
+      // Set HTTP URL explicitly for this test (local development scenario)
+      process.env.GAME_ENGINE_URL = 'http://nginx';
+      jest.resetModules();
+
+      // Re-require http and https after reset (they're mocked)
+      const httpMock = require('node:http');
+      const httpsMock = require('node:https');
+
+      // Re-setup http.request mock - capture callback
+      httpMock.request.mockImplementation((options, callback) => {
+        if (callback) {
+          responseCallback = callback;
+        }
+        return mockRequest;
+      });
+
+      // Setup https.request mock
+      httpsMock.request.mockImplementation((options, callback) => {
+        if (callback) {
+          responseCallback = callback;
+        }
+        return mockRequest;
+      });
+
+      const httpClient = require('../GameEngineClient');
+
       const matchData = {
         matchId: 'match-options',
         players: [
@@ -506,7 +565,7 @@ describe('GameEngineClient', () => {
         matchId: 'match-options'
       });
 
-      const promise = GameEngineClient.createGameRoom(matchData);
+      const promise = httpClient.createGameRoom(matchData);
 
       setImmediate(() => {
         if (responseCallback) {

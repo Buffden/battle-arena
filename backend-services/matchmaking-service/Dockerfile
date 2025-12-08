@@ -22,6 +22,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy dependencies from build stage (read+execute only, no write for security)
 # node_modules don't need write access at runtime - packages are already installed
+# chmod=555 = r-xr-xr-x (read+execute, no write permissions) - prevents modification at runtime
 COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)

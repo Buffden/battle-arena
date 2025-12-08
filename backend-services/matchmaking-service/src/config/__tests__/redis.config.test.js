@@ -83,7 +83,9 @@ describe('Redis Config', () => {
 
       process.env.REDIS_HOST = 'custom-host';
       process.env.REDIS_PORT = '6380';
-      process.env.REDIS_PASSWORD = 'password123';
+      // Test password - not a real credential, only used in test environment
+      // eslint-disable-next-line sonarjs/no-hardcoded-credentials
+      process.env.REDIS_PASSWORD = 'test-password-123';
       process.env.REDIS_DB = '1';
 
       jest.resetModules();
@@ -97,7 +99,7 @@ describe('Redis Config', () => {
       const callArgs = Redis.mock.calls[0][0];
       expect(callArgs.host).toBe('custom-host');
       expect(callArgs.port).toBe(6380);
-      expect(callArgs.password).toBe('password123');
+      expect(callArgs.password).toBe('test-password-123');
       expect(callArgs.db).toBe(1);
     });
 
