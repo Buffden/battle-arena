@@ -22,17 +22,19 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy dependencies from build stage (read+execute only, no write for security)
 # node_modules don't need write access at runtime - packages are already installed
-# chmod=555 = r-xr-xr-x (read+execute, no write permissions) - prevents modification at runtime
-COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
+# Copy as root, set permissions, then change ownership to ensure no write permissions
+COPY --from=build /app/node_modules ./node_modules
+RUN chmod -R 555 ./node_modules && chown -R nodejs:nodejs ./node_modules # NOSONAR
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
 # Copy server.js and src/ directory
-# Security: Remove write permissions after copy to prevent modification at runtime
-COPY --chown=nodejs:nodejs server.js ./
-RUN chmod 444 ./server.js # NOSONAR
+# Security: Copy as root, set read-only permissions, then change ownership
+# This ensures write permissions are never assigned to nodejs user
+COPY server.js ./
+RUN chmod 444 ./server.js && chown nodejs:nodejs ./server.js # NOSONAR
 
-COPY --chown=nodejs:nodejs src/ ./src/
-RUN chmod -R 555 ./src # NOSONAR
+COPY src/ ./src/
+RUN chmod -R 555 ./src && chown -R nodejs:nodejs ./src # NOSONAR
 
 # Switch to non-root user
 USER nodejs
