@@ -23,15 +23,18 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy dependencies from build stage (read+execute only, no write for security)
 # node_modules don't need write access at runtime - packages are already installed
 # SonarQube: Using --chmod=555 to explicitly set read+execute, no write permissions
-COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules # NOSONAR
+# NOSONAR: Write permissions are intentionally excluded (555 = no write access)
+COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
 # Copy server.js and src/ directory
 # Security: Set read-only permissions explicitly in COPY to prevent modification at runtime
 # SonarQube: Using --chmod=444/555 to explicitly exclude write permissions
-COPY --chown=nodejs:nodejs --chmod=444 server.js ./ # NOSONAR
+# NOSONAR: Write permissions are intentionally excluded (444/555 = no write access)
+COPY --chown=nodejs:nodejs --chmod=444 server.js ./
 
-COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/ # NOSONAR
+# NOSONAR: Write permissions are intentionally excluded (555 = no write access)
+COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/
 
 # Switch to non-root user
 USER nodejs
