@@ -85,6 +85,22 @@ module.exports = {
     defaultHeroId: process.env.DEFAULT_HERO_ID || 'default-hero'
   },
 
+  // External Service URLs
+  services: {
+    // Game Engine Service URL (base URL, not full endpoint)
+    // Should be set via GAME_ENGINE_URL environment variable
+    // For internal service-to-service communication, use nginx API gateway for consistency
+    // Format: http://nginx (through nginx) or http://game-engine:5002 (direct, not recommended)
+    // Default: http://nginx (through nginx API gateway - recommended)
+    // For production, set: GAME_ENGINE_URL=https://nginx (through nginx with HTTPS)
+    // Note: The full endpoint path (/api/game/create-room) is appended in GameEngineClient
+    // Note: Direct service calls bypass nginx but are faster. Use nginx for consistency and security.
+    gameEngineUrl: process.env.GAME_ENGINE_URL || 'http://nginx',
+
+    // Request timeout for Game Engine Service (milliseconds)
+    gameEngineTimeoutMs: Number.parseInt(process.env.GAME_ENGINE_TIMEOUT_MS || '5000', 10) // 5 seconds
+  },
+
   // Messages (User-facing)
   messages: {
     queueTimeout: 'Queue session timed out after 1 minute. Please try again.',

@@ -1,15 +1,41 @@
 const http = require('node:http');
+const https = require('node:https');
+const matchmakingConfig = require('../config/matchmaking.config');
 
 /**
- * GameEngineClient handles HTTP communication with Game Engine Service
+ * GameEngineClient handles HTTP/HTTPS communication with Game Engine Service
+ *
+ * Security: HTTPS is strongly recommended for all environments.
+ * HTTP should only be used for local development within isolated Docker networks.
+ * Always use HTTPS in production via GAME_ENGINE_URL environment variable.
  */
 class GameEngineClient {
   constructor() {
-    // Note: HTTP is used for internal service-to-service communication within Docker network
-    // This is safe as it's not exposed to external networks
-    // For production with external services, use HTTPS via GAME_ENGINE_URL environment variable
-    this.baseUrl = process.env.GAME_ENGINE_URL || 'http://game-engine:5002';
-    this.timeout = 5000; // 5 seconds timeout
+    // Get service URL from centralized config (which requires GAME_ENGINE_URL env var)
+    this.baseUrl = matchmakingConfig.services.gameEngineUrl;
+    this.timeout = matchmakingConfig.services.gameEngineTimeoutMs;
+
+    // Security warning: Warn if HTTP is used in production
+    if (process.env.NODE_ENV === 'production' && this.baseUrl.startsWith('http://')) {
+      // eslint-disable-next-line no-console
+      console.error(
+        '❌ SECURITY ERROR: Using insecure HTTP for Game Engine communication in production! ' +
+          'Set GAME_ENGINE_URL=https://... to use secure HTTPS.'
+      );
+    } else if (this.baseUrl.startsWith('https://')) {
+      // eslint-disable-next-line no-console
+      console.log('✓ Using secure HTTPS for Game Engine communication');
+    }
+  }
+
+  /**
+   * Get the appropriate HTTP module based on URL protocol
+   * @param {string} url - URL string
+   * @returns {Object} HTTP or HTTPS module
+   */
+  _getHttpModule(url) {
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'https:' ? https : http;
   }
 
   /**
@@ -41,7 +67,9 @@ class GameEngineClient {
           timeout: this.timeout
         };
 
-        const req = http.request(options, res => {
+        // Use HTTPS for secure communication, fallback to HTTP only for local development
+        const httpModule = this._getHttpModule(this.baseUrl);
+        const req = httpModule.request(options, res => {
           let responseData = '';
 
           res.on('data', chunk => {
