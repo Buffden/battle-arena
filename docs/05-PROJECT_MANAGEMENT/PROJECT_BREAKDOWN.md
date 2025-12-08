@@ -120,7 +120,7 @@ This project uses **two complementary breakdown approaches**:
 **Stories:**
 
 - Story 1: Player can click "Play"
-- Story 2: Player gets matched (bot)
+- Story 2: Player gets matched (with another player)
 - Story 3: Player sees arena
 - Story 4: Player can fire shots
 - Story 5: Player sees match result

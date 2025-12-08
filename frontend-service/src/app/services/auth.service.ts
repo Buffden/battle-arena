@@ -134,4 +134,34 @@ export class AuthService {
   getCurrentUser(): AuthResponse | null {
     return this.currentUserSubject.value;
   }
+
+  /**
+   * Extract userId from JWT token
+   * @param token JWT token string (optional, uses stored token if not provided)
+   * @returns userId string or null if not found
+   */
+  getUserIdFromToken(token?: string): string | null {
+    try {
+      const tokenToDecode = token || this.getToken();
+      if (!tokenToDecode) {
+        return null;
+      }
+
+      // Decode JWT token (base64url encoded payload)
+      const payload = tokenToDecode.split('.')[1];
+      if (!payload) {
+        return null;
+      }
+
+      // Decode base64url to JSON
+      const decodedPayload = JSON.parse(
+        globalThis.window.atob(payload.replaceAll('-', '+').replaceAll('_', '/'))
+      );
+
+      // Extract userId from payload
+      return decodedPayload.userId || decodedPayload.id || null;
+    } catch {
+      return null;
+    }
+  }
 }

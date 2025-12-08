@@ -17,7 +17,58 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Game engine service running on port ${PORT}`);
+// Step 2: Minimal endpoint for game room creation (for testing)
+// Note: Full GameRoomManager implementation will be added in VS-3-2-2
+// Current implementation provides basic game room creation for matchmaking integration
+app.post('/api/game/create-room', (req, res) => {
+  try {
+    const { matchId, players } = req.body;
+
+    if (!matchId || !players || !Array.isArray(players) || players.length !== 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid match data: matchId and 2 players required'
+      });
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`Game room creation requested for match: ${matchId}`);
+    // eslint-disable-next-line no-console
+    console.log(`Players: ${players[0].userId} and ${players[1].userId}`);
+
+    // For now, just return success with gameRoomId = matchId
+    // Note: Full GameRoomManager implementation will be added in VS-3-2-2
+    // Current implementation uses matchId as gameRoomId for matchmaking integration
+    const gameRoomId = matchId;
+
+    // eslint-disable-next-line no-console
+    console.log(`Game room created (temporary): ${gameRoomId}`);
+
+    res.json({
+      success: true,
+      gameRoomId,
+      matchId
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error creating game room:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
+
+// Export app for testing
+module.exports = app;
+
+// Only start server if this is the main module (not being imported for tests)
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Game engine service running on port ${PORT}`);
+  });
+
+  // Export server for graceful shutdown if needed
+  module.exports.server = server;
+}

@@ -101,14 +101,13 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-auth-service
     # NO ports exposed - accessed only via Nginx
+    env_file:
+      - ./backend-services/auth-service/.env.production
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SERVER_PORT=8081
+      # Override for Docker network (use service names instead of localhost)
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - MONGODB_DATABASE=battlearena
-      - JWT_SECRET=${JWT_SECRET:-changeme}
-      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
-      - CORS_ALLOWED_ORIGINS=*
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     networks:
       - battle-arena-network
     depends_on:
@@ -139,11 +138,11 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-profile-service
     # NO ports exposed - accessed only via Nginx
+    env_file:
+      - ./backend-services/profile-service/.env.production
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SERVER_PORT=8082
+      # Override for Docker network (use service names instead of localhost)
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - MONGODB_DATABASE=battlearena
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:
@@ -176,11 +175,11 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-leaderboard-service
     # NO ports exposed - accessed only via Nginx
+    env_file:
+      - ./backend-services/leaderboard-service/.env.production
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SERVER_PORT=8083
+      # Override for Docker network (use service names instead of localhost)
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
-      - MONGODB_DATABASE=battlearena
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:
@@ -213,12 +212,14 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-matchmaking-service
     # NO ports exposed - accessed only via Nginx (WebSocket)
+    env_file:
+      - ./backend-services/matchmaking-service/.env.production
     environment:
-      - NODE_ENV=development
-      - PORT=3002
+      # Override for Docker network (use service names instead of localhost)
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # Service URLs are loaded from .env.production, but can be overridden here if needed
     networks:
       - battle-arena-network
     depends_on:
@@ -249,9 +250,10 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-game-engine
     # NO ports exposed - accessed only via Nginx (WebSocket)
+    env_file:
+      - ./backend-services/game-engine/.env.production
     environment:
-      - NODE_ENV=development
-      - PORT=5002
+      # Override for Docker network (use service names instead of localhost)
       - MONGODB_URI=mongodb://mongodb:27017/battlearena
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -285,8 +287,10 @@ services:
       dockerfile: Dockerfile
     container_name: battle-arena-frontend
     # NO ports exposed - accessed only via Nginx
+    env_file:
+      - ./frontend-service/.env.production
     environment:
-      - NODE_ENV=production
+      # Override for Docker network (use service names instead of localhost)
       - API_URL=http://nginx/api
       - WS_URL=ws://nginx/ws
     networks:

@@ -379,4 +379,141 @@ describe('AuthService', () => {
       req.flush({} as RegisterResponse);
     });
   });
+
+  describe('login()', () => {
+    it('should not store token when response has no token', () => {
+      const loginRequest: LoginRequest = {
+        username: TEST_VALID_USERNAME,
+        password: TEST_VALID_PASSWORD
+      };
+      const mockAuthResponse: AuthResponse = {
+        token: '', // Empty token
+        id: '507f1f77bcf86cd799439011',
+        username: 'testuser',
+        email: 'test@example.com'
+      };
+
+      service.login(loginRequest).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush(mockAuthResponse);
+
+      // Token should not be stored if empty
+      expect(service.getToken()).toBeNull();
+    });
+
+    it('should handle login response without token property', () => {
+      const loginRequest: LoginRequest = {
+        username: TEST_VALID_USERNAME,
+        password: TEST_VALID_PASSWORD
+      };
+      const mockAuthResponse = {
+        id: '507f1f77bcf86cd799439011',
+        username: 'testuser',
+        email: 'test@example.com'
+        // No token property
+      } as AuthResponse;
+
+      service.login(loginRequest).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush(mockAuthResponse);
+
+      // Token should not be stored
+      expect(service.getToken()).toBeNull();
+    });
+  });
+
+  describe('logout()', () => {
+    it('should continue logout even if backend call fails', () => {
+      localStorage.setItem('auth_token', 'mock-token');
+      service.logout();
+
+      const req = httpMock.expectOne(`${apiUrl}/logout`);
+      req.error(new ProgressEvent('Network error'));
+
+      // Should still clear token and navigate
+      expect(service.getToken()).toBeNull();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    });
+  });
+
+  describe('getUserIdFromToken()', () => {
+    it('should return null when no token provided and no stored token', () => {
+      localStorage.clear();
+      expect(service.getUserIdFromToken()).toBeNull();
+    });
+
+    it('should extract userId from provided token', () => {
+      const payload = {
+        userId: 'user123',
+        exp: Math.floor(Date.now() / 1000) + 3600
+      };
+      const token = createMockJWT(payload);
+      expect(service.getUserIdFromToken(token)).toBe('user123');
+    });
+
+    it('should extract id when userId is not present', () => {
+      const payload = {
+        id: 'user456',
+        exp: Math.floor(Date.now() / 1000) + 3600
+      };
+      const token = createMockJWT(payload);
+      expect(service.getUserIdFromToken(token)).toBe('user456');
+    });
+
+    it('should return null when neither userId nor id is present', () => {
+      const payload = {
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        username: 'testuser'
+      };
+      const token = createMockJWT(payload);
+      expect(service.getUserIdFromToken(token)).toBeNull();
+    });
+
+    it('should return null for token with missing payload', () => {
+      expect(service.getUserIdFromToken('header.')).toBeNull();
+    });
+
+    it('should return null for malformed token', () => {
+      expect(service.getUserIdFromToken('invalid-token')).toBeNull();
+    });
+
+    it('should use stored token when no token provided', () => {
+      const payload = {
+        userId: 'stored-user',
+        exp: Math.floor(Date.now() / 1000) + 3600
+      };
+      const token = createMockJWT(payload);
+      localStorage.setItem('auth_token', token);
+
+      expect(service.getUserIdFromToken()).toBe('stored-user');
+    });
+  });
+
+  describe('getCurrentUser()', () => {
+    it('should return null when no user is set', () => {
+      expect(service.getCurrentUser()).toBeNull();
+    });
+
+    it('should return current user after login', () => {
+      const loginRequest: LoginRequest = {
+        username: TEST_VALID_USERNAME,
+        password: TEST_VALID_PASSWORD
+      };
+      const mockAuthResponse: AuthResponse = {
+        token: 'mock-jwt-token-123',
+        id: '507f1f77bcf86cd799439011',
+        username: 'testuser',
+        email: 'test@example.com'
+      };
+
+      service.login(loginRequest).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/login`);
+      req.flush(mockAuthResponse);
+
+      expect(service.getCurrentUser()).toEqual(mockAuthResponse);
+    });
+  });
 });
