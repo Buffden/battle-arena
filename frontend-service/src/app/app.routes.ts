@@ -20,6 +20,17 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'matchmaking',
+    loadComponent: () =>
+      import('./components/matchmaking/matchmaking.component').then(m => m.MatchmakingComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'game/:matchId',
+    loadComponent: () => import('./components/game/game.component').then(m => m.GameComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '',
     pathMatch: 'full'

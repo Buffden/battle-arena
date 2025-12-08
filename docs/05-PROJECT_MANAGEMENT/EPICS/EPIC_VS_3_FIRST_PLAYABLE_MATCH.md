@@ -23,7 +23,7 @@ Implement the third vertical slice where a player can play a complete match from
 A player can:
 
 1. Click "Play" and join matchmaking queue
-2. Get matched (with bot opponent for MVP)
+2. Get matched (with another player for MVP)
 3. Enter game room and see arena
 4. Play a complete match (move, fire shots, take turns)
 5. See match result (win/loss)
@@ -32,7 +32,7 @@ A player can:
 
 - [ ] Player can click "Play" button and join matchmaking queue
 - [ ] Matchmaking queue shows position and estimated wait time
-- [ ] Player gets matched (bot opponent for MVP)
+- [ ] Player gets matched (with another player for MVP)
 - [ ] Player enters game room and sees game arena
 - [ ] Player can move hero (left/right, 4 moves per match)
 - [ ] Player can fire shots with weapon (aim, power, fire)
@@ -46,7 +46,7 @@ A player can:
 
 **What's Included:**
 
-- Bot opponent (no real player matching yet)
+- Another player matching (2-player matching for MVP, can test with incognito window)
 - Default hero (no hero selection yet)
 - Default weapon (no weapon selection yet)
 - Default arena (no arena selection yet)
@@ -58,7 +58,7 @@ A player can:
 - Hero selection (VS-4 or later)
 - Weapon selection (VS-4 or later)
 - Arena selection (VS-4 or later)
-- Real player matching (VS-4 or later)
+- Advanced skill-based matching algorithm (VS-4 or later)
 - Complex scoring (combos, saves, etc. - VS-4 or later)
 
 ## Technical References
@@ -327,14 +327,14 @@ Implement complete join queue feature including backend queue management and fro
 
 ---
 
-### VS-3-2: Player Matching with Bot Opponent and Game Room Creation
+### VS-3-2: Player Matching with Another Player and Game Room Creation
 
 **User Story:** As a player, I want to get matched with an opponent so that I can start playing a match.
 
 **Acceptance Criteria:**
 
-- [ ] Matchmaking algorithm finds match (bot opponent for MVP)
-- [ ] Match created with player and bot
+- [ ] Matchmaking algorithm finds match (matches two players for MVP)
+- [ ] Match created with two players
 - [ ] Game room created in Game Engine Service
 - [ ] Players notified of match found
 - [ ] Players redirected to game room
@@ -342,10 +342,10 @@ Implement complete join queue feature including backend queue management and fro
 
 **Related Tasks (Detailed Technical Implementation):**
 
-**TASK-VS-3-2-1: Matchmaking Algorithm - Bot Opponent Creation and Match Finding Engine (BE)**
+**TASK-VS-3-2-1: Matchmaking Algorithm - Two Player Matching and Match Finding Engine (BE)**
 
 **Description:**
-Implement basic matchmaking algorithm that matches players with bot opponents for MVP. This is a simplified version that will be enhanced in later epics.
+Implement basic matchmaking algorithm that matches two players together for MVP. This is a simplified version that will be enhanced in later epics. For testing, players can use incognito windows to test with two accounts.
 
 **Related Diagrams & Documents:**
 
@@ -355,8 +355,8 @@ Implement basic matchmaking algorithm that matches players with bot opponents fo
 **Acceptance Criteria:**
 
 - [ ] MatchmakingEngine.findMatch() method implemented
-- [ ] Bot opponent creation logic (for MVP)
-- [ ] Match created with player and bot
+- [ ] Two-player matching logic (for MVP)
+- [ ] Match created with two players
 - [ ] Match data sent to Game Engine Service
 - [ ] Players notified via Socket.io `match-found` event
 - [ ] Queue entry removed after match found
@@ -372,35 +372,34 @@ Implement basic matchmaking algorithm that matches players with bot opponents fo
 - Create MatchmakingEngine class in `src/services/` directory
 - Implement `findMatch(playerId)` method:
   - Get player data from queue using QueueManager
-  - For MVP: Create bot opponent using createBotOpponent() method
-  - Create match object with player and bot opponent data
+  - For MVP: Find another player in the queue to match with (simple FIFO or first available)
+  - Create match object with both players' data
   - Send match data to Game Engine Service via HTTP API or message queue
-  - Notify player via Socket.io "match-found" event with match details
-  - Remove player from queue after successful match creation
+  - Notify both players via Socket.io "match-found" event with match details
+  - Remove both players from queue after successful match creation
   - Return Match object or null if match creation fails
-- Implement private `createBotOpponent()` method:
-  - Generate unique bot ID using timestamp (format: "bot-{timestamp}")
-  - Assign default hero ID ("default-hero")
-  - Set global score to 0 (default for bots)
-  - Set isBot flag to true
-  - Return BotPlayer object
-- Handle errors during match creation and notify player of failures
+- Implement matching logic:
+  - Get first two players from queue (simple matching for MVP)
+  - Assign default hero ID to both players ("default-hero")
+  - Create match with both player IDs
+  - Return Match object with both players
+- Handle errors during match creation and notify players of failures
 
 **End-to-End Test Scenario:**
 
-1. Player in queue
+1. Two players join queue
 2. Matchmaking algorithm runs
-3. Bot opponent created
+3. Two players matched together
 4. Match created
 5. Game room created in Game Engine
-6. Player notified of match found
-7. Player redirected to game room
+6. Both players notified of match found
+7. Players redirected to game room
 
 **Definition of Done:**
 
-- Player gets matched with bot opponent
+- Two players get matched together
 - Match created and sent to Game Engine
-- Player notified and redirected to game
+- Both players notified and redirected to game
 
 ---
 
@@ -1031,7 +1030,7 @@ Implement win condition detection, match result calculation, and match result di
 2. Player clicks "Play" button
 3. Player joins matchmaking queue
 4. Player sees queue status (position, ETA)
-5. Matchmaking algorithm finds match (bot opponent)
+5. Matchmaking algorithm finds match (matches two players)
 6. Player gets matched
 7. Game room created
 8. Player enters game room
@@ -1045,7 +1044,7 @@ Implement win condition detection, match result calculation, and match result di
 16. Damage applied
 17. Health updated
 18. Turn switches
-19. Opponent (bot) takes turn
+19. Opponent takes turn
 20. Match continues until win condition
 21. Match result displayed
 22. Player returns to dashboard
@@ -1103,7 +1102,7 @@ Implement win condition detection, match result calculation, and match result di
 - Hero selection (VS-4 or later)
 - Weapon selection (VS-4 or later)
 - Arena selection (VS-4 or later)
-- Real player matching (VS-4 or later)
+- Advanced skill-based matching algorithm (VS-4 or later)
 - Complex scoring (combos, saves, accuracy bonuses - VS-4 or later)
 - Profile integration (VS-4 or later)
 - Leaderboard integration (VS-4 or later)
@@ -1115,7 +1114,7 @@ Implement win condition detection, match result calculation, and match result di
 - [ ] Hero selection before matchmaking
 - [ ] Weapon selection before match
 - [ ] Arena selection/voting
-- [ ] Real player matching algorithm
+- [ ] Advanced skill-based matching algorithm
 - [ ] Complex scoring system
 - [ ] Profile and leaderboard integration
 - [ ] Disconnection and reconnection handling
@@ -1142,17 +1141,20 @@ VS-3: First Playable Match
 ## How to Use This Template
 
 1. **Create Epic Issue:**
+
    - Copy the EPIC-VS-3 template above
    - Create issue in GitHub
    - Assign to milestone "VS-3: First Playable Match"
 
 2. **Create Story Issues:**
+
    - For each VS-3-X story, create a separate issue
    - Link to EPIC-VS-3 as parent
    - Copy tasks from Phase 5, 6, and 7 documents
    - Link to Phase documents for technical reference
 
 3. **Create Task Issues:**
+
    - For each task, create subtask or separate issue
    - Link to story as parent
    - Reference Phase 5, 6, and 7 documents for technical details

@@ -1,8 +1,10 @@
 .dashboard-page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, var(--pixel-bg-darker) 0%, var(--pixel-bg-dark) 100%);
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .dashboard-page::before {
@@ -25,8 +27,7 @@
 
 /* Header */
 .pixel-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 100;
   background-color: var(--pixel-bg-darker);
   border-bottom: 4px solid var(--pixel-text);
@@ -58,14 +59,25 @@
 
 /* Dashboard Main */
 .dashboard-main {
-  padding: 40px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   position: relative;
   z-index: 1;
 }
 
+.dashboard-main .pixel-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+}
+
 .dashboard-welcome {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .dashboard-welcome .pixel-title {
@@ -120,7 +132,10 @@
 
 /* Actions Section */
 .actions-section {
-  margin-bottom: 48px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .section-title {
@@ -214,7 +229,8 @@
 
 /* Footer */
 .pixel-footer {
-  padding: 32px 0;
+  flex-shrink: 0;
+  padding: 16px 0;
   border-top: 4px solid var(--pixel-text);
   box-shadow: 0 -4px 0 0 var(--pixel-shadow);
   background-color: var(--pixel-bg-darker);

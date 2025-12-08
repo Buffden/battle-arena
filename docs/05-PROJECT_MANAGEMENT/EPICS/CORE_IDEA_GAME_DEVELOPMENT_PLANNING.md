@@ -29,7 +29,7 @@ Game studios use these milestones to track progress. Each milestone means the ga
 **What to build:**
 
 - Minimal everything, but it works
-- Bot opponent (no real players yet)
+- Another player matching (2-player matching for MVP, can test with incognito window)
 - Simple physics (no fancy effects)
 - Default hero/weapon (no selection yet)
 
@@ -41,13 +41,13 @@ Game studios use these milestones to track progress. Each milestone means the ga
 
 **What it means:** The game is playable with core features. Players can do the main thing the game is about and see their progression.
 
-**Example:** Player can register → login → play match (with bot) → see match result → view profile → view leaderboard.
+**Example:** Player can register → login → play match (with another player) → see match result → view profile → view leaderboard.
 
 **Why it matters:** This is when you test if the game is actually fun. Players can play matches and track their progress.
 
 **What to build:**
 
-- Complete match flow (with bot opponents)
+- Complete match flow (with another player)
 - Profile system (stats, progression)
 - Leaderboard system
 - Match results update profile and leaderboard
@@ -66,7 +66,7 @@ Game studios use these milestones to track progress. Each milestone means the ga
 
 **What to build:**
 
-- Real player matching (no more bots)
+- Advanced skill-based matching algorithm (VS-4 or later)
 - Hero selection
 - Weapon selection
 - Arena selection (voting/elimination)

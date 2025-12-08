@@ -3,6 +3,7 @@
   background: linear-gradient(135deg, var(--pixel-bg-darker) 0%, var(--pixel-bg-dark) 100%);
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .landing-page::before {
@@ -187,6 +188,7 @@
   100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
