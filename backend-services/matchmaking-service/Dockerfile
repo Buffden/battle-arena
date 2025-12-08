@@ -27,11 +27,12 @@ COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_mod
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
 # Copy server.js and src/ directory
-# Security: Set read-only permissions explicitly in COPY to prevent modification at runtime
-# SonarQube: --chmod=444 (r--r--r--) and --chmod=555 (r-xr-xr-x) explicitly exclude write permissions
-# NOSONAR: Write permissions are intentionally excluded (444/555 = no write access)
-COPY --chown=nodejs:nodejs --chmod=444 server.js ./ # NOSONAR
-COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/ # NOSONAR
+# Security: Remove write permissions after copy to prevent modification at runtime
+COPY --chown=nodejs:nodejs server.js ./
+RUN chmod 444 ./server.js # NOSONAR
+
+COPY --chown=nodejs:nodejs src/ ./src/
+RUN chmod -R 555 ./src # NOSONAR
 
 # Switch to non-root user
 USER nodejs
