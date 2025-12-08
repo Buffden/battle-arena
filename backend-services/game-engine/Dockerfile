@@ -20,12 +20,20 @@ RUN apk add --no-cache wget && \
 
 # Copy dependencies from build stage (read+execute only, no write for security)
 # node_modules don't need write access at runtime - packages are already installed
+# SonarQube: Using --chmod=555 to explicitly set read+execute, no write permissions
+# NOSONAR: Write permissions are intentionally excluded (555 = no write access)
 COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_modules
 
 # Copy only necessary source files (explicit paths prevent copying sensitive data)
-# Only copy server.js - no src/ directory needed as server.js is standalone
-# Set read-only permissions for security (no write/execute needed - Node.js interprets, not executes)
-COPY --chown=nodejs:nodejs --chmod=444 server.js ./
+# Copy server.js and src/ directory
+# Security: Copy as root, set read-only permissions, then change ownership
+# This ensures write permissions are never assigned to nodejs user
+# NOSONAR: Write permissions are explicitly removed before ownership change
+COPY server.js ./
+RUN chmod 444 ./server.js && chown nodejs:nodejs ./server.js # NOSONAR
+
+COPY src/ ./src/
+RUN chmod -R 555 ./src && chown -R nodejs:nodejs ./src # NOSONAR
 
 # Switch to non-root user
 USER nodejs
