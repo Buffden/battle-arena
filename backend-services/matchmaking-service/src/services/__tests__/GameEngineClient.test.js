@@ -102,24 +102,17 @@ describe('GameEngineClient', () => {
       expect(httpsClient.baseUrl).toBe('https://nginx');
     });
 
-    it('should not log warnings in development with HTTP', () => {
+    it('should not log warnings in development with HTTPS', () => {
       envManager.set('NODE_ENV', 'development');
-      // SonarQube: Intentional HTTP usage for testing development mode behavior
-      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      envManager.set('GAME_ENGINE_URL', 'http://nginx');
+      envManager.set('GAME_ENGINE_URL', 'https://nginx');
       jest.resetModules();
       // Re-create console spies after module reset to capture logs from new module
       const testConsoleSpies = createConsoleSpies();
       const devClient = require('../GameEngineClient');
 
-      // In development with HTTP, no error should be logged (only in production)
-      // The HTTPS success message won't be logged for HTTP URLs
+      // In development with HTTPS, no error should be logged
       expect(testConsoleSpies.consoleErrorSpy).not.toHaveBeenCalled();
-      // Note: HTTP in development doesn't log anything, so this should pass
-      // But if HTTPS default is used, it will log - we just verify no error
-      // SonarQube: Intentional HTTP usage for testing development mode
-      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      expect(devClient.baseUrl).toBe('http://nginx');
+      expect(devClient.baseUrl).toBe('https://nginx');
       restoreConsoleSpies(testConsoleSpies);
     });
   });
@@ -154,53 +147,49 @@ describe('GameEngineClient', () => {
       expect(httpMock.request).not.toHaveBeenCalled();
     });
 
-    it('should use http module for http:// URLs', async () => {
-      // SonarQube: Intentional HTTP usage for testing HTTP module selection
-      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      envManager.set('GAME_ENGINE_URL', 'http://nginx');
+    it('should use https module for https:// URLs', async () => {
+      envManager.set('GAME_ENGINE_URL', 'https://nginx');
       jest.resetModules();
-      const httpClient = require('../GameEngineClient');
+      const httpsClient = require('../GameEngineClient');
 
       const httpMock = require('node:http');
       const httpsMock = require('node:https');
       getResponseCallback = setupHttpMocksAfterReset(httpMock, httpsMock, mockRequest);
 
       const matchData = createMatchData({
-        matchId: 'match-http-test'
+        matchId: 'match-https-test'
       });
       const responseData = JSON.stringify(
         createGameRoomResponse({
-          gameRoomId: 'room-http-test',
-          matchId: 'match-http-test'
+          gameRoomId: 'room-https-test',
+          matchId: 'match-https-test'
         })
       );
 
-      const promise = httpClient.createGameRoom(matchData);
+      const promise = httpsClient.createGameRoom(matchData);
       triggerHttpResponse(getResponseCallback, mockResponse, responseData);
 
       await promise;
 
-      expect(httpMock.request).toHaveBeenCalled();
+      expect(httpsMock.request).toHaveBeenCalled();
     });
   });
 
   describe('createGameRoom', () => {
-    it('should create game room successfully with HTTP', async () => {
-      // SonarQube: Intentional HTTP usage for testing HTTP request flow
-      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      envManager.set('GAME_ENGINE_URL', 'http://nginx');
+    it('should create game room successfully with HTTPS', async () => {
+      envManager.set('GAME_ENGINE_URL', 'https://nginx');
       jest.resetModules();
 
       const httpMock = require('node:http');
       const httpsMock = require('node:https');
       getResponseCallback = setupHttpMocksAfterReset(httpMock, httpsMock, mockRequest);
 
-      const httpClient = require('../GameEngineClient');
+      const httpsClient = require('../GameEngineClient');
 
       const matchData = createMatchData();
       const responseData = JSON.stringify(createGameRoomResponse());
 
-      const promise = httpClient.createGameRoom(matchData);
+      const promise = httpsClient.createGameRoom(matchData);
       triggerHttpResponse(getResponseCallback, mockResponse, responseData);
 
       const result = await promise;
@@ -208,7 +197,7 @@ describe('GameEngineClient', () => {
       expect(result.success).toBe(true);
       expect(result.gameRoomId).toBe('room-123');
       expect(result.matchId).toBe('match-123');
-      expect(httpMock.request).toHaveBeenCalled();
+      expect(httpsMock.request).toHaveBeenCalled();
       expect(mockRequest.write).toHaveBeenCalled();
       expect(mockRequest.end).toHaveBeenCalled();
     });
@@ -366,16 +355,14 @@ describe('GameEngineClient', () => {
     });
 
     it('should send correct request options', async () => {
-      // SonarQube: Intentional HTTP usage for testing request options
-      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
-      envManager.set('GAME_ENGINE_URL', 'http://nginx');
+      envManager.set('GAME_ENGINE_URL', 'https://nginx');
       jest.resetModules();
 
       const httpMock = require('node:http');
       const httpsMock = require('node:https');
       getResponseCallback = setupHttpMocksAfterReset(httpMock, httpsMock, mockRequest);
 
-      const httpClient = require('../GameEngineClient');
+      const httpsClient = require('../GameEngineClient');
 
       const matchData = createMatchData({ matchId: 'match-options' });
       const responseData = JSON.stringify(
@@ -385,15 +372,15 @@ describe('GameEngineClient', () => {
         })
       );
 
-      const promise = httpClient.createGameRoom(matchData);
+      const promise = httpsClient.createGameRoom(matchData);
       triggerHttpResponse(getResponseCallback, mockResponse, responseData);
 
       await promise;
 
-      expect(httpMock.request).toHaveBeenCalledWith(
+      expect(httpsMock.request).toHaveBeenCalledWith(
         expect.objectContaining({
           hostname: 'nginx',
-          port: 80,
+          port: 443,
           path: '/api/game/create-room',
           method: 'POST',
           headers: expect.objectContaining({
