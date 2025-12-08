@@ -1,57 +1,10 @@
 <div class="game-page">
-  <!-- Pixel Art Header -->
-  <header class="pixel-header">
-    <div class="pixel-container">
-      <h1 class="logo">BATTLE ARENA</h1>
-      <nav class="pixel-nav">
-        <button (click)="goBack()" class="pixel-button secondary">Back</button>
-        <a routerLink="/dashboard" class="pixel-button secondary">Dashboard</a>
-      </nav>
-    </div>
-  </header>
+  <!-- Minimal Exit Button (top-right corner) -->
+  <button (click)="goBack()" class="exit-button" title="Exit Game">✕</button>
 
-  <!-- Game Content -->
-  <main class="game-main">
-    <div class="pixel-container">
-      <div class="game-header">
-        <h2 class="pixel-title">ARENA</h2>
-        <p class="pixel-text">Match ID: {{ matchId }}</p>
-      </div>
+  <!-- Game HUD (overlay on top of game) -->
+  <app-game-hud [gameState]="gameState$ | async"></app-game-hud>
 
-      <!-- Players Info -->
-      <div class="players-section">
-        <div class="pixel-card player-card">
-          <div class="player-info">
-            <div class="player-avatar">⚔️</div>
-            <div class="player-details">
-              <div class="player-label">You</div>
-              <div class="player-name">{{ currentUserName }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="vs-divider">
-          <span class="vs-text">VS</span>
-        </div>
-
-        <div class="pixel-card player-card">
-          <div class="player-info">
-            <div class="player-avatar">⚔️</div>
-            <div class="player-details">
-              <div class="player-label">Opponent</div>
-              <div class="player-name">{{ opponentName }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Area (placeholder for future game implementation) -->
-      <div class="pixel-card game-area">
-        <div class="game-placeholder">
-          <p class="pixel-text">Game will start here...</p>
-          <p class="pixel-text">Match: {{ matchId }}</p>
-        </div>
-      </div>
-    </div>
-  </main>
+  <!-- Game Arena (fullscreen) -->
+  <app-game-arena [matchId]="matchId"></app-game-arena>
 </div>
