@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameState } from '../../../types/game.types';
 import { AuthService } from '../../../services/auth.service';
@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './game-hud.component.html',
   styleUrl: './game-hud.component.css'
 })
-export class GameHudComponent implements OnInit, OnDestroy {
+export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
   @Input() gameState: GameState | null = null;
 
   currentUserId: string | null = null;
@@ -31,6 +31,13 @@ export class GameHudComponent implements OnInit, OnDestroy {
     this.updateInterval = setInterval(() => {
       this.updateTurnTimer();
     }, 1000);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update hero data when gameState input changes
+    if (changes['gameState'] && this.gameState) {
+      this.updateHeroData();
+    }
   }
 
   ngOnDestroy(): void {
@@ -60,6 +67,13 @@ export class GameHudComponent implements OnInit, OnDestroy {
     // Check if it's player's turn
     this.isPlayerTurn = this.gameState.currentTurn === this.currentUserId;
     this.turnTimeRemaining = this.gameState.turnTimeRemaining;
+
+    // Debug logging
+    console.log('=== GameHudComponent: Updated hero data ===');
+    console.log('Player hero:', this.playerHero);
+    console.log('Opponent hero:', this.opponentHero);
+    console.log('Player health:', this.playerHero?.health, '/', this.playerHero?.maxHealth);
+    console.log('Opponent health:', this.opponentHero?.health, '/', this.opponentHero?.maxHealth);
   }
 
   /**
