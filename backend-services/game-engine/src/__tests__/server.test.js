@@ -20,8 +20,9 @@ describe('Game Engine Service', () => {
     // Set test port
     process.env.PORT = '0'; // Use random port for tests
 
-    // Import server - it exports the app
-    app = require('../../server');
+    // Import server - it exports { app, server, io }
+    const serverModule = require('../../server');
+    app = serverModule.app;
   });
 
   afterAll(() => {
