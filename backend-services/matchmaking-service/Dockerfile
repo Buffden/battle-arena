@@ -30,6 +30,8 @@ COPY --from=build --chown=nodejs:nodejs --chmod=555 /app/node_modules ./node_mod
 # Security: Files set to read-only (444 = r--r--r--), no write permissions
 # Directories set to read+execute (555 = r-xr-xr-x), no write permissions
 # This prevents modification of source files at runtime
+# SonarQube: Write permissions are intentionally excluded for security
+# Files are read-only (444) and directories are read+execute (555) - no write access
 COPY --chown=nodejs:nodejs --chmod=444 server.js ./
 COPY --chown=nodejs:nodejs --chmod=555 src/ ./src/
 

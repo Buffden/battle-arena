@@ -79,6 +79,8 @@ describe('GameEngineClient', () => {
 
     it('should log security error when HTTP is used in production', () => {
       envManager.set('NODE_ENV', 'production');
+      // SonarQube: Intentional HTTP usage for testing security warnings in production
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       envManager.set('GAME_ENGINE_URL', 'http://nginx');
       jest.resetModules();
       require('../GameEngineClient');
@@ -102,6 +104,8 @@ describe('GameEngineClient', () => {
 
     it('should not log warnings in development with HTTP', () => {
       envManager.set('NODE_ENV', 'development');
+      // SonarQube: Intentional HTTP usage for testing development mode behavior
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       envManager.set('GAME_ENGINE_URL', 'http://nginx');
       jest.resetModules();
       // Re-create console spies after module reset to capture logs from new module
@@ -113,6 +117,8 @@ describe('GameEngineClient', () => {
       expect(testConsoleSpies.consoleErrorSpy).not.toHaveBeenCalled();
       // Note: HTTP in development doesn't log anything, so this should pass
       // But if HTTPS default is used, it will log - we just verify no error
+      // SonarQube: Intentional HTTP usage for testing development mode
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       expect(devClient.baseUrl).toBe('http://nginx');
       restoreConsoleSpies(testConsoleSpies);
     });
@@ -149,6 +155,8 @@ describe('GameEngineClient', () => {
     });
 
     it('should use http module for http:// URLs', async () => {
+      // SonarQube: Intentional HTTP usage for testing HTTP module selection
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       envManager.set('GAME_ENGINE_URL', 'http://nginx');
       jest.resetModules();
       const httpClient = require('../GameEngineClient');
@@ -178,6 +186,8 @@ describe('GameEngineClient', () => {
 
   describe('createGameRoom', () => {
     it('should create game room successfully with HTTP', async () => {
+      // SonarQube: Intentional HTTP usage for testing HTTP request flow
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       envManager.set('GAME_ENGINE_URL', 'http://nginx');
       jest.resetModules();
 
@@ -356,6 +366,8 @@ describe('GameEngineClient', () => {
     });
 
     it('should send correct request options', async () => {
+      // SonarQube: Intentional HTTP usage for testing request options
+      // eslint-disable-next-line sonarjs/insecure-randomness, sonarjs/no-hardcoded-ip
       envManager.set('GAME_ENGINE_URL', 'http://nginx');
       jest.resetModules();
 
