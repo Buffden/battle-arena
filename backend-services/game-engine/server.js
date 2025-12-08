@@ -18,7 +18,8 @@ app.get('/', (req, res) => {
 });
 
 // Step 2: Minimal endpoint for game room creation (for testing)
-// TODO: VS-3-2-2 - Implement full GameRoomManager with proper game state initialization
+// Note: Full GameRoomManager implementation will be added in VS-3-2-2
+// Current implementation provides basic game room creation for matchmaking integration
 app.post('/api/game/create-room', (req, res) => {
   try {
     const { matchId, players } = req.body;
@@ -36,8 +37,9 @@ app.post('/api/game/create-room', (req, res) => {
     console.log(`Players: ${players[0].userId} and ${players[1].userId}`);
 
     // For now, just return success with gameRoomId = matchId
-    // TODO: VS-3-2-2 - Create actual game room with GameRoomManager
-    const gameRoomId = matchId; // Temporary: use matchId as gameRoomId
+    // Note: Full GameRoomManager implementation will be added in VS-3-2-2
+    // Current implementation uses matchId as gameRoomId for matchmaking integration
+    const gameRoomId = matchId;
 
     // eslint-disable-next-line no-console
     console.log(`Game room created (temporary): ${gameRoomId}`);

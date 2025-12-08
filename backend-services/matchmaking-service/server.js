@@ -16,12 +16,14 @@ const PORT = matchmakingConfig.server.port;
 // CORS configuration - restrict to allowed origins for security
 // In production, set ALLOWED_ORIGINS environment variable with comma-separated origins
 // Note: Frontend is served through nginx on port 80, not directly on service ports
-const allowedOrigins = matchmakingConfig.server.allowedOrigins;
+const allowedOriginsArray = matchmakingConfig.server.allowedOrigins;
+const allowedOrigins = new Set(allowedOriginsArray);
 
 // Socket.io CORS configuration - use same allowed origins as Express
+// Socket.io expects array, so convert Set back to array
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: allowedOriginsArray,
     methods: ['GET', 'POST'],
     credentials: true
   },
@@ -32,7 +34,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.) in development
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.has(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -224,92 +226,13 @@ io.on('connection', socket => {
       // Reset timeout count on successful accept
       await matchAcceptanceManager.resetTimeoutCount(userId);
 
-      // Log without exposing IDs for security
-      // eslint-disable-next-line no-console
-      console.log(
-        `[accept-match handler] Sending update - P1 accepted: ${acceptanceData.player1Accepted}, P2 accepted: ${acceptanceData.player2Accepted}, Both: ${result.bothAccepted}`
-      );
-
       // Notify both players of updated acceptance status
-      const socket1 = io.sockets.sockets.get(acceptanceData.player1SocketId);
-      const socket2 = io.sockets.sockets.get(acceptanceData.player2SocketId);
+      sendAcceptanceStatusUpdate(io, acceptanceData, matchId, result.bothAccepted);
 
-      const statusUpdate = {
-        matchId,
-        player1Id: acceptanceData.player1Id,
-        player2Id: acceptanceData.player2Id,
-        player1Accepted: acceptanceData.player1Accepted,
-        player2Accepted: acceptanceData.player2Accepted,
-        player1Rejected: acceptanceData.player1Rejected || false,
-        player2Rejected: acceptanceData.player2Rejected || false,
-        bothAccepted: result.bothAccepted
-      };
-
-      // eslint-disable-next-line no-console
-      console.log(
-        '[accept-match handler] Status update being sent:',
-        JSON.stringify(statusUpdate, null, 2)
-      );
-
-      // Log without exposing socket IDs for security
-      if (socket1) {
-        socket1.emit('match-acceptance-update', statusUpdate);
-        // eslint-disable-next-line no-console
-        console.log('✓ Sent update to Player 1');
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn('✗ Player 1 socket not found');
-      }
-
-      if (socket2) {
-        socket2.emit('match-acceptance-update', statusUpdate);
-        // eslint-disable-next-line no-console
-        console.log('✓ Sent update to Player 2');
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn('✗ Player 2 socket not found');
-      }
-
-      // Log without exposing IDs for security
-      // eslint-disable-next-line no-console
-      console.log(`✓ Match accepted. Both accepted: ${result.bothAccepted}`);
-
-      // If both players accepted, remove them from queue and notify them
+      // If both players accepted, handle match confirmation
       if (result.bothAccepted) {
         try {
-          await queueManager.removeFromQueueByUserId(acceptanceData.player1Id);
-          await queueManager.removeFromQueueByUserId(acceptanceData.player2Id);
-          await matchAcceptanceManager.deleteMatchAcceptance(matchId);
-
-          // Notify both players that match is confirmed
-          const matchConfirmedData = {
-            matchId,
-            gameRoomId: acceptanceData.gameRoomId || matchId,
-            player1Id: acceptanceData.player1Id,
-            player2Id: acceptanceData.player2Id,
-            message: matchmakingConfig.messages.matchConfirmed
-          };
-
-          if (socket1) {
-            socket1.emit('match-confirmed', {
-              ...matchConfirmedData,
-              opponentId: acceptanceData.player2Id,
-              yourId: acceptanceData.player1Id
-            });
-          }
-          if (socket2) {
-            socket2.emit('match-confirmed', {
-              ...matchConfirmedData,
-              opponentId: acceptanceData.player1Id,
-              yourId: acceptanceData.player2Id
-            });
-          }
-
-          // Log without exposing match ID for security
-          // eslint-disable-next-line no-console
-          console.log('✓ Match confirmed - both players accepted');
-          // eslint-disable-next-line no-console
-          console.log('✓ Removed both players from queue');
+          await handleMatchConfirmation(io, acceptanceData, matchId);
         } catch (removeError) {
           // eslint-disable-next-line no-console
           console.error('Error removing players from queue after acceptance:', removeError);
@@ -509,6 +432,133 @@ io.on('connection', socket => {
 });
 
 // Queue timeout configuration loaded from config
+
+/**
+ * Send acceptance status update to both players
+ * @param {Object} io - Socket.io server instance
+ * @param {Object} acceptanceData - Match acceptance data
+ * @param {string} matchId - Match ID
+ * @param {boolean} bothAccepted - Whether both players accepted
+ */
+function sendAcceptanceStatusUpdate(io, acceptanceData, matchId, bothAccepted) {
+  const socket1 = io.sockets.sockets.get(acceptanceData.player1SocketId);
+  const socket2 = io.sockets.sockets.get(acceptanceData.player2SocketId);
+
+  const statusUpdate = {
+    matchId,
+    player1Id: acceptanceData.player1Id,
+    player2Id: acceptanceData.player2Id,
+    player1Accepted: acceptanceData.player1Accepted,
+    player2Accepted: acceptanceData.player2Accepted,
+    player1Rejected: acceptanceData.player1Rejected || false,
+    player2Rejected: acceptanceData.player2Rejected || false,
+    bothAccepted
+  };
+
+  if (socket1) {
+    socket1.emit('match-acceptance-update', statusUpdate);
+  }
+  if (socket2) {
+    socket2.emit('match-acceptance-update', statusUpdate);
+  }
+}
+
+/**
+ * Handle match confirmation when both players accept
+ * @param {Object} io - Socket.io server instance
+ * @param {Object} acceptanceData - Match acceptance data
+ * @param {string} matchId - Match ID
+ */
+async function handleMatchConfirmation(io, acceptanceData, matchId) {
+  const socket1 = io.sockets.sockets.get(acceptanceData.player1SocketId);
+  const socket2 = io.sockets.sockets.get(acceptanceData.player2SocketId);
+
+  await queueManager.removeFromQueueByUserId(acceptanceData.player1Id);
+  await queueManager.removeFromQueueByUserId(acceptanceData.player2Id);
+  await matchAcceptanceManager.deleteMatchAcceptance(matchId);
+
+  const matchConfirmedData = {
+    matchId,
+    gameRoomId: acceptanceData.gameRoomId || matchId,
+    player1Id: acceptanceData.player1Id,
+    player2Id: acceptanceData.player2Id,
+    message: matchmakingConfig.messages.matchConfirmed
+  };
+
+  if (socket1) {
+    socket1.emit('match-confirmed', {
+      ...matchConfirmedData,
+      opponentId: acceptanceData.player2Id,
+      yourId: acceptanceData.player1Id
+    });
+  }
+  if (socket2) {
+    socket2.emit('match-confirmed', {
+      ...matchConfirmedData,
+      opponentId: acceptanceData.player1Id,
+      yourId: acceptanceData.player2Id
+    });
+  }
+}
+
+/**
+ * Process timeout for a single player
+ * @param {Object} io - Socket.io server instance
+ * @param {Object} player - Player data with userId and socketId
+ * @param {string} matchId - Match ID
+ */
+async function processPlayerTimeout(io, player, matchId) {
+  const timeoutCount = await matchAcceptanceManager.incrementTimeoutCount(player.userId);
+
+  if (timeoutCount >= matchmakingConfig.timeoutCount.disconnectionThreshold) {
+    await handlePlayerDisconnection(io, player, timeoutCount);
+  } else {
+    await handlePlayerMoveToEndOfQueue(io, player, matchId, timeoutCount);
+  }
+}
+
+/**
+ * Handle player disconnection due to multiple timeouts
+ * @param {Object} io - Socket.io server instance
+ * @param {Object} player - Player data
+ * @param {number} timeoutCount - Current timeout count
+ */
+async function handlePlayerDisconnection(io, player, timeoutCount) {
+  await queueManager.removeFromQueueByUserId(player.userId);
+  const socket = io.sockets.sockets.get(player.socketId);
+  if (socket) {
+    socket.emit('queue-disconnected', {
+      message: matchmakingConfig.messages.queueDisconnected,
+      reason: 'multiple-timeouts',
+      timeoutCount
+    });
+    socket.disconnect(true);
+  }
+}
+
+/**
+ * Handle moving player to end of queue after timeout
+ * @param {Object} io - Socket.io server instance
+ * @param {Object} player - Player data
+ * @param {string} matchId - Match ID
+ * @param {number} timeoutCount - Current timeout count
+ */
+async function handlePlayerMoveToEndOfQueue(io, player, matchId, timeoutCount) {
+  await queueManager.removeFromQueueByUserId(player.userId);
+  const socket = io.sockets.sockets.get(player.socketId);
+  if (socket) {
+    const metadata = {};
+    await queueManager.addToQueue(player.socketId, player.userId, metadata);
+    socket.emit('match-acceptance-expired', {
+      matchId,
+      message:
+        timeoutCount === 1
+          ? matchmakingConfig.messages.matchAcceptanceExpiredFirst
+          : matchmakingConfig.messages.matchAcceptanceExpiredSecond,
+      timeoutCount
+    });
+  }
+}
 
 /**
  * Notify all remaining players in queue about their updated positions
@@ -730,75 +780,8 @@ async function checkExpiredMatchAcceptances() {
 
       for (const player of players) {
         try {
-          // Get current timeout count BEFORE incrementing (for logging)
-          const previousCount = await matchAcceptanceManager.getTimeoutCount(player.userId);
-
-          // Increment timeout count
-          const timeoutCount = await matchAcceptanceManager.incrementTimeoutCount(player.userId);
-
-          // Log without exposing user ID or match ID for security
-          // eslint-disable-next-line no-console
-          console.log(`Player timeout count: ${previousCount} -> ${timeoutCount}`);
-
-          // If threshold or more consecutive timeouts, disconnect player
-          // timeoutCount = 1: first timeout, move to end
-          // timeoutCount = 2: second timeout, move to end
-          // timeoutCount = threshold: threshold timeout, disconnect
-          if (timeoutCount >= matchmakingConfig.timeoutCount.disconnectionThreshold) {
-            // Log without exposing user ID for security
-            // eslint-disable-next-line no-console
-            console.log(
-              `⚠️ Player has ${timeoutCount} consecutive timeouts (${matchmakingConfig.timeoutCount.disconnectionThreshold}rd timeout) - removing from queue and disconnecting`
-            );
-
-            // Remove from queue
-            await queueManager.removeFromQueueByUserId(player.userId);
-
-            // Get socket and disconnect
-            const socket = io.sockets.sockets.get(player.socketId);
-            if (socket) {
-              socket.emit('queue-disconnected', {
-                message: matchmakingConfig.messages.queueDisconnected,
-                reason: 'multiple-timeouts',
-                timeoutCount
-              });
-              socket.disconnect(true);
-              // Log without exposing IDs for security
-              // eslint-disable-next-line no-console
-              console.log('✓ Disconnected player from queue');
-            } else {
-              // Socket not found, but still remove from queue
-              // Log without exposing IDs for security
-              // eslint-disable-next-line no-console
-              console.log('✓ Removed player from queue (socket not found)');
-            }
-          } else {
-            // First or second timeout - move to end of queue
-            // Log without exposing user ID for security
-            // eslint-disable-next-line no-console
-            console.log(`Player timeout #${timeoutCount} - moving to end of queue`);
-
-            // Remove from queue
-            await queueManager.removeFromQueueByUserId(player.userId);
-
-            // Re-add to queue (will be at the end)
-            const socket = io.sockets.sockets.get(player.socketId);
-            if (socket) {
-              const metadata = {}; // Could retrieve from Redis if needed
-              await queueManager.addToQueue(player.socketId, player.userId, metadata);
-              // Notify player that match expired
-              socket.emit('match-acceptance-expired', {
-                matchId,
-                message:
-                  timeoutCount === 1
-                    ? matchmakingConfig.messages.matchAcceptanceExpiredFirst
-                    : matchmakingConfig.messages.matchAcceptanceExpiredSecond,
-                timeoutCount
-              });
-            }
-          }
+          await processPlayerTimeout(io, player, matchId);
         } catch (playerError) {
-          // Log without exposing user ID for security
           // eslint-disable-next-line no-console
           console.error(
             'Error processing expired match for player:',
@@ -822,7 +805,8 @@ async function checkExpiredMatchAcceptances() {
 }
 
 // Initialize Redis and start server
-// Note: Using IIFE since top-level await is not available in CommonJS
+// Note: Using IIFE since top-level await is not available in CommonJS (Node.js < 14.8 or CommonJS modules)
+// This pattern is necessary for async initialization in CommonJS context
 (async () => {
   try {
     // Initialize Redis connection

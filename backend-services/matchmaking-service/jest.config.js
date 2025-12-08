@@ -12,7 +12,7 @@ module.exports = {
     '/helpers/',
     '/utils/',
     'test-helpers.js',
-    '.*helper.*\\.js$'
+    String.raw`.*helper.*\.js$`
   ],
   collectCoverageFrom: [
     'src/**/*.js',

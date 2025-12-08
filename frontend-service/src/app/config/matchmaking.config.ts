@@ -47,8 +47,8 @@ export const matchmakingConfig: MatchmakingConfig = {
 
     // Connection timeout: How long to wait for initial connection (milliseconds)
     connectionTimeoutMs: Number.parseInt(
-      (typeof window !== 'undefined' &&
-        (window as any).__MATCHMAKING_CONFIG__?.websocket?.connectionTimeoutMs) ||
+      (typeof globalThis.window !== 'undefined' &&
+        (globalThis.window as any).__MATCHMAKING_CONFIG__?.websocket?.connectionTimeoutMs) ||
         '10000',
       10
     ), // 10 seconds
@@ -97,11 +97,14 @@ export const matchmakingConfig: MatchmakingConfig = {
 
 /**
  * Helper function to get config value with environment override
- * This allows runtime configuration via window.__MATCHMAKING_CONFIG__
+ * This allows runtime configuration via globalThis.window.__MATCHMAKING_CONFIG__
  */
 export function getConfigValue<T>(key: string, defaultValue: T): T {
-  if (typeof window !== 'undefined' && (window as any).__MATCHMAKING_CONFIG__) {
-    const config = (window as any).__MATCHMAKING_CONFIG__;
+  if (
+    typeof globalThis.window !== 'undefined' &&
+    (globalThis.window as any).__MATCHMAKING_CONFIG__
+  ) {
+    const config = (globalThis.window as any).__MATCHMAKING_CONFIG__;
     const keys = key.split('.');
     let value = config;
     for (const k of keys) {

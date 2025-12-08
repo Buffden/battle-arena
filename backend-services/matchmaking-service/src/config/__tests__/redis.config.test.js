@@ -36,7 +36,10 @@ describe('Redis Config', () => {
     try {
       await redisConfig.closeRedis();
     } catch (e) {
-      // Ignore if not initialized
+      // Ignore if not initialized - this is expected behavior
+      if (e && e.message && !e.message.includes('not initialized')) {
+        throw e; // Re-throw unexpected errors
+      }
     }
 
     // Clear mocks after module reset
@@ -78,7 +81,10 @@ describe('Redis Config', () => {
       try {
         await redisConfig.closeRedis();
       } catch (e) {
-        // Ignore
+        // Ignore if not initialized - this is expected behavior
+        if (e && e.message && !e.message.includes('not initialized')) {
+          throw e; // Re-throw unexpected errors
+        }
       }
 
       process.env.REDIS_HOST = 'custom-host';

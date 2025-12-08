@@ -1,5 +1,5 @@
 const request = require('supertest');
-const http = require('http');
+const http = require('node:http');
 const express = require('express');
 const { Server } = require('socket.io');
 
@@ -135,12 +135,12 @@ describe('Matchmaking Service Server', () => {
     it('should allow requests from allowed origins', () => {
       const cors = require('cors');
       const app = express();
-      const allowedOrigins = ['http://localhost'];
+      const allowedOrigins = new Set(['http://localhost']);
 
       app.use(
         cors({
           origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
+            if (!origin || allowedOrigins.has(origin)) {
               callback(null, true);
             } else {
               callback(new Error('Not allowed by CORS'));

@@ -1,5 +1,3 @@
-const http = require('node:http');
-const https = require('node:https');
 const {
   createMockRequest,
   createMockResponse,
@@ -453,18 +451,25 @@ describe('GameEngineClient', () => {
 
       const promise = GameEngineClient.createGameRoom(matchData);
 
-      setImmediate(() => {
+      // Helper function to trigger chunked response
+      const triggerChunkedResponse = () => {
         const callback = getResponseCallback();
         if (callback) {
           callback(mockResponse);
         }
-        setImmediate(() => {
-          // Simulate chunked data
-          mockResponse._trigger('data', Buffer.from('{"success":true,'));
-          mockResponse._trigger('data', Buffer.from('"gameRoomId":"room-chunked",'));
-          mockResponse._trigger('data', Buffer.from('"matchId":"match-chunked"}'));
-          mockResponse._trigger('end');
-        });
+      };
+
+      const triggerChunkedData = () => {
+        // Simulate chunked data
+        mockResponse._trigger('data', Buffer.from('{"success":true,'));
+        mockResponse._trigger('data', Buffer.from('"gameRoomId":"room-chunked",'));
+        mockResponse._trigger('data', Buffer.from('"matchId":"match-chunked"}'));
+        mockResponse._trigger('end');
+      };
+
+      setImmediate(() => {
+        triggerChunkedResponse();
+        setImmediate(triggerChunkedData);
       });
 
       const result = await promise;
