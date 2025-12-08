@@ -20,6 +20,7 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   gameState: GameState | null = null;
   gameScene: Phaser.Scene | null = null;
   phaserGame: Phaser.Game | null = null;
+  waitingForOpponent = false;
 
   private gameStateSubscription?: Subscription;
   private gameErrorSubscription?: Subscription;
@@ -55,10 +56,25 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Subscribe to game-joined event (for "Waiting for opponent..." message)
+    // Use BehaviorSubject so we get the last value even if subscription happens after event
+    this.gameService.gameJoined$.subscribe(data => {
+      if (data && data.message === 'Waiting for opponent...') {
+        console.log(
+          '=== GameArenaComponent: Received game-joined, setting waitingForOpponent = true ==='
+        );
+        this.waitingForOpponent = true;
+      }
+    });
+
     // Subscribe to game state updates
     this.gameStateSubscription = this.gameService.getGameState().subscribe(state => {
+      console.log('=== GameArenaComponent: Received game state update ===');
+      console.log('Game state:', state);
       if (state) {
         this.gameState = state;
+        this.waitingForOpponent = false; // Game started, no longer waiting
+        console.log('=== GameArenaComponent: Updating game scene ===');
         this.updateGameScene(state);
       }
     });
