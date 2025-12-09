@@ -51,42 +51,78 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
    */
   private updateHeroData(): void {
     if (!this.gameState || !this.currentUserId) {
+      this.playerHero = null;
+      this.opponentHero = null;
+      this.isPlayerTurn = false;
+      this.turnTimeRemaining = 0;
+      return;
+    }
+
+    // Validate that both players exist in game state
+    if (!this.gameState.player1 || !this.gameState.player2) {
+      console.warn('GameHudComponent: Invalid game state - missing player data');
+      this.playerHero = null;
+      this.opponentHero = null;
+      this.isPlayerTurn = false;
+      this.turnTimeRemaining = 0;
       return;
     }
 
     // Determine which hero is the player and which is the opponent
-    this.playerHero =
-      this.gameState.player1.userId === this.currentUserId
-        ? this.gameState.player1
-        : this.gameState.player2;
-    this.opponentHero =
-      this.gameState.player1.userId === this.currentUserId
-        ? this.gameState.player2
-        : this.gameState.player1;
+    // Check if current user is player1 or player2
+    if (this.gameState.player1.userId === this.currentUserId) {
+      this.playerHero = this.gameState.player1;
+      this.opponentHero = this.gameState.player2;
+    } else if (this.gameState.player2.userId === this.currentUserId) {
+      this.playerHero = this.gameState.player2;
+      this.opponentHero = this.gameState.player1;
+    } else {
+      // Current user is not in this game (shouldn't happen, but handle gracefully)
+      console.warn('GameHudComponent: Current user not found in game state');
+      this.playerHero = null;
+      this.opponentHero = null;
+      this.isPlayerTurn = false;
+      this.turnTimeRemaining = 0;
+      return;
+    }
 
     // Check if it's player's turn
     this.isPlayerTurn = this.gameState.currentTurn === this.currentUserId;
-    this.turnTimeRemaining = this.gameState.turnTimeRemaining;
+
+    // Always use server's turnTimeRemaining as source of truth
+    // This ensures timer stays in sync with server updates
+    this.turnTimeRemaining = this.gameState.turnTimeRemaining || 0;
 
     // Debug logging
     console.log('=== GameHudComponent: Updated hero data ===');
+    console.log('Current user ID:', this.currentUserId);
     console.log('Player hero:', this.playerHero);
     console.log('Opponent hero:', this.opponentHero);
+    console.log('Is player turn:', this.isPlayerTurn);
+    console.log('Turn time remaining:', this.turnTimeRemaining);
     console.log('Player health:', this.playerHero?.health, '/', this.playerHero?.maxHealth);
     console.log('Opponent health:', this.opponentHero?.health, '/', this.opponentHero?.maxHealth);
   }
 
   /**
    * Update turn timer
+   * Note: Server is the source of truth for timer values.
+   * This method only provides a visual countdown between server updates.
+   * When gameState updates, turnTimeRemaining is refreshed from server.
    */
   private updateTurnTimer(): void {
     if (!this.gameState) {
+      this.turnTimeRemaining = 0;
       return;
     }
 
-    // Decrement timer (server will send updates, but we can show countdown)
+    // Only decrement if we have a valid timer value
+    // Server updates will refresh this value via updateHeroData()
     if (this.turnTimeRemaining > 0) {
       this.turnTimeRemaining = Math.max(0, this.turnTimeRemaining - 1);
+    } else {
+      // Ensure timer doesn't go negative
+      this.turnTimeRemaining = 0;
     }
   }
 
@@ -94,20 +130,22 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
    * Get health percentage for player
    */
   getPlayerHealthPercent(): number {
-    if (!this.playerHero) {
+    if (!this.playerHero?.maxHealth || this.playerHero.maxHealth <= 0) {
       return 0;
     }
-    return (this.playerHero.health / this.playerHero.maxHealth) * 100;
+    const percent = (this.playerHero.health / this.playerHero.maxHealth) * 100;
+    return Math.max(0, Math.min(100, percent)); // Clamp between 0 and 100
   }
 
   /**
    * Get health percentage for opponent
    */
   getOpponentHealthPercent(): number {
-    if (!this.opponentHero) {
+    if (!this.opponentHero?.maxHealth || this.opponentHero.maxHealth <= 0) {
       return 0;
     }
-    return (this.opponentHero.health / this.opponentHero.maxHealth) * 100;
+    const percent = (this.opponentHero.health / this.opponentHero.maxHealth) * 100;
+    return Math.max(0, Math.min(100, percent)); // Clamp between 0 and 100
   }
 
   /**
