@@ -16,20 +16,27 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
   currentUserId: string | null = null;
   playerHero: GameState['player1'] | null = null;
   opponentHero: GameState['player1'] | null = null;
-  isPlayerTurn: boolean = false;
-  turnTimeRemaining: number = 0;
-
-  private updateInterval?: ReturnType<typeof setInterval>;
+  matchStartTime: number = 0;
+  matchDuration: number = 300; // 5 minutes in seconds
+  private timerInterval?: ReturnType<typeof setInterval>;
 
   constructor(private readonly authService: AuthService) {}
 
   ngOnInit(): void {
     this.currentUserId = this.authService.getUserIdFromToken();
     this.updateHeroData();
-
-    // Update turn timer every second
-    this.updateInterval = setInterval(() => {
-      this.updateTurnTimer();
+    
+    // Initialize match timer
+    if (this.gameState) {
+      this.matchStartTime = this.gameState.createdAt || Date.now();
+    }
+    
+    // Start timer update interval
+    this.timerInterval = setInterval(() => {
+      // Force change detection for timer display
+      if (this.gameState) {
+        // Timer will update via formatMatchTimer() method
+      }
     }, 1000);
   }
 
@@ -37,12 +44,17 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
     // Update hero data when gameState input changes
     if (changes['gameState'] && this.gameState) {
       this.updateHeroData();
+      
+      // Update match start time if game just started
+      if (this.gameState.gameStatus === 'active' && !this.matchStartTime) {
+        this.matchStartTime = this.gameState.createdAt || Date.now();
+      }
     }
   }
 
   ngOnDestroy(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
     }
   }
 
@@ -53,8 +65,6 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
     if (!this.gameState || !this.currentUserId) {
       this.playerHero = null;
       this.opponentHero = null;
-      this.isPlayerTurn = false;
-      this.turnTimeRemaining = 0;
       return;
     }
 
@@ -63,8 +73,6 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
       console.warn('GameHudComponent: Invalid game state - missing player data');
       this.playerHero = null;
       this.opponentHero = null;
-      this.isPlayerTurn = false;
-      this.turnTimeRemaining = 0;
       return;
     }
 
@@ -81,49 +89,16 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
       console.warn('GameHudComponent: Current user not found in game state');
       this.playerHero = null;
       this.opponentHero = null;
-      this.isPlayerTurn = false;
-      this.turnTimeRemaining = 0;
       return;
     }
-
-    // Check if it's player's turn
-    this.isPlayerTurn = this.gameState.currentTurn === this.currentUserId;
-
-    // Always use server's turnTimeRemaining as source of truth
-    // This ensures timer stays in sync with server updates
-    this.turnTimeRemaining = this.gameState.turnTimeRemaining || 0;
 
     // Debug logging
     console.log('=== GameHudComponent: Updated hero data ===');
     console.log('Current user ID:', this.currentUserId);
     console.log('Player hero:', this.playerHero);
     console.log('Opponent hero:', this.opponentHero);
-    console.log('Is player turn:', this.isPlayerTurn);
-    console.log('Turn time remaining:', this.turnTimeRemaining);
     console.log('Player health:', this.playerHero?.health, '/', this.playerHero?.maxHealth);
     console.log('Opponent health:', this.opponentHero?.health, '/', this.opponentHero?.maxHealth);
-  }
-
-  /**
-   * Update turn timer
-   * Note: Server is the source of truth for timer values.
-   * This method only provides a visual countdown between server updates.
-   * When gameState updates, turnTimeRemaining is refreshed from server.
-   */
-  private updateTurnTimer(): void {
-    if (!this.gameState) {
-      this.turnTimeRemaining = 0;
-      return;
-    }
-
-    // Only decrement if we have a valid timer value
-    // Server updates will refresh this value via updateHeroData()
-    if (this.turnTimeRemaining > 0) {
-      this.turnTimeRemaining = Math.max(0, this.turnTimeRemaining - 1);
-    } else {
-      // Ensure timer doesn't go negative
-      this.turnTimeRemaining = 0;
-    }
   }
 
   /**
@@ -149,11 +124,35 @@ export class GameHudComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * Format time remaining as MM:SS
+   * Get player name (fallback to "Player 1" if not available)
    */
-  formatTimeRemaining(): string {
-    const minutes = Math.floor(this.turnTimeRemaining / 60);
-    const seconds = this.turnTimeRemaining % 60;
+  getPlayerName(): string {
+    // TODO: Get actual player name from profile service when available
+    return this.playerHero?.userId?.substring(0, 8) || 'Player 1';
+  }
+
+  /**
+   * Get opponent name (fallback to "Player 2" if not available)
+   */
+  getOpponentName(): string {
+    // TODO: Get actual opponent name from profile service when available
+    return this.opponentHero?.userId?.substring(0, 8) || 'Player 2';
+  }
+
+  /**
+   * Format match timer as MM:SS
+   */
+  formatMatchTimer(): string {
+    if (!this.matchStartTime) {
+      return '05:00';
+    }
+
+    const elapsed = Math.floor((Date.now() - this.matchStartTime) / 1000);
+    const remaining = Math.max(0, this.matchDuration - elapsed);
+    
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 }
