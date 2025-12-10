@@ -4,7 +4,6 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const gameStateManager = require('./src/services/GameStateManager');
 const gameConfig = require('./src/config/game.config');
-const TurnManager = require('./src/services/TurnManager');
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5002;
@@ -27,9 +26,6 @@ const io = new Server(server, {
   },
   path: '/ws/game'
 });
-
-// Initialize turn manager after io is created
-const turnManager = new TurnManager(io);
 
 // Express CORS middleware (should be after Socket.io initialization, like in matchmaking service)
 app.use(
@@ -206,8 +202,7 @@ io.on('connection', socket => {
         console.log('Game state initialized:', {
           matchId,
           player1: gameState.player1.userId,
-          player2: gameState.player2.userId,
-          currentTurn: gameState.currentTurn
+          player2: gameState.player2.userId
         });
 
         // Use setImmediate to ensure both sockets have fully joined the room
@@ -257,11 +252,6 @@ io.on('connection', socket => {
           // eslint-disable-next-line no-console
           console.log(`Emitted 'game-started' event to all players in match:${matchId}`);
         });
-
-        // Start turn timer
-        turnManager.startTurn(matchId);
-        // eslint-disable-next-line no-console
-        console.log(`Started turn timer for match:${matchId}`);
       } else {
         // More than 2 players (shouldn't happen, but handle gracefully)
         // eslint-disable-next-line no-console
@@ -297,9 +287,8 @@ io.on('connection', socket => {
           // Clean up empty match tracking
           if (players.size === 0) {
             playerTracking.delete(matchId);
-            // Clean up game state and turn timer
+            // Clean up game state
             gameStateManager.deleteGameState(matchId);
-            turnManager.cleanup(matchId);
             // eslint-disable-next-line no-console
             console.log(`Removed empty match tracking for ${matchId}`);
           }

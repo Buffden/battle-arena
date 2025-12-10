@@ -33,9 +33,6 @@ class GameStateManager {
     const gameState = {
       matchId,
       gameRoomId: matchId,
-      currentTurn: players[0].userId,
-      turnNumber: gameConfig.turn.defaultTurnNumber,
-      turnTimeRemaining: gameConfig.turn.defaultTimeSeconds,
       player1: {
         id: `hero-${players[0].userId}`,
         userId: players[0].userId,

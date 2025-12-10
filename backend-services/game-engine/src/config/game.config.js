@@ -21,10 +21,6 @@ module.exports = {
       player2: { x: 700, y: 500 } // Right side
     }
   },
-  turn: {
-    defaultTimeSeconds: 15,
-    defaultTurnNumber: 1
-  },
   game: {
     defaultStatus: 'waiting',
     activeStatus: 'active'
