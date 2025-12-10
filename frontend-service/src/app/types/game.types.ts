@@ -21,9 +21,6 @@ export interface Hero {
 export interface GameState {
   matchId: string;
   gameRoomId: string;
-  currentTurn: string; // userId of current player
-  turnNumber: number;
-  turnTimeRemaining: number; // seconds
   player1: Hero;
   player2: Hero;
   arena: {
