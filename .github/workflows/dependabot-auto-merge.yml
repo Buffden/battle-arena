@@ -1,0 +1,132 @@
+name: Dependabot Auto-Merge from Main
+
+on:
+  # Trigger when dependabot pushes to its branch - this keeps the branch up to date
+  push:
+    branches:
+      - dependabot/update-dependencies
+  # Also trigger on schedule to keep branch synced even if dependabot hasn't pushed
+  schedule:
+    # Run daily at 2 AM UTC to sync with main
+    - cron: "0 2 * * *"
+  # Manual trigger for testing
+  workflow_dispatch:
+
+# Only run for dependabot branch pushes or scheduled runs
+jobs:
+  merge-main-into-dependabot:
+    name: Merge Main into Dependabot Branch
+    runs-on: ubuntu-latest
+    # Only run if this is a push to dependabot branch, scheduled run, or manual trigger
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout dependabot branch
+        uses: actions/checkout@v6
+        with:
+          ref: dependabot/update-dependencies
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine base branch
+        id: base
+        run: |
+          # Check if main exists, otherwise use develop
+          if git ls-remote --heads origin main | grep -q main; then
+            BASE_BRANCH="main"
+          else
+            BASE_BRANCH="develop"
+          fi
+          echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "Using base branch: $BASE_BRANCH"
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ steps.base.outputs.BASE_BRANCH }}:${{ steps.base.outputs.BASE_BRANCH }} --depth=1
+
+      - name: Merge base branch into dependabot branch
+        id: merge
+        run: |
+          BASE_BRANCH="${{ steps.base.outputs.BASE_BRANCH }}"
+
+          # Check if merge is needed
+          if git merge-base --is-ancestor origin/$BASE_BRANCH HEAD; then
+            echo "Already up to date with $BASE_BRANCH"
+            echo "needs_merge=false" >> $GITHUB_OUTPUT
+          else
+            echo "Merging $BASE_BRANCH into dependabot branch..."
+            
+            # Attempt merge with strategy to keep dependabot's package file versions
+            if ! git merge origin/$BASE_BRANCH \
+              -m "chore: merge $BASE_BRANCH into dependabot branch [skip ci]" \
+              --no-edit \
+              -X ours; then
+              
+              echo "Merge conflict detected, resolving by keeping dependabot versions for package files..."
+              
+              # For package files, keep dependabot's version (ours = dependabot branch)
+              git checkout --ours package.json package-lock.json pom.xml 2>/dev/null || true
+              git checkout --ours */package.json */package-lock.json */pom.xml 2>/dev/null || true
+              git checkout --ours backend-services/*/package.json backend-services/*/package-lock.json backend-services/*/pom.xml 2>/dev/null || true
+              git checkout --ours frontend-service/package.json frontend-service/package-lock.json 2>/dev/null || true
+              
+              # For all other files, accept base branch's version (theirs = base branch)
+              git checkout --theirs . 2>/dev/null || true
+              
+              # Restore package files to dependabot's version
+              git checkout --ours package.json package-lock.json pom.xml 2>/dev/null || true
+              git checkout --ours */package.json */package-lock.json */pom.xml 2>/dev/null || true
+              git checkout --ours backend-services/*/package.json backend-services/*/package-lock.json backend-services/*/pom.xml 2>/dev/null || true
+              git checkout --ours frontend-service/package.json frontend-service/package-lock.json 2>/dev/null || true
+              
+              # Regenerate package-lock.json files if they exist
+              if [ -f "frontend-service/package.json" ]; then
+                echo "Regenerating frontend-service/package-lock.json..."
+                cd frontend-service && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ..
+              fi
+              if [ -f "backend-services/game-engine/package.json" ]; then
+                echo "Regenerating backend-services/game-engine/package-lock.json..."
+                cd backend-services/game-engine && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ../..
+              fi
+              if [ -f "backend-services/matchmaking-service/package.json" ]; then
+                echo "Regenerating backend-services/matchmaking-service/package-lock.json..."
+                cd backend-services/matchmaking-service && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ../..
+              fi
+              
+              # Complete the merge
+              git add -A
+              git commit -m "chore: merge $BASE_BRANCH into dependabot branch (resolved conflicts keeping dependabot versions) [skip ci]" || true
+            fi
+            
+            echo "needs_merge=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push changes to dependabot branch
+        if: steps.merge.outputs.needs_merge == 'true'
+        run: |
+          echo "Pushing updated dependabot branch..."
+          git push origin dependabot/update-dependencies || {
+            echo "Push failed or branch is already up to date"
+            exit 0
+          }
+          echo "✅ Successfully merged ${{ steps.base.outputs.BASE_BRANCH }} into dependabot/update-dependencies"
+
+      - name: Summary
+        if: steps.merge.outputs.needs_merge == 'false'
+        run: |
+          echo "✅ Dependabot branch is already up to date with ${{ steps.base.outputs.BASE_BRANCH }}"
