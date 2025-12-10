@@ -59,7 +59,7 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     // Subscribe to game-joined event (for "Waiting for opponent..." message)
     // Use BehaviorSubject so we get the last value even if subscription happens after event
     this.gameService.gameJoined$.subscribe(data => {
-      if (data && data.message === 'Waiting for opponent...') {
+      if (data?.message === 'Waiting for opponent...') {
         console.log(
           '=== GameArenaComponent: Received game-joined, setting waitingForOpponent = true ==='
         );
@@ -129,37 +129,74 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     // Create a custom scene class
     class GameArenaScene extends Phaser.Scene {
       private readonly component: GameArenaComponent;
+      private arenaBackground: Phaser.GameObjects.Image | null = null;
 
       constructor(component: GameArenaComponent) {
         super({ key: 'GameArenaScene' });
         this.component = component;
       }
 
+      preload(): void {
+        // Clear any existing texture to prevent caching issues
+        if (this.textures.exists('arena-background')) {
+          this.textures.remove('arena-background');
+        }
+        
+        // Load arena background image with cache busting
+        // Add timestamp to prevent browser caching issues across different displays
+        const timestamp = Date.now();
+        this.load.image('arena-background', `assets/arenas/arena-02.png?v=${timestamp}`);
+      }
+
       create(): void {
         this.component.gameScene = this;
 
-        // Get viewport dimensions for fullscreen
+        // Load and display arena background image
+        // Always ensure fresh load by checking if texture exists
+        if (!this.textures.exists('arena-background')) {
+          // If texture doesn't exist, reload it
+          const timestamp = Date.now();
+          this.textures.remove('arena-background'); // Clear any stale texture
+          this.load.image('arena-background', `assets/arenas/arena-02.png?v=${timestamp}`);
+          this.load.once('filecomplete-image-arena-background', () => {
+            this.createArenaBackground();
+          });
+          this.load.start();
+          return;
+        }
+        
+        this.createArenaBackground();
+      }
+
+      private createArenaBackground(): void {
+        if (!this.textures.exists('arena-background')) {
+          return;
+        }
+
+        const texture = this.textures.get('arena-background');
+        const imageWidth = texture.source[0].width;
+        const imageHeight = texture.source[0].height;
         const viewportWidth = this.scale.width;
         const viewportHeight = this.scale.height;
 
-        // Draw fullscreen arena background
-        this.add.rectangle(
-          viewportWidth / 2,
-          viewportHeight / 2,
-          viewportWidth,
-          viewportHeight,
-          gameConfig.arena.backgroundColor
-        );
+          // Stretch image to fill entire viewport (no aspect ratio preservation)
+          const scaleX = viewportWidth / imageWidth;
+          const scaleY = viewportHeight / imageHeight;
+          
+          // Position image at origin (0, 0)
+          this.arenaBackground = this.add.image(0, 0, 'arena-background');
+          this.arenaBackground.setOrigin(0, 0); // Set origin to top-left
+          this.arenaBackground.setDepth(-1000);
+          // Set different scales for X and Y to stretch to viewport size
+          this.arenaBackground.setScale(scaleX, scaleY);
 
-        // Draw terrain/ground at bottom
-        const groundHeight = 50;
-        this.add.rectangle(
-          viewportWidth / 2,
-          viewportHeight - groundHeight / 2,
-          viewportWidth,
-          groundHeight,
-          0x8b4513 // Brown ground
-        );
+          // Image now fills entire viewport, no centering needed
+          this.arenaBackground.x = 0;
+          this.arenaBackground.y = 0;
+
+        // Set camera bounds to match viewport
+        this.cameras.main.setBounds(0, 0, viewportWidth, viewportHeight);
+        this.cameras.main.centerOn(viewportWidth / 2, viewportHeight / 2);
 
         // Initial hero sprites will be created when game state is received
         if (this.component.gameState) {
@@ -209,86 +246,11 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   /**
    * Update game scene with new game state
    */
-  private updateGameScene(state: GameState): void {
+  private updateGameScene(_state: GameState): void {
     if (!this.gameScene) {
       return;
     }
 
-    // Clear existing hero sprites (if any)
-    const existingHeroes = this.gameScene.children.list.filter(
-      child => (child as any).data?.get('isHero') === true
-    );
-    existingHeroes.forEach(hero => hero.destroy());
-
-    // Determine which hero is the player and which is the opponent
-    const playerHero = state.player1.userId === this.currentUserId ? state.player1 : state.player2;
-    const opponentHero =
-      state.player1.userId === this.currentUserId ? state.player2 : state.player1;
-
-    // Create player hero sprite
-    this.createHeroSprite(playerHero, true);
-
-    // Create opponent hero sprite
-    this.createHeroSprite(opponentHero, false);
-  }
-
-  /**
-   * Create hero sprite in Phaser scene
-   */
-  private createHeroSprite(hero: GameState['player1'], isPlayer: boolean): void {
-    if (!this.gameScene) {
-      return;
-    }
-
-    // Create a simple rectangle sprite for now (can be replaced with actual sprite images later)
-    const sprite = this.gameScene.add.rectangle(
-      hero.position.x,
-      hero.position.y,
-      gameConfig.hero.defaultWidth,
-      gameConfig.hero.defaultHeight,
-      isPlayer ? 0x00ff00 : 0xff0000 // Green for player, red for opponent
-    );
-
-    // Store hero data in sprite
-    sprite.setData('isHero', true);
-    sprite.setData('heroId', hero.id);
-    sprite.setData('userId', hero.userId);
-
-    // Add health bar above hero
-    this.createHealthBar(sprite, hero);
-  }
-
-  /**
-   * Create health bar above hero
-   */
-  private createHealthBar(sprite: Phaser.GameObjects.Rectangle, hero: GameState['player1']): void {
-    if (!this.gameScene) {
-      return;
-    }
-
-    const barWidth = 40;
-    const barHeight = 4;
-    const barX = sprite.x;
-    const barY = sprite.y - gameConfig.hero.defaultHeight / 2 - 10;
-
-    // Background (red/damaged portion)
-    const bgBar = this.gameScene.add.rectangle(barX, barY, barWidth, barHeight, 0xff0000);
-    bgBar.setDepth(10);
-
-    // Health (green portion)
-    const healthPercent = hero.health / hero.maxHealth;
-    const healthWidth = barWidth * healthPercent;
-    const healthBar = this.gameScene.add.rectangle(
-      barX - (barWidth - healthWidth) / 2,
-      barY,
-      healthWidth,
-      barHeight,
-      0x00ff00
-    );
-    healthBar.setDepth(11);
-
-    // Store health bar references in sprite data for updates
-    sprite.setData('healthBar', healthBar);
-    sprite.setData('healthBarBg', bgBar);
+    // Hero sprites removed - no longer displaying player/opponent sprites
   }
 }
