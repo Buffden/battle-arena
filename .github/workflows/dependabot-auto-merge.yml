@@ -1,39 +1,37 @@
 name: Dependabot Auto-Merge from Main
 
 on:
-  # Trigger when dependabot pushes to its branch
+  # Trigger when dependabot pushes to its branch - this keeps the branch up to date
   push:
     branches:
       - dependabot/update-dependencies
-  # Trigger when dependabot opens or updates a PR
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - develop
+  # Also trigger on schedule to keep branch synced even if dependabot hasn't pushed
+  schedule:
+    # Run daily at 2 AM UTC to sync with main
+    - cron: "0 2 * * *"
+  # Manual trigger for testing
+  workflow_dispatch:
 
-# Only run for dependabot actions
+# Only run for dependabot branch pushes or scheduled runs
 jobs:
   merge-main-into-dependabot:
     name: Merge Main into Dependabot Branch
     runs-on: ubuntu-latest
-    # Only run if this is a dependabot PR or push
+    # Only run if this is a push to dependabot branch, scheduled run, or manual trigger
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/dependabot/update-dependencies') ||
-      (github.event_name == 'pull_request' && 
-       (startsWith(github.event.pull_request.head.ref, 'dependabot/') || 
-        github.event.pull_request.user.login == 'dependabot[bot]'))
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout dependabot branch
         uses: actions/checkout@v6
         with:
-          # Use the dependabot branch (either from PR head or the branch itself)
-          ref: ${{ github.event.pull_request.head.ref || 'dependabot/update-dependencies' }}
+          ref: dependabot/update-dependencies
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -45,11 +43,11 @@ jobs:
       - name: Determine base branch
         id: base
         run: |
-          # Try to determine which branch this PR targets or use main as default
-          if [ "${{ github.event.pull_request.base.ref }}" != "" ]; then
-            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          else
+          # Check if main exists, otherwise use develop
+          if git ls-remote --heads origin main | grep -q main; then
             BASE_BRANCH="main"
+          else
+            BASE_BRANCH="develop"
           fi
           echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_OUTPUT
           echo "Using base branch: $BASE_BRANCH"
@@ -118,24 +116,17 @@ jobs:
             echo "needs_merge=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Push changes
+      - name: Push changes to dependabot branch
         if: steps.merge.outputs.needs_merge == 'true'
         run: |
-          BRANCH_NAME="${{ github.event.pull_request.head.ref || 'dependabot/update-dependencies' }}"
-          echo "Pushing to branch: $BRANCH_NAME"
-          git push origin HEAD:$BRANCH_NAME || {
+          echo "Pushing updated dependabot branch..."
+          git push origin dependabot/update-dependencies || {
             echo "Push failed or branch is already up to date"
             exit 0
           }
+          echo "✅ Successfully merged ${{ steps.base.outputs.BASE_BRANCH }} into dependabot/update-dependencies"
 
-      - name: Update PR comment
-        if: github.event_name == 'pull_request' && steps.merge.outputs.needs_merge == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Automatically merged `${{ steps.base.outputs.BASE_BRANCH }}` into this branch. Dependabot version updates have been preserved for package.json, package-lock.json, and pom.xml files.'
-            })
+      - name: Summary
+        if: steps.merge.outputs.needs_merge == 'false'
+        run: |
+          echo "✅ Dependabot branch is already up to date with ${{ steps.base.outputs.BASE_BRANCH }}"
