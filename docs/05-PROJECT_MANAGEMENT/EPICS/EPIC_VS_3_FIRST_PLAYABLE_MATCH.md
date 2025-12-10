@@ -597,6 +597,227 @@ Implement game arena UI component that displays the game state, heroes, and aren
 - [ ] Collisions detected and damage calculated
 - [ ] Game state updated and synchronized
 
+**Architectural Foundation: Layered System Design**
+
+Before implementing movement, we must establish a solid architectural foundation with proper layering. Movement design should sit on top of a solid "world representation" layer, not the other way around.
+
+**System Layers (Bottom to Top):**
+
+1. **Rendering & Engine Layer** – Phaser, canvas, WebGL
+2. **World Representation Layer** – tiles, arena schema, elevation, depth, collision
+3. **Entity Layer** – heroes/tanks, props, bullets, pickups
+4. **Movement & Physics Layer** – how entities move _through_ that world
+5. **Gameplay & Rules Layer** – health, damage, wins, abilities
+6. **Meta & UI Layer** – Angular UI, menus, loadouts, matchmaking
+
+We are currently between layers **(2)** and **(4)**. We must plan **(2)** properly before we lock **(4)**.
+
+**Prerequisites Before Movement Implementation:**
+
+**1. Tile/Grid System Contract**
+
+- **Tile size:** 48×48px (standard for 2D artillery games)
+- **Coordinate system:**
+  - World units = pixels (Phaser standard)
+  - Tile coordinates = `worldX / 48`, `worldY / 48`
+- **Tile types:**
+  - `GROUND` (walkable flat)
+  - `STAIR_UP`, `STAIR_DOWN` (for elevation changes)
+  - `SLOPE_LEFT`, `SLOPE_RIGHT` (optional: smooth slopes)
+  - `CLIFF` (blocking, prevents movement)
+  - `VOID` (off-map / kill zone)
+
+**2. Arena JSON Schema (Data-Driven World)**
+
+Arena configuration should be data-driven via JSON schema:
+
+```typescript
+interface ArenaConfig {
+  key: string;
+  tilemapKey: string; // Phaser tilemap key
+  tilesetKey: string; // terrain tileset
+  gridSize: { w: number; h: number; tile: number }; // 48
+  layers: {
+    ground: string;
+    cliffs: string;
+    stairs: string;
+    props: string;
+    elevation: string;
+  };
+  spawnPoints: {
+    teamA: Point[];
+    teamB: Point[];
+  };
+  movement: {
+    gravity?: number; // if you ever do jumps
+    defaultFriction: number;
+    maxSlopeAngle: number;
+  };
+}
+```
+
+**Industrial practice:** Movement should be **configurable per arena**, not hard-coded.
+
+**3. Elevation & 2.5D Depth Model**
+
+For 2.5D visual depth, establish a height model:
+
+- Each _tile_ has `elevation: int` (0, 1, 2, …)
+- Each _entity_ has:
+  - `elevation` (inherits from the tile under its feet)
+  - `zOffset` (small float for smooth transitions while on stairs)
+- Visual rules:
+  - `scale = baseScale - elevation * 0.02`
+  - `depth = sprite.y` (with small tweaks for props)
+
+**4. Arena Services Interface (Framework-Agnostic)**
+
+Design an **ArenaManager** that exposes **pure functions**, no Phaser leakage:
+
+```typescript
+interface IArenaManager {
+  getTileAt(worldX: number, worldY: number): TileInfo | null;
+  getElevationAt(worldX: number, worldY: number): number;
+  isWalkable(worldX: number, worldY: number, footprint: number): boolean;
+  isStair(worldX: number, worldY: number): boolean;
+  getStairDirection(worldX: number, worldY: number): "up" | "down" | null;
+  getSpawnPoint(team: "A" | "B"): Point;
+}
+```
+
+**Industrial pattern:** **Facade** pattern over Phaser APIs. Keeps core game logic decoupled from the engine.
+
+**5. Entity Model for Heroes (Reusable Across Arenas)**
+
+Define a **generic hero model**:
+
+```typescript
+interface IHeroConfig {
+  id: string;
+  spriteKey: string;
+  collisionRadius: number; // footprint size
+  baseSpeed: number;
+  climbSpeed: number;
+  maxSlopeAngle: number;
+  weight: number; // affects knockback, friction
+  movementType: "tracked" | "hover" | "walker";
+}
+
+interface IHero {
+  id: string;
+  config: IHeroConfig;
+  position: { x: number; y: number };
+  elevation: number;
+  velocity: { x: number; y: number };
+  state: "idle" | "moving" | "climbing" | "falling" | "stunned";
+}
+```
+
+**Industrial pattern:** **Strategy + Data-driven design**. Heroes differ by config, not code.
+
+**6. Movement Schema / Movement Rules DSL**
+
+Define a **"movement schema"** describing what is allowed:
+
+Per hero type:
+
+```json
+{
+  "heroId": "tank_heavy",
+  "rules": {
+    "canClimbStairs": true,
+    "canUseSlopes": true,
+    "canDropFromLedges": false,
+    "tractionOnGrass": 1.0,
+    "tractionOnMud": 0.7,
+    "maxElevationDifference": 1
+  }
+}
+```
+
+Per arena:
+
+```json
+{
+  "arenaKey": "forest_cliffs",
+  "movementOverrides": {
+    "globalFriction": 0.9,
+    "fallDamageEnabled": true,
+    "maxDropWithoutDamage": 1
+  }
+}
+```
+
+**7. Input Abstraction (Framework-Independent)**
+
+Don't tie movement logic directly to Phaser's keyboard events. Define an **InputState**:
+
+```typescript
+interface IInputState {
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
+  dash: boolean;
+  jump: boolean; // if you ever add micro jumps
+}
+```
+
+This allows mapping keyboard, gamepad, or AI to the same interface.
+
+**8. Depth Sorting & Visual 2.5D System**
+
+Design how **visual layering** works:
+
+```typescript
+interface IDepthSortable {
+  updateDepth(): void;
+}
+
+// Generic depth rule
+sprite.depth = sprite.y + elevation * ELEVATION_DEPTH_OFFSET;
+
+// Scaling rule (optional)
+sprite.scale = baseScale - elevation * ELEVATION_SCALE_FACTOR;
+```
+
+**Movement System Interface (After Foundation is Built):**
+
+Once all above is defined, THEN design movement systems:
+
+```typescript
+interface IMovementSystem {
+  update(hero: IHero, input: IInputState, dt: number, arena: IArenaManager): void;
+}
+```
+
+**Strategy Pattern for Movement Types:**
+
+```typescript
+class TrackedMovement implements IMovementSystem { ... }
+class HoverMovement implements IMovementSystem { ... }
+class ScoutMovement implements IMovementSystem { ... }
+```
+
+Hero config chooses strategy via `movementStrategyKey`.
+
+**Reusability Benefits:**
+
+- **New arena = new JSON + new tileset** (no engine changes)
+- **New hero size = change config only** (no code changes)
+- **Balance tweaks = config-only updates** (no code changes)
+
+**Note for MVP:** For VS-3 MVP, we can start with a simplified version of this architecture:
+
+- Basic arena bounds (no full tile system yet)
+- Simple left/right movement (no elevation/stairs yet)
+- Basic hero entity model
+- Foundation interfaces that can be extended later
+
+The full architecture above should be implemented as the game evolves beyond MVP.
+
+---
+
 **Related Tasks (Detailed Technical Implementation):**
 
 **TASK-VS-3-4-1: Movement System - Backend Validation, 4 Moves Limit, Frontend Controls (BE + FE)**
@@ -630,18 +851,25 @@ Implement hero movement system including backend movement validation and fronten
 **MovementManager Implementation Requirements:**
 
 - Create MovementManager class in `src/service/` directory
+- Follow the architectural foundation patterns (IArenaManager, IHero interfaces) where applicable
+- For MVP: Start with simplified arena bounds validation (can be extended to full tile system later)
 - Implement `validateMove(gameState, playerId, direction)` method:
   - Check if it's the player's turn (compare playerId with currentTurn in gameState)
   - Check if player has moves remaining (verify movesRemaining > 0, max 4 per match)
   - Check if movement direction is valid (only "left" or "right" allowed)
   - Check if movement is within arena bounds (hero position + direction is valid)
+    - For MVP: Simple X coordinate bounds check (0 to arena.width)
+    - Future: Use IArenaManager.isWalkable() for tile-based validation
   - Return true if all validations pass, false otherwise
 - Implement `applyMove(gameState, playerId, direction)` method:
   - Update hero position based on direction (increment or decrement X coordinate)
+  - For MVP: Simple X coordinate update (step size configurable)
+  - Future: Use IMovementSystem.update() with full arena/tile integration
   - Decrement moves remaining for the player
   - Update game state with new position and moves count
   - Return updated GameState object
 - Handle edge cases (boundary limits, invalid directions)
+- Design with extensibility in mind: Methods should be structured to support future tile-based movement
 
 **Backend - Socket.io Handler:**
 **File:** `src/controller/GameEngineController.ts`
@@ -663,19 +891,25 @@ Implement hero movement system including backend movement validation and fronten
 
 **Movement Controls Implementation Requirements:**
 
-- Implement `onMove(direction)` method in GameArenaComponent:
+- Follow input abstraction pattern: Map keyboard events to IInputState interface
+- Implement `onMove(direction: 'left' | 'right')` method in GameArenaComponent:
   - Check if it's player's turn (compare currentTurn with playerId)
   - Check if player can move using canMove() method
   - If both conditions pass, call GameService.moveHero() with matchId, playerId, and direction
   - Subscribe to Observable response
   - On success: Update gameState with returned updated state
+  - Update Phaser sprite position when game state updates (reuse existing updateGameScene logic)
   - Handle errors and display error messages
 - Implement `canMove()` method:
   - Check if player has moves remaining (playerMovesRemaining > 0)
   - Return boolean indicating if move is allowed
 - Add keyboard event listeners for arrow keys (left/right)
-- Add UI buttons for movement controls
-- Display moves remaining counter in UI
+  - Map to IInputState pattern: `{ left: true/false, right: true/false }`
+  - Prevent default browser behavior for arrow keys
+  - Clean up listeners in ngOnDestroy
+- Add UI buttons for movement controls (optional, keyboard is primary)
+- Display moves remaining counter in UI (already in HUD component)
+- Ensure Phaser sprite position updates smoothly when movement occurs
 
 **End-to-End Test Scenario:**
 
@@ -1141,20 +1375,17 @@ VS-3: First Playable Match
 ## How to Use This Template
 
 1. **Create Epic Issue:**
-
    - Copy the EPIC-VS-3 template above
    - Create issue in GitHub
    - Assign to milestone "VS-3: First Playable Match"
 
 2. **Create Story Issues:**
-
    - For each VS-3-X story, create a separate issue
    - Link to EPIC-VS-3 as parent
    - Copy tasks from Phase 5, 6, and 7 documents
    - Link to Phase documents for technical reference
 
 3. **Create Task Issues:**
-
    - For each task, create subtask or separate issue
    - Link to story as parent
    - Reference Phase 5, 6, and 7 documents for technical details
