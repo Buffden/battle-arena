@@ -1,0 +1,141 @@
+name: Dependabot Auto-Merge from Main
+
+on:
+  # Trigger when dependabot pushes to its branch
+  push:
+    branches:
+      - dependabot/update-dependencies
+  # Trigger when dependabot opens or updates a PR
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+# Only run for dependabot actions
+jobs:
+  merge-main-into-dependabot:
+    name: Merge Main into Dependabot Branch
+    runs-on: ubuntu-latest
+    # Only run if this is a dependabot PR or push
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/dependabot/update-dependencies') ||
+      (github.event_name == 'pull_request' && 
+       (startsWith(github.event.pull_request.head.ref, 'dependabot/') || 
+        github.event.pull_request.user.login == 'dependabot[bot]'))
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          # Use the dependabot branch (either from PR head or the branch itself)
+          ref: ${{ github.event.pull_request.head.ref || 'dependabot/update-dependencies' }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine base branch
+        id: base
+        run: |
+          # Try to determine which branch this PR targets or use main as default
+          if [ "${{ github.event.pull_request.base.ref }}" != "" ]; then
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          else
+            BASE_BRANCH="main"
+          fi
+          echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "Using base branch: $BASE_BRANCH"
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ steps.base.outputs.BASE_BRANCH }}:${{ steps.base.outputs.BASE_BRANCH }} --depth=1
+
+      - name: Merge base branch into dependabot branch
+        id: merge
+        run: |
+          BASE_BRANCH="${{ steps.base.outputs.BASE_BRANCH }}"
+
+          # Check if merge is needed
+          if git merge-base --is-ancestor origin/$BASE_BRANCH HEAD; then
+            echo "Already up to date with $BASE_BRANCH"
+            echo "needs_merge=false" >> $GITHUB_OUTPUT
+          else
+            echo "Merging $BASE_BRANCH into dependabot branch..."
+            
+            # Attempt merge with strategy to keep dependabot's package file versions
+            if ! git merge origin/$BASE_BRANCH \
+              -m "chore: merge $BASE_BRANCH into dependabot branch [skip ci]" \
+              --no-edit \
+              -X ours; then
+              
+              echo "Merge conflict detected, resolving by keeping dependabot versions for package files..."
+              
+              # For package files, keep dependabot's version (ours = dependabot branch)
+              git checkout --ours package.json package-lock.json pom.xml 2>/dev/null || true
+              git checkout --ours */package.json */package-lock.json */pom.xml 2>/dev/null || true
+              git checkout --ours backend-services/*/package.json backend-services/*/package-lock.json backend-services/*/pom.xml 2>/dev/null || true
+              git checkout --ours frontend-service/package.json frontend-service/package-lock.json 2>/dev/null || true
+              
+              # For all other files, accept base branch's version (theirs = base branch)
+              git checkout --theirs . 2>/dev/null || true
+              
+              # Restore package files to dependabot's version
+              git checkout --ours package.json package-lock.json pom.xml 2>/dev/null || true
+              git checkout --ours */package.json */package-lock.json */pom.xml 2>/dev/null || true
+              git checkout --ours backend-services/*/package.json backend-services/*/package-lock.json backend-services/*/pom.xml 2>/dev/null || true
+              git checkout --ours frontend-service/package.json frontend-service/package-lock.json 2>/dev/null || true
+              
+              # Regenerate package-lock.json files if they exist
+              if [ -f "frontend-service/package.json" ]; then
+                echo "Regenerating frontend-service/package-lock.json..."
+                cd frontend-service && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ..
+              fi
+              if [ -f "backend-services/game-engine/package.json" ]; then
+                echo "Regenerating backend-services/game-engine/package-lock.json..."
+                cd backend-services/game-engine && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ../..
+              fi
+              if [ -f "backend-services/matchmaking-service/package.json" ]; then
+                echo "Regenerating backend-services/matchmaking-service/package-lock.json..."
+                cd backend-services/matchmaking-service && npm install --package-lock-only 2>&1 | tail -5 || true
+                cd ../..
+              fi
+              
+              # Complete the merge
+              git add -A
+              git commit -m "chore: merge $BASE_BRANCH into dependabot branch (resolved conflicts keeping dependabot versions) [skip ci]" || true
+            fi
+            
+            echo "needs_merge=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push changes
+        if: steps.merge.outputs.needs_merge == 'true'
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref || 'dependabot/update-dependencies' }}"
+          echo "Pushing to branch: $BRANCH_NAME"
+          git push origin HEAD:$BRANCH_NAME || {
+            echo "Push failed or branch is already up to date"
+            exit 0
+          }
+
+      - name: Update PR comment
+        if: github.event_name == 'pull_request' && steps.merge.outputs.needs_merge == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Automatically merged `${{ steps.base.outputs.BASE_BRANCH }}` into this branch. Dependabot version updates have been preserved for package.json, package-lock.json, and pom.xml files.'
+            })
