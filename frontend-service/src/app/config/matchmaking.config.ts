@@ -36,6 +36,18 @@ export interface MatchmakingConfig {
   };
 }
 
+type MatchmakingConfigOverrides = {
+  websocket?: {
+    connectionTimeoutMs?: number | string;
+  };
+};
+
+const runtimeMatchmakingConfig =
+  typeof globalThis.window !== 'undefined'
+    ? (globalThis.window as Window & { __MATCHMAKING_CONFIG__?: MatchmakingConfigOverrides })
+        .__MATCHMAKING_CONFIG__
+    : undefined;
+
 /**
  * Matchmaking configuration object
  * Can be overridden via environment variables or Angular environment files
@@ -47,9 +59,7 @@ export const matchmakingConfig: MatchmakingConfig = {
 
     // Connection timeout: How long to wait for initial connection (milliseconds)
     connectionTimeoutMs: Number.parseInt(
-      (typeof globalThis.window !== 'undefined' &&
-        (globalThis.window as any).__MATCHMAKING_CONFIG__?.websocket?.connectionTimeoutMs) ||
-        '10000',
+      String(runtimeMatchmakingConfig?.websocket?.connectionTimeoutMs ?? 10000),
       10
     ), // 10 seconds
 
@@ -100,21 +110,24 @@ export const matchmakingConfig: MatchmakingConfig = {
  * This allows runtime configuration via globalThis.window.__MATCHMAKING_CONFIG__
  */
 export function getConfigValue<T>(key: string, defaultValue: T): T {
-  if (
-    typeof globalThis.window !== 'undefined' &&
-    (globalThis.window as any).__MATCHMAKING_CONFIG__
-  ) {
-    const config = (globalThis.window as any).__MATCHMAKING_CONFIG__;
-    const keys = key.split('.');
-    let value = config;
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return defaultValue;
-      }
-    }
-    return value as T;
+  const runtimeConfig =
+    typeof globalThis.window !== 'undefined'
+      ? (globalThis.window as Window & { __MATCHMAKING_CONFIG__?: Record<string, unknown> })
+          .__MATCHMAKING_CONFIG__
+      : undefined;
+
+  if (!runtimeConfig) {
+    return defaultValue;
   }
-  return defaultValue;
+
+  const keys = key.split('.');
+  let value: unknown = runtimeConfig;
+  for (const k of keys) {
+    if (value && typeof value === 'object' && k in value) {
+      value = (value as Record<string, unknown>)[k];
+    } else {
+      return defaultValue;
+    }
+  }
+  return value as T;
 }
