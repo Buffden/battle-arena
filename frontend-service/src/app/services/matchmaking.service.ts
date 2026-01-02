@@ -504,6 +504,7 @@ export class MatchmakingService {
             return state;
           }
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('Error parsing saved queue state:', error);
         }
       }

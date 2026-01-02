@@ -37,6 +37,11 @@ export interface GameState {
   updatedAt: number;
 }
 
+export interface WalkableZone {
+  id: string;
+  polygon: Phaser.Geom.Polygon;
+}
+
 export interface GameStartedEvent {
   matchId: string;
   gameRoomId: string;

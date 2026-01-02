@@ -10,7 +10,7 @@ describe('WildcardGuard', () => {
 
   beforeEach(() => {
     const setup = setupGuardTestBed(WildcardGuard);
-    guard = setup.guard;
+    guard = setup.guard as WildcardGuard;
     authService = setup.authService;
     router = setup.router;
     route = setup.route;

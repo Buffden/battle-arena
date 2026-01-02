@@ -58,8 +58,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         const targetUrl = navigation.url.split('?')[0].split('#')[0]; // Remove query params and fragments
 
         if (targetUrl !== '/matchmaking' && currentUrl === '/matchmaking' && this.isInQueue) {
-          // eslint-disable-next-line no-console
-          console.log(`Navigating away from matchmaking to ${targetUrl} - leaving queue`);
           this.leaveQueue();
         }
       });
@@ -70,8 +68,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     // Note: This will also trigger on page refresh, but that's okay -
     // the backend will handle reconnection via the reconnect-queue mechanism
     if (this.isInQueue) {
-      // eslint-disable-next-line no-console
-      console.log('Component destroyed while in queue - leaving queue');
       this.leaveQueue();
     }
 
@@ -129,7 +125,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.isInQueue = false;
           this.errorMessage = error.message || 'Failed to join queue. Please try again.';
           this.matchmakingService.clearSavedQueueState();
-          console.error('Error joining queue:', error);
         }
       })
     );
@@ -150,8 +145,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
         this.estimatedWaitTime = null;
         this.matchmakingService.clearSavedQueueState();
       },
-      error: error => {
-        console.error('Error leaving queue:', error);
+      error: _error => {
         // Still update UI even if backend call fails
         this.isInQueue = false;
         this.queuePosition = null;
@@ -164,8 +158,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   goBack(): void {
     // Leave queue before navigating back
     if (this.isInQueue) {
-      // eslint-disable-next-line no-console
-      console.log('Back button clicked - leaving queue');
       this.leaveQueue();
     }
     this.location.back();
@@ -178,23 +170,19 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   onDashboardClick(): void {
     // Leave queue before navigating to dashboard
     if (this.isInQueue) {
-      // eslint-disable-next-line no-console
-      console.log('Dashboard link clicked - leaving queue');
       this.leaveQueue();
     }
     // Navigation will happen via routerLink
   }
 
   onMatchAccepted(matchId: string): void {
-    // eslint-disable-next-line no-console
-    console.log('✅ Match accepted in component:', matchId);
+    void matchId;
     // Don't close modal yet - wait for both players to accept
     // Modal will handle the rest via service
   }
 
   onMatchRejected(matchId: string): void {
-    // eslint-disable-next-line no-console
-    console.log('❌ Match rejected in component:', matchId);
+    void matchId;
     // Close modal immediately on rejection
     this.matchFoundData = null;
     // Clear queue status since player rejected
@@ -204,8 +192,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   }
 
   onMatchConfirmed(matchId: string): void {
-    // eslint-disable-next-line no-console
-    console.log('🎮 Match confirmed in component:', matchId);
+    void matchId;
     // Navigation is handled by subscription
   }
 
@@ -242,8 +229,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
 
     // Wait a bit longer for socket to fully disconnect and cleanup
     setTimeout(() => {
-      // eslint-disable-next-line no-console
-      console.log('🔄 Retrying to join queue...');
       this.joinQueue();
     }, matchmakingConfig.queue.retryDelayMs);
   }
@@ -269,10 +254,9 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
             this.matchmakingService.clearSavedQueueState();
           }
         },
-        error: error => {
+        error: _error => {
           this.isConnecting = false;
           this.matchmakingService.clearSavedQueueState();
-          console.error('Error reconnecting to queue:', error);
         }
       })
     );
@@ -291,24 +275,19 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
       this.matchmakingService.getQueueStatus$().subscribe({
         next: status => {
           if (status) {
-            // Only log significant changes
-            // eslint-disable-next-line no-console
-            // console.log('Queue status update received:', status);
             this.queuePosition = status.position;
             this.estimatedWaitTime = status.estimatedWaitTime;
             this.isInQueue = true; // Ensure we're marked as in queue when status is received
             this.errorMessage = null; // Clear any previous errors
           } else {
             // Queue status cleared (e.g., timeout or leave)
-            // eslint-disable-next-line no-console
-            // console.log('Queue status cleared');
             this.isInQueue = false;
             this.queuePosition = null;
             this.estimatedWaitTime = null;
           }
         },
         error: error => {
-          console.error('Error receiving queue status:', error);
+          void error;
         }
       })
     );
@@ -324,7 +303,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.errorMessage = data.message || matchmakingConfig.messages.queueTimeout;
         },
         error: error => {
-          console.error('Error receiving queue timeout:', error);
+          void error;
         }
       })
     );
@@ -341,7 +320,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         },
         error: (error: unknown) => {
-          console.error('Error receiving queue disconnection:', error);
+          void error;
         }
       })
     );
@@ -350,15 +329,9 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchFound$().subscribe({
         next: match => {
-          // eslint-disable-next-line no-console
-          console.log('🎮 Match found:', match.matchId);
           // CRITICAL: Only show modal if no match is currently being processed
           // This prevents showing multiple modals when multiple matches are found
           if (this.matchFoundData) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              `⚠️ Ignoring match-found for ${match.matchId} - already processing match ${this.matchFoundData.matchId}`
-            );
             return;
           }
           // Show match acceptance modal
@@ -373,7 +346,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         },
         error: error => {
-          console.error('Error receiving match found:', error);
+          void error;
         }
       })
     );
@@ -382,8 +355,6 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchConfirmed$().subscribe({
         next: confirmed => {
-          // eslint-disable-next-line no-console
-          console.log('✅ Match confirmed, navigating to game:', confirmed.matchId);
           // Clear match data and navigate to game with state
           this.matchFoundData = null;
           this.matchmakingService.clearSavedQueueState();
@@ -396,7 +367,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
           });
         },
         error: error => {
-          console.error('Error receiving match confirmed:', error);
+          void error;
         }
       })
     );
@@ -404,16 +375,12 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     // Subscribe to match rejected
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchRejected$().subscribe({
-        next: rejected => {
-          // eslint-disable-next-line no-console
-          console.log('❌ Match rejected:', rejected);
+        next: _rejected => {
           // Close modal immediately - accepting player will get a new match with new match ID
           this.matchFoundData = null;
-          // eslint-disable-next-line no-console
-          console.log('✓ Modal closed. Waiting for new match with new match ID...');
         },
         error: error => {
-          console.error('Error receiving match rejected:', error);
+          void error;
         }
       })
     );
@@ -422,19 +389,13 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.queueSubscriptions.add(
       this.matchmakingService.getMatchAcceptanceExpired$().subscribe({
         next: expired => {
-          // eslint-disable-next-line no-console
-          console.log('⏱️ Match acceptance expired:', expired);
           // Clear match data so user can receive new matches
           if (expired.matchId === this.matchFoundData?.matchId) {
             this.matchFoundData = null;
-            // eslint-disable-next-line no-console
-            console.log(
-              `✓ Match ${expired.matchId} data cleared. User will be re-added to queue and can receive new matches.`
-            );
           }
         },
         error: error => {
-          console.error('Error receiving match acceptance expired:', error);
+          void error;
         }
       })
     );
