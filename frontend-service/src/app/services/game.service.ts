@@ -53,26 +53,10 @@ export class GameService {
         // The path should be specified in the 'path' option, not in the URL
         const baseUrl = globalThis.window === undefined ? '' : globalThis.window.location.origin;
 
-        // Debug logging
-        console.log('=== GameService: Connecting to game engine ===');
-        console.log('Base URL (origin):', baseUrl);
-        console.log('WebSocket path:', gameConfig.websocket.path);
-        console.log('Match ID:', matchId);
-        console.log('Has token:', !!token);
-
         // Initialize Socket.io connection
         // Match the pattern from matchmaking service exactly: io(origin, { path: '/ws/...' })
         // Note: matchmaking doesn't pass query or auth in initial connection - we'll send matchId after connect
         const socketPath = gameConfig.websocket.path;
-        const socketNamespace = '/'; // Default namespace
-
-        console.log('=== GameService: Socket.io Connection Details ===');
-        console.log('Base URL (origin):', baseUrl);
-        console.log('Socket Path:', socketPath);
-        console.log('Socket Namespace (default):', socketNamespace);
-        console.log('Full URL would be:', `${baseUrl}${socketPath}`);
-        console.log('Match ID:', matchId);
-        console.log('Has token:', !!token);
 
         // Explicitly prevent query parameters - Socket.io should NOT send matchId in query
         // We'll send matchId via 'join-game' event after connection
@@ -92,14 +76,6 @@ export class GameService {
           auth: {}
           // Note: We'll send matchId via 'join-game' event after connection, like matchmaking does
         });
-
-        console.log('=== GameService: Socket.io instance created ===');
-        console.log('Socket ID (before connect):', this.socket.id);
-        console.log('Socket connected (before connect):', this.socket.connected);
-        // Access namespace through io property
-        const socketNamespaceName = (this.socket as any).nsp?.name || 'default';
-        console.log('Socket namespace:', socketNamespaceName);
-        console.log('Socket.io URI:', (this.socket as any).io?.uri);
 
         // Connection timeout
         let connectTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -136,23 +112,6 @@ export class GameService {
           hasCompleted = true;
           cleanup();
           this.isConnected = true;
-          console.log('=== GameService: Connected successfully ===');
-          console.log('Socket ID:', this.socket?.id);
-          console.log('Socket connected:', this.socket?.connected);
-          if (this.socket) {
-            const socketNamespaceName = (this.socket as any).nsp?.name || 'default';
-            console.log('Socket namespace:', socketNamespaceName);
-            console.log(
-              'Socket path:',
-              socketNamespaceName === '/' ? 'default' : socketNamespaceName
-            );
-            console.log('Socket transport:', (this.socket as any).io?.engine?.transport?.name);
-            console.log('Socket.io URI:', (this.socket as any).io?.uri);
-
-            // Test: Try to receive a test event to verify connection
-            console.log('=== GameService: Testing event reception ===');
-            // The onAny listener should catch this if events are working
-          }
 
           // Send join-game event with matchId, token, userId, and heroId
           // This allows backend to initialize game state with correct player info
@@ -172,14 +131,6 @@ export class GameService {
               userId,
               heroId
             });
-            console.log(
-              'Sent join-game event for match:',
-              matchId,
-              'userId:',
-              userId,
-              'heroId:',
-              heroId
-            );
           }
 
           observer.next(true);
@@ -191,21 +142,6 @@ export class GameService {
           hasCompleted = true;
           cleanup();
           this.isConnected = false;
-          console.error('=== GameService: Connection error ===');
-          console.error('Error type:', error.constructor.name);
-          console.error('Error message:', error.message);
-          console.error('Error stack:', error.stack);
-          if (this.socket) {
-            const socketNamespaceName = (this.socket as any).nsp?.name || 'default';
-            console.error('Socket namespace (on error):', socketNamespaceName);
-            console.error(
-              'Socket path (on error):',
-              socketNamespaceName === '/' ? 'default' : socketNamespaceName
-            );
-            console.error('Socket connected (on error):', this.socket.connected);
-            console.error('Socket ID (on error):', this.socket.id);
-            console.error('Socket.io URI (on error):', (this.socket as any).io?.uri);
-          }
           observer.error(error);
         };
 
@@ -220,23 +156,13 @@ export class GameService {
 
         // Game event handlers
         const onGameJoined = (data: { matchId: string; message: string }) => {
-          console.log('=== GameService: Successfully joined game ===');
-          console.log('Game joined data:', data);
           // Emit to subscribers so components can show "Waiting for opponent..." message
           this.gameJoinedSubject.next(data);
-          console.log('=== GameService: Emitted game-joined to subscribers ===');
         };
 
         const onGameStarted = (event: GameStartedEvent) => {
-          console.log('=== GameService: Received game-started event ===');
-          console.log('Game started event:', event);
           if (event.gameState) {
-            console.log('=== GameService: Updating game state ===');
-            console.log('Game state:', event.gameState);
             this.gameStateSubject.next(event.gameState);
-            console.log('=== GameService: Game state updated in subject ===');
-          } else {
-            console.warn('=== GameService: game-started event missing gameState ===');
           }
         };
 
@@ -247,15 +173,11 @@ export class GameService {
         };
 
         const onGameError = (event: GameErrorEvent) => {
-          console.error('=== GameService: Game error ===');
-          console.error('Error event:', event);
           this.gameErrorSubject.next(event);
         };
 
         const onDisconnect = (reason: string) => {
           this.isConnected = false;
-          console.log('=== GameService: Disconnected ===');
-          console.log('Reason:', reason);
           if (reason === 'io server disconnect') {
             // Server disconnected, reconnect manually if needed
             this.socket?.connect();
@@ -263,38 +185,18 @@ export class GameService {
         };
 
         // Register event listeners
-        console.log('=== GameService: Registering event listeners ===');
         this.socket.on('connect', onConnect);
         this.socket.on('connect_error', onConnectError);
         this.socket.on('game-joined', onGameJoined);
 
         // Add explicit logging for game-started listener
         this.socket.on('game-started', (event: GameStartedEvent) => {
-          console.log('=== GameService: game-started listener triggered! ===');
-          console.log('Raw event received:', event);
           onGameStarted(event);
         });
 
         this.socket.on('game-state-update', onGameStateUpdate);
         this.socket.on('game-error', onGameError);
         this.socket.on('disconnect', onDisconnect);
-
-        // Test: Listen to all events to see if ANY events are being received
-        this.socket.onAny((eventName, ...args) => {
-          console.log(`=== GameService: Received ANY event: ${eventName} ===`, args);
-        });
-
-        // Also listen for test event
-        this.socket.on('test-event', data => {
-          console.log('=== GameService: Received test-event ===', data);
-        });
-
-        console.log('=== GameService: All event listeners registered ===');
-        console.log('Registered listeners:', {
-          'game-joined': !!onGameJoined,
-          'game-started': !!onGameStarted,
-          'game-state-update': !!onGameStateUpdate
-        });
 
         // Return cleanup function
         return () => {
