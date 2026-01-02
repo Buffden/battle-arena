@@ -10,11 +10,13 @@ describe('AuthGuard', () => {
 
   beforeEach(() => {
     const setup = setupGuardTestBed(AuthGuard);
-    guard = setup.guard;
-    authService = setup.authService;
-    router = setup.router;
-    route = setup.route;
-    state = setup.state;
+    guard = setup.guard as AuthGuard;
+    authService = setup.authService as jasmine.SpyObj<
+      import('../services/auth.service').AuthService
+    >;
+    router = setup.router as jasmine.SpyObj<import('@angular/router').Router>;
+    route = setup.route as import('@angular/router').ActivatedRouteSnapshot;
+    state = setup.state as import('@angular/router').RouterStateSnapshot;
   });
 
   it('should be created', () => {

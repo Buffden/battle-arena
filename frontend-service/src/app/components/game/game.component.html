@@ -1,10 +1,4 @@
 <div class="game-page">
-  <!-- Minimal Exit Button (top-right corner) -->
-  <button (click)="goBack()" class="exit-button" title="Exit Game">✕</button>
-
-  <!-- Game HUD (overlay on top of game) -->
-  <app-game-hud [gameState]="gameState$ | async"></app-game-hud>
-
   <!-- Game Arena (fullscreen) -->
   <app-game-arena [matchId]="matchId"></app-game-arena>
 </div>
