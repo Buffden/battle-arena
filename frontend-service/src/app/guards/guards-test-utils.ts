@@ -29,9 +29,7 @@ export interface GuardTestSetup {
  * @param guardClass The guard class to provide in TestBed
  * @return Test setup with mocked services and route snapshots
  */
-export function setupGuardTestBed<T>(
-  guardClass: new (...args: unknown[]) => T
-): GuardTestSetup & { guard: T } {
+export function setupGuardTestBed<T>(guardClass: any): GuardTestSetup & { guard: T } {
   const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
   const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -43,7 +41,7 @@ export function setupGuardTestBed<T>(
     ]
   });
 
-  const guard = TestBed.inject(guardClass);
+  const guard = TestBed.inject(guardClass) as T;
   const route = {} as ActivatedRouteSnapshot;
   const state = {} as RouterStateSnapshot;
 
