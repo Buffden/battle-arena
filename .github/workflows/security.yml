@@ -32,10 +32,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "17"
           distribution: "temurin"
@@ -47,7 +47,7 @@ jobs:
           which java
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -58,7 +58,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Run OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@2ba636726705b0f74f126ebeaacaf2ad4600b967
+        uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c
         id: depcheck
         env:
           # Set JAVA_HOME to Docker container's Java path
@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload dependency check results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: security-report-java-${{ matrix.service }}-${{ github.sha }}
           path: backend-services/${{ matrix.service }}/reports/**
@@ -118,10 +118,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js 18
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "18"
           cache: "npm"
@@ -170,7 +170,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: security-report-nodejs-${{ matrix.service }}-${{ github.sha }}
@@ -187,10 +187,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js 18
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "18"
           cache: "npm"
@@ -239,7 +239,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: security-report-frontend-${{ github.sha }}
@@ -262,17 +262,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@014f16e7ab1402f30e7c3329d33797e7948572db
+        uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
       - name: Set up Java 17
         if: matrix.language == 'java'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "17"
           distribution: "temurin"
@@ -286,7 +286,7 @@ jobs:
 
       - name: Cache Maven dependencies
         if: matrix.language == 'java'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -306,7 +306,7 @@ jobs:
         continue-on-error: true
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@014f16e7ab1402f30e7c3329d33797e7948572db
+        uses: github/codeql-action/analyze@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
         with:
           category: "/language:${{ matrix.language }}"
         continue-on-error: true
@@ -317,10 +317,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js 18
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "18"
 
