@@ -30,7 +30,7 @@ export interface GuardTestSetup {
  * @return Test setup with mocked services and route snapshots
  */
 export function setupGuardTestBed<T>(
-  guardClass: new (...args: any[]) => T
+  guardClass: new (...args: unknown[]) => T
 ): GuardTestSetup & { guard: T } {
   const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
   const routerSpy = jasmine.createSpyObj('Router', ['navigate']);

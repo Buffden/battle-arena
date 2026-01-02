@@ -4,14 +4,13 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GameService } from '../../services/game.service';
 import { GameArenaComponent } from '../../arena/components/game-arena/game-arena.component';
-import { GameHudComponent } from '../../arena/components/game-hud/game-hud.component';
 import { GameState } from '../../types/game.types';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule, RouterModule, GameArenaComponent, GameHudComponent],
+  imports: [CommonModule, RouterModule, GameArenaComponent],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
 })
@@ -55,10 +54,5 @@ export class GameComponent implements OnInit {
       this.currentUserName = this.currentUserId || 'You';
       this.opponentName = this.opponentId || 'Opponent';
     }
-  }
-
-  goBack(): void {
-    this.gameService.disconnect();
-    this.router.navigate(['/dashboard']);
   }
 }

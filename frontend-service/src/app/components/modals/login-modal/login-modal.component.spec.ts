@@ -36,8 +36,6 @@ describe('LoginModalComponent', () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['login']);
 
     modalServiceSpy.isOpen.and.returnValue(true);
-    modalServiceSpy.currentModal = { signal: () => 'login' } as any;
-
     await TestBed.configureTestingModule({
       imports: [LoginModalComponent, ReactiveFormsModule],
       providers: [
