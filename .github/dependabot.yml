@@ -15,7 +15,7 @@ updates:
     directory: "/backend-services/profile-service"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
     target-branch: "dependabot/update-dependencies"
     groups:
       java-dependencies:
