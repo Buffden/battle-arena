@@ -4,15 +4,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.battlearena.auth_service.exception.GlobalExceptionHandler;
 import com.battlearena.auth_service.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 /**
  * Unit tests for the logout endpoint in AuthController.
@@ -27,16 +32,28 @@ import org.springframework.test.web.servlet.MockMvc;
  * security.
  * </p>
  */
-@WebMvcTest(controllers = AuthController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthController Logout Endpoint Tests")
 class AuthControllerLogoutTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private UserService userService; // Mocked as it's a dependency of AuthController
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setUp() {
+        AuthController authController = new AuthController(userService);
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+        mockMvc = MockMvcBuilders.standaloneSetup(authController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .setValidator(validator)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .build();
+    }
 
     @Test
     @DisplayName("Should return 200 OK and success message on logout")
@@ -46,4 +63,3 @@ class AuthControllerLogoutTest {
                 .andExpect(jsonPath("$.message").value("Logout successful"));
     }
 }
-

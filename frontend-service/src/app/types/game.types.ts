@@ -4,6 +4,8 @@
  * Types for game state management, hero data, and game events.
  */
 
+import Phaser from 'phaser';
+
 export interface Hero {
   id: string;
   userId: string;

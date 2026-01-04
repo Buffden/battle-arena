@@ -51,7 +51,7 @@ jobs:
         run: mvn validate
 
       - name: Run unit tests
-        run: mvn test
+        run: mvn clean test
 
       - name: Generate JaCoCo coverage report
         run: mvn jacoco:report
