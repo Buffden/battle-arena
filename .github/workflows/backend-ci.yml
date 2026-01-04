@@ -50,8 +50,14 @@ jobs:
       - name: Validate Maven POM
         run: mvn validate
 
+      - name: Download all dependencies (including test)
+        run: mvn dependency:resolve-sources dependency:resolve -U
+
+      - name: Verify test dependencies
+        run: mvn dependency:tree -Dscope=test | grep -E "(spring-boot-test|mockito)" || true
+
       - name: Run unit tests
-        run: mvn test
+        run: mvn clean test
 
       - name: Generate JaCoCo coverage report
         run: mvn jacoco:report
