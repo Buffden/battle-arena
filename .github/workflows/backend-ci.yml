@@ -50,9 +50,6 @@ jobs:
       - name: Validate Maven POM
         run: mvn validate
 
-      - name: Download all dependencies (including test)
-        run: mvn dependency:resolve -U
-
       - name: Run unit tests
         run: mvn clean test
 
