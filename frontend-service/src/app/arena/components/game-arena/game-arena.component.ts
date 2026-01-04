@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import * as Phaser from 'phaser';
@@ -15,11 +15,24 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class GameArenaComponent implements OnInit, OnDestroy {
   @Input() matchId: string | null = null;
-  activeZoneId = 'main-ground';
+  activeZoneId = 'player-walkable-zone';
   walkableZones = new Map<string, WalkableZone>();
 
   walkableGeom!: Phaser.Geom.Polygon;
-  testTank: Phaser.GameObjects.Rectangle | null = null;
+  testTank: Phaser.GameObjects.Sprite | null = null;
+  private tankAngle = 0;
+  private readonly tankBaseScale = 1.2;
+  private readonly panzer4MergedAngles = [0, 45, 90, 135, 180, 225, 270, 315];
+  private readonly panzer4MergedTextureFiles: Record<number, string> = {
+    0: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_0.png',
+    45: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_45.png',
+    90: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_90.png',
+    135: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_135.png',
+    180: 'assets/heroes/tanks/panzer_export/Merged/german_panzer__merged_180.png',
+    225: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_225.png',
+    270: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_270.png',
+    315: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_315.png'
+  };
 
   arenaBounds = {
     minX: 0,
@@ -37,10 +50,15 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   private gameStateSubscription?: Subscription;
   private gameErrorSubscription?: Subscription;
   private currentUserId: string | null = null;
+  clickCoordinates: { x: number; y: number }[] = [];
+  cursorPositionText = '';
+  private cursorRafId: number | null = null;
+  private pendingCursorPos: { x: number; y: number } | null = null;
 
   constructor(
     private readonly gameService: GameService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly zone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -109,6 +127,11 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       globalThis.window.removeEventListener('resize', this.onWindowResize);
     }
 
+    if (this.cursorRafId !== null) {
+      globalThis.cancelAnimationFrame(this.cursorRafId);
+      this.cursorRafId = null;
+    }
+
     if (this.phaserGame) {
       this.phaserGame.destroy(true);
       this.phaserGame = null;
@@ -135,6 +158,11 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       preload(): void {
         this.load.json('arena-hills-v1', 'assets/arenas/arena-hills-v1.json');
         this.load.image('arena-02', 'assets/arenas/arena-02.png');
+        for (const angle of this.component.panzer4MergedAngles) {
+          const key = this.component.getPanzer4TextureKey(angle);
+          const file = this.component.panzer4MergedTextureFiles[angle];
+          this.load.image(key, file);
+        }
       }
 
       create(): void {
@@ -189,13 +217,16 @@ export class GameArenaComponent implements OnInit, OnDestroy {
         }
 
         // Active zone
-        this.component.activeZoneId = 'main-ground';
+        this.component.activeZoneId = 'player-walkable-zone';
         this.component.walkableGeom = this.component.walkableZones.get(
           this.component.activeZoneId
         )!.polygon;
 
         // Spawn tank
-        const tank = this.add.rectangle(400, 580, 40, 30, 0x00ff00);
+        const tank = this.add
+          .sprite(415, 415, this.component.getPanzer4TextureKey(this.component.tankAngle))
+          .setOrigin(0.5, 0.5)
+          .setScale(this.component.tankBaseScale);
         tank.setData('vy', 0);
         tank.setData('onGround', false);
         this.component.testTank = tank;
@@ -204,6 +235,14 @@ export class GameArenaComponent implements OnInit, OnDestroy {
         this.component.keys = this.input.keyboard?.addKeys('W,A,S,D') as
           | Record<string, Phaser.Input.Keyboard.Key>
           | undefined;
+
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+          this.component.handlePointerDown(pointer);
+        });
+
+        this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+          this.component.handlePointerMove(pointer);
+        });
 
         // Optional initial camera center
         // this.updateCamera([tank]);
@@ -270,7 +309,10 @@ export class GameArenaComponent implements OnInit, OnDestroy {
 
     if (!tank || !keys || !this.walkableGeom) return;
 
-    const speed = 0.2 * delta;
+    const denom = Math.max(1, this.arenaBounds.maxY - this.arenaBounds.minY);
+    const depthT = Phaser.Math.Clamp((tank.y - this.arenaBounds.minY) / denom, 0, 1);
+    const depthScale = Phaser.Math.Linear(0.3, 2.2, depthT);
+    const speed = 0.1 * delta * depthScale;
 
     let dx = 0;
     let dy = 0;
@@ -288,6 +330,14 @@ export class GameArenaComponent implements OnInit, OnDestroy {
 
     const moveX = dx * speed;
     const moveY = dy * speed;
+
+    if (dx !== 0 || dy !== 0) {
+      const nextAngle = this.snapAngleToDirection(dx, dy);
+      if (nextAngle !== this.tankAngle) {
+        this.tankAngle = nextAngle;
+        tank.setTexture(this.getPanzer4TextureKey(this.tankAngle));
+      }
+    }
 
     const fullX = tank.x + moveX;
     const fullY = tank.y + moveY;
@@ -309,10 +359,7 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       }
     }
 
-    const denom = Math.max(1, this.arenaBounds.maxY - this.arenaBounds.minY);
-    const t = Phaser.Math.Clamp((tank.y - this.arenaBounds.minY) / denom, 0, 1);
-
-    tank.setScale(Phaser.Math.Linear(0.7, 1.1, t));
+    tank.setScale(this.tankBaseScale * depthScale);
     tank.setDepth(Math.floor(tank.y));
   }
 
@@ -327,6 +374,46 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       child => child.getData('isHero') === true
     );
     existingHeroes.forEach(hero => hero.destroy());
+  }
+
+  private getPanzer4TextureKey(angle: number): string {
+    return `panzer4-merged-${angle}`;
+  }
+
+  private snapAngleToDirection(dx: number, dy: number): number {
+    const rawDeg = Phaser.Math.RadToDeg(Math.atan2(-dy, dx));
+    const normalized = (rawDeg + 360) % 360;
+    const snapped = Math.round(normalized / 45) * 45;
+    return snapped % 360;
+  }
+
+  private handlePointerDown(pointer: Phaser.Input.Pointer): void {
+    const x = Math.round(pointer.worldX);
+    const y = Math.round(pointer.worldY);
+    this.clickCoordinates.push({ x, y });
+    // Log the full click history as requested.
+    // eslint-disable-next-line no-console
+    console.log(this.clickCoordinates);
+  }
+
+  private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    this.pendingCursorPos = {
+      x: Math.round(pointer.worldX),
+      y: Math.round(pointer.worldY)
+    };
+
+    if (this.cursorRafId !== null) return;
+
+    this.cursorRafId = globalThis.requestAnimationFrame(() => {
+      const pos = this.pendingCursorPos;
+      this.pendingCursorPos = null;
+      this.cursorRafId = null;
+      if (!pos) return;
+
+      this.zone.run(() => {
+        this.cursorPositionText = `X: ${pos.x}, Y: ${pos.y}`;
+      });
+    });
   }
 
   projectVector(vx: number, vy: number, tx: number, ty: number): { x: number; y: number } {
