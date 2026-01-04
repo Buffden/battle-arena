@@ -4,20 +4,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.battlearena.auth_service.exception.GlobalExceptionHandler;
 import com.battlearena.auth_service.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.context.annotation.Import;
+
+import com.battlearena.auth_service.exception.GlobalExceptionHandler;
 
 /**
  * Integration tests for validation error handling in AuthController.
@@ -31,28 +30,20 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
  * Security is disabled for these tests since we're testing validation, not security.
  * </p>
  */
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = AuthController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 @DisplayName("AuthController Validation Tests")
 class AuthControllerValidationTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @Mock
+    @MockBean
     private UserService userService;
-
-    @BeforeEach
-    void setUp() {
-        AuthController authController = new AuthController(userService);
-        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-        validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(authController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .setValidator(validator)
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-                .build();
-    }
 
     // ========================================
     // REGISTER ENDPOINT VALIDATION TESTS
@@ -65,7 +56,8 @@ class AuthControllerValidationTest {
                 new RegisterRequestDTO(null, "test@example.com", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)).andExpect(status().isBadRequest())
+                .content(requestBody))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.fieldErrors.username").exists());
