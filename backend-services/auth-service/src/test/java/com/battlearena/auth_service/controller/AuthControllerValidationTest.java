@@ -9,6 +9,7 @@ import com.battlearena.auth_service.dto.RegisterRequest;
 import com.battlearena.auth_service.exception.GlobalExceptionHandler;
 import com.battlearena.auth_service.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,9 @@ class AuthControllerValidationTest {
 
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @Mock
     private UserService userService;
@@ -142,7 +145,8 @@ class AuthControllerValidationTest {
                 new RegisterRequest("testuser", "notanemail", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)).andExpect(status().isBadRequest())
+                .content(requestBody))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors.email").exists());
     }
 
@@ -232,7 +236,8 @@ class AuthControllerValidationTest {
         String requestBody = objectMapper.writeValueAsString(new LoginRequest("testuser", null));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)).andExpect(status().isBadRequest())
+                .content(requestBody))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors.password").exists());
     }
 
