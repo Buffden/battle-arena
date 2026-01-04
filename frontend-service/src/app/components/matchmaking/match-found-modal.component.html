@@ -1,69 +1,87 @@
-<div class="modal-overlay" *ngIf="matchData">
-  <div class="modal-content">
-    <!-- Header -->
-    <div class="modal-header">
-      <h2 class="modal-title">MATCH FOUND</h2>
-      <div class="timer" *ngIf="timeRemaining > 0">{{ timeRemaining }}s</div>
-    </div>
-
-    <!-- Opponent Info -->
-    <div class="opponent-info">
-      <div class="opponent-avatar">⚔️</div>
-      <div class="opponent-details">
-        <div class="opponent-label">Opponent</div>
-        <div class="opponent-id">{{ matchData.opponent.userId }}</div>
+@if (matchData) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">MATCH FOUND</h2>
+        @if (timeRemaining > 0) {
+          <div class="timer">{{ timeRemaining }}s</div>
+        }
       </div>
-    </div>
 
-    <!-- Acceptance Status (CS:GO style) -->
-    <div class="acceptance-status">
-      <div class="status-row">
-        <div class="status-label">You</div>
-        <div class="status-indicator">
-          <span class="tick-mark" *ngIf="hasCurrentUserAccepted()">✓</span>
-          <span class="waiting" *ngIf="!hasCurrentUserAccepted() && !hasOpponentRejected()"
-            >⏳</span
+      <!-- Opponent Info -->
+      <div class="opponent-info">
+        <div class="opponent-avatar">⚔️</div>
+        <div class="opponent-details">
+          <div class="opponent-label">Opponent</div>
+          <div class="opponent-id">{{ matchData.opponent.userId }}</div>
+        </div>
+      </div>
+
+      <!-- Acceptance Status (CS:GO style) -->
+      <div class="acceptance-status">
+        <div class="status-row">
+          <div class="status-label">You</div>
+          <div class="status-indicator">
+            @if (hasCurrentUserAccepted()) {
+              <span class="tick-mark">✓</span>
+            } @else if (!hasOpponentRejected()) {
+              <span class="waiting">⏳</span>
+            } @else {
+              <span class="cross-mark">✗</span>
+            }
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-label">Opponent</div>
+          <div class="status-indicator">
+            @if (hasOpponentAccepted()) {
+              <span class="tick-mark">✓</span>
+            } @else if (!hasOpponentRejected()) {
+              <span class="waiting">⏳</span>
+            } @else {
+              <span class="cross-mark">✗</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      @if (!acceptanceStatus?.bothAccepted && !hasOpponentRejected()) {
+        <div class="modal-actions">
+          <button
+            class="pixel-button reject-button"
+            (click)="onReject()"
+            [disabled]="hasCurrentUserAccepted()"
           >
-          <span class="cross-mark" *ngIf="hasOpponentRejected()">✗</span>
+            REJECT
+          </button>
+          <button
+            class="pixel-button accept-button"
+            (click)="onAccept()"
+            [disabled]="hasCurrentUserAccepted()"
+          >
+            ACCEPT
+          </button>
         </div>
-      </div>
-      <div class="status-row">
-        <div class="status-label">Opponent</div>
-        <div class="status-indicator">
-          <span class="tick-mark" *ngIf="hasOpponentAccepted()">✓</span>
-          <span class="waiting" *ngIf="!hasOpponentAccepted() && !hasOpponentRejected()">⏳</span>
-          <span class="cross-mark" *ngIf="hasOpponentRejected()">✗</span>
+      }
+
+      <!-- Status Messages -->
+      @if (acceptanceStatus?.bothAccepted) {
+        <div class="status-message">
+          <p class="pixel-text">Both players accepted! Starting game...</p>
         </div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="modal-actions" *ngIf="!acceptanceStatus?.bothAccepted && !hasOpponentRejected()">
-      <button
-        class="pixel-button reject-button"
-        (click)="onReject()"
-        [disabled]="hasCurrentUserAccepted()"
-      >
-        REJECT
-      </button>
-      <button
-        class="pixel-button accept-button"
-        (click)="onAccept()"
-        [disabled]="hasCurrentUserAccepted()"
-      >
-        ACCEPT
-      </button>
-    </div>
-
-    <!-- Status Messages -->
-    <div class="status-message" *ngIf="acceptanceStatus?.bothAccepted">
-      <p class="pixel-text">Both players accepted! Starting game...</p>
-    </div>
-    <div class="status-message error" *ngIf="hasOpponentRejected()">
-      <p class="pixel-text">Opponent rejected the match</p>
-    </div>
-    <div class="status-message" *ngIf="timeRemaining <= 0 && !hasCurrentUserAccepted()">
-      <p class="pixel-text">Time expired</p>
+      }
+      @if (hasOpponentRejected()) {
+        <div class="status-message error">
+          <p class="pixel-text">Opponent rejected the match</p>
+        </div>
+      }
+      @if (timeRemaining <= 0 && !hasCurrentUserAccepted()) {
+        <div class="status-message">
+          <p class="pixel-text">Time expired</p>
+        </div>
+      }
     </div>
   </div>
-</div>
+}
