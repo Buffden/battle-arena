@@ -1,5 +1,11 @@
 {
   "id": "arena-hills-v1",
+  "worldBounds": {
+    "x": 0,
+    "y": 0,
+    "width": 2048,
+    "height": 1536
+  },
   "walkableZones": [
     {
       "id": "main-ground",

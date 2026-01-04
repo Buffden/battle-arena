@@ -1,5 +1,6 @@
 /// <reference types="jasmine" />
 
+import type { ProviderToken } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -29,7 +30,7 @@ export interface GuardTestSetup {
  * @param guardClass The guard class to provide in TestBed
  * @return Test setup with mocked services and route snapshots
  */
-export function setupGuardTestBed<T>(guardClass: any): GuardTestSetup & { guard: T } {
+export function setupGuardTestBed<T>(guardClass: ProviderToken<T>): GuardTestSetup & { guard: T } {
   const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
   const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -41,7 +42,7 @@ export function setupGuardTestBed<T>(guardClass: any): GuardTestSetup & { guard:
     ]
   });
 
-  const guard = TestBed.inject(guardClass) as T;
+  const guard = TestBed.inject(guardClass);
   const route = {} as ActivatedRouteSnapshot;
   const state = {} as RouterStateSnapshot;
 

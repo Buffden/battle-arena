@@ -1,9 +1,13 @@
 <div class="game-arena-wrapper">
   <div id="game-arena-container" class="game-arena-container"></div>
-  <div *ngIf="!gameState && !waitingForOpponent" class="loading-message">
-    <p>Connecting to game...</p>
-  </div>
-  <div *ngIf="!gameState && waitingForOpponent" class="loading-message">
-    <p>Waiting for opponent...</p>
-  </div>
+  @if (!gameState && !waitingForOpponent) {
+    <div class="loading-message">
+      <p>Connecting to game...</p>
+    </div>
+  }
+  @if (!gameState && waitingForOpponent) {
+    <div class="loading-message">
+      <p>Waiting for opponent...</p>
+    </div>
+  }
 </div>
