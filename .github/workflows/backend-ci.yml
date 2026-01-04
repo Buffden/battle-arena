@@ -51,16 +51,7 @@ jobs:
         run: mvn validate
 
       - name: Download all dependencies (including test)
-        run: mvn dependency:resolve-sources dependency:resolve -U
-
-      - name: Verify test dependencies are available
-        run: |
-          mvn dependency:tree -Dscope=test -Dincludes=org.springframework.boot:spring-boot-starter-test || true
-          echo "Checking if test dependencies are in local repository..."
-          ls -la ~/.m2/repository/org/springframework/boot/spring-boot-starter-test/ || echo "Test dependencies not found in cache"
-
-      - name: Compile test sources (debug)
-        run: mvn test-compile -X 2>&1 | tail -100 || true
+        run: mvn dependency:resolve -U
 
       - name: Run unit tests
         run: mvn clean test

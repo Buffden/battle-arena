@@ -35,31 +35,28 @@ else Token Invalid or Expired
 end
 
 == Parallel Data Fetching ==
-par Get Profile Summary
-    Frontend -> ProfileService: GET /api/profile/{userId}/summary\n(Header: Authorization: Bearer {token})
-    activate ProfileService
-    ProfileService -> ProfileService: Validate JWT token
-    ProfileService -> ProfileService: Get profile summary\n(globalScore, rankTier, wins, losses, matchesPlayed)
-    ProfileService --> Frontend: ProfileSummaryResponse\n{globalScore, rankTier, wins, losses, matchesPlayed, winRate}
-    deactivate ProfileService
-and Get Rank Position
-    Frontend -> LeaderboardService: GET /api/leaderboard/rank/{userId}\n(Header: Authorization: Bearer {token})
-    activate LeaderboardService
-    LeaderboardService -> LeaderboardService: Validate JWT token
-    LeaderboardService -> LeaderboardService: Get player rank position\n(rank, totalPlayers, percentile)
-    LeaderboardService --> Frontend: RankPositionResponse\n{rank, totalPlayers, percentile, rankTier}
-    deactivate LeaderboardService
-and Get Matchmaking Status
-    Frontend -> Matchmaking: GET /api/matchmaking/status/{userId}\n(Header: Authorization: Bearer {token})
-    activate Matchmaking
-    Matchmaking -> Matchmaking: Validate JWT token
-    Matchmaking -> Redis: Check if player in queue\n(matchmaking:queue:*)
-    activate Redis
-    Redis --> Matchmaking: Queue status\n{inQueue: true/false, position, estimatedWaitTime}
-    deactivate Redis
-    Matchmaking --> Frontend: MatchmakingStatusResponse\n{inQueue, position, estimatedWaitTime, matchId (if in match)}
-    deactivate Matchmaking
-end
+Note over Frontend: Requests sent in parallel to aggregate dashboard data
+Frontend -> ProfileService: GET /api/profile/{userId}/summary\n(Header: Authorization: Bearer {token})
+activate ProfileService
+ProfileService -> ProfileService: Validate JWT token
+ProfileService -> ProfileService: Get profile summary\n(globalScore, rankTier, wins, losses, matchesPlayed)
+ProfileService --> Frontend: ProfileSummaryResponse\n{globalScore, rankTier, wins, losses, matchesPlayed, winRate}
+deactivate ProfileService
+Frontend -> LeaderboardService: GET /api/leaderboard/rank/{userId}\n(Header: Authorization: Bearer {token})
+activate LeaderboardService
+LeaderboardService -> LeaderboardService: Validate JWT token
+LeaderboardService -> LeaderboardService: Get player rank position\n(rank, totalPlayers, percentile)
+LeaderboardService --> Frontend: RankPositionResponse\n{rank, totalPlayers, percentile, rankTier}
+deactivate LeaderboardService
+Frontend -> Matchmaking: GET /api/matchmaking/status/{userId}\n(Header: Authorization: Bearer {token})
+activate Matchmaking
+Matchmaking -> Matchmaking: Validate JWT token
+Matchmaking -> Redis: Check if player in queue\n(matchmaking:queue:*)
+activate Redis
+Redis --> Matchmaking: Queue status\n{inQueue: true/false, position, estimatedWaitTime}
+deactivate Redis
+Matchmaking --> Frontend: MatchmakingStatusResponse\n{inQueue, position, estimatedWaitTime, matchId (if in match)}
+deactivate Matchmaking
 
 == Aggregate Dashboard Data ==
 Frontend -> Frontend: Combine data from all services\n(profile summary, rank position, matchmaking status)
@@ -77,4 +74,3 @@ alt User Refreshes Dashboard
 end
 
 @enduml
-
