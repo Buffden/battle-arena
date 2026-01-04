@@ -49,10 +49,15 @@ class AuthControllerValidationTest {
         AuthController authController = new AuthController(userService);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
+        
+        // Create a message converter with ObjectMapper that has JavaTimeModule
+        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+        messageConverter.setObjectMapper(objectMapper);
+        
         mockMvc = MockMvcBuilders.standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setMessageConverters(messageConverter)
                 .build();
     }
 
