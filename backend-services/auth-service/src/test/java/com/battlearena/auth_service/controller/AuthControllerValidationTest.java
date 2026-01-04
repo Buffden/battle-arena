@@ -4,6 +4,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.battlearena.auth_service.dto.LoginRequest;
+import com.battlearena.auth_service.dto.RegisterRequest;
 import com.battlearena.auth_service.exception.GlobalExceptionHandler;
 import com.battlearena.auth_service.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,7 +64,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when username is missing")
     void register_ShouldReturn400_WhenUsernameMissing() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                new RegisterRequestDTO(null, "test@example.com", "Password123"));
+                new RegisterRequest(null, "test@example.com", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -76,7 +78,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when username is blank")
     void register_ShouldReturn400_WhenUsernameBlank() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("", "test@example.com", "Password123"));
+                .writeValueAsString(new RegisterRequest("", "test@example.com", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -87,7 +89,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when username is too short (< 3 characters)")
     void register_ShouldReturn400_WhenUsernameTooShort() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                new RegisterRequestDTO("ab", "test@example.com", "Password123"));
+                new RegisterRequest("ab", "test@example.com", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -99,7 +101,7 @@ class AuthControllerValidationTest {
     void register_ShouldReturn400_WhenUsernameTooLong() throws Exception {
         String longUsername = "a".repeat(21);
         String requestBody = objectMapper.writeValueAsString(
-                new RegisterRequestDTO(longUsername, "test@example.com", "Password123"));
+                new RegisterRequest(longUsername, "test@example.com", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -110,7 +112,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when email is missing")
     void register_ShouldReturn400_WhenEmailMissing() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("testuser", null, "Password123"));
+                .writeValueAsString(new RegisterRequest("testuser", null, "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -121,7 +123,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when email is blank")
     void register_ShouldReturn400_WhenEmailBlank() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("testuser", "", "Password123"));
+                .writeValueAsString(new RegisterRequest("testuser", "", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -132,7 +134,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when email format is invalid")
     void register_ShouldReturn400_WhenEmailInvalid() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                new RegisterRequestDTO("testuser", "notanemail", "Password123"));
+                new RegisterRequest("testuser", "notanemail", "Password123"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -143,7 +145,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when password is missing")
     void register_ShouldReturn400_WhenPasswordMissing() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("testuser", "test@example.com", null));
+                .writeValueAsString(new RegisterRequest("testuser", "test@example.com", null));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -154,7 +156,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when password is blank")
     void register_ShouldReturn400_WhenPasswordBlank() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("testuser", "test@example.com", ""));
+                .writeValueAsString(new RegisterRequest("testuser", "test@example.com", ""));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -165,7 +167,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when password is too short (< 8 characters)")
     void register_ShouldReturn400_WhenPasswordTooShort() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                new RegisterRequestDTO("testuser", "test@example.com", "short"));
+                new RegisterRequest("testuser", "test@example.com", "short"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -176,7 +178,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when multiple fields are invalid")
     void register_ShouldReturn400_WhenMultipleFieldsInvalid() throws Exception {
         String requestBody = objectMapper
-                .writeValueAsString(new RegisterRequestDTO("ab", "invalidemail", "short"));
+                .writeValueAsString(new RegisterRequest("ab", "invalidemail", "short"));
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -201,7 +203,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when username is missing in login request")
     void login_ShouldReturn400_WhenUsernameMissing() throws Exception {
         String requestBody =
-                objectMapper.writeValueAsString(new LoginRequestDTO(null, "Password123"));
+                objectMapper.writeValueAsString(new LoginRequest(null, "Password123"));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -212,7 +214,7 @@ class AuthControllerValidationTest {
     @DisplayName("Should return 400 when username is blank in login request")
     void login_ShouldReturn400_WhenUsernameBlank() throws Exception {
         String requestBody =
-                objectMapper.writeValueAsString(new LoginRequestDTO("", "Password123"));
+                objectMapper.writeValueAsString(new LoginRequest("", "Password123"));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -222,7 +224,7 @@ class AuthControllerValidationTest {
     @Test
     @DisplayName("Should return 400 when password is missing in login request")
     void login_ShouldReturn400_WhenPasswordMissing() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(new LoginRequestDTO("testuser", null));
+        String requestBody = objectMapper.writeValueAsString(new LoginRequest("testuser", null));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -232,7 +234,7 @@ class AuthControllerValidationTest {
     @Test
     @DisplayName("Should return 400 when password is blank in login request")
     void login_ShouldReturn400_WhenPasswordBlank() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(new LoginRequestDTO("testuser", ""));
+        String requestBody = objectMapper.writeValueAsString(new LoginRequest("testuser", ""));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -242,7 +244,7 @@ class AuthControllerValidationTest {
     @Test
     @DisplayName("Should return 400 when both username and password are missing in login request")
     void login_ShouldReturn400_WhenBothFieldsMissing() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(new LoginRequestDTO(null, null));
+        String requestBody = objectMapper.writeValueAsString(new LoginRequest(null, null));
 
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)).andExpect(status().isBadRequest())
@@ -258,76 +260,4 @@ class AuthControllerValidationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // ========================================
-    // ========================================
-
-    /**
-     * Helper DTO for register request tests. Used to construct JSON request bodies.
-     */
-    private static class RegisterRequestDTO {
-        private String username;
-        private String email;
-        private String password;
-
-        public RegisterRequestDTO(String username, String email, String password) {
-            this.username = username;
-            this.email = email;
-            this.password = password;
-        }
-
-        // Getters and setters for Jackson serialization
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-    }
-
-    /**
-     * Helper DTO for login request tests. Used to construct JSON request bodies.
-     */
-    private static class LoginRequestDTO {
-        private String username;
-        private String password;
-
-        public LoginRequestDTO(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        // Getters and setters for Jackson serialization
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-    }
 }
