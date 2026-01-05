@@ -286,6 +286,149 @@ io.on('connection', socket => {
     }
   });
 
+  // Handle player fire event
+  socket.on('player-fire', async data => {
+    try {
+      const { matchId, userId, weaponId, angle, power } = data;
+
+      if (!matchId || !userId || !weaponId || angle === undefined || power === undefined) {
+        socket.emit('fire-error', {
+          error: 'Invalid fire request',
+          message: 'matchId, userId, weaponId, angle, and power are required'
+        });
+        return;
+      }
+
+      const gameState = gameStateManager.getGameState(matchId);
+      if (!gameState) {
+        socket.emit('fire-error', {
+          error: 'Game not found',
+          message: `Game ${matchId} not found`
+        });
+        return;
+      }
+
+      // Calculate trajectory and handle collision
+      const currentPlayer =
+        gameState.player1.userId === userId ? gameState.player1 : gameState.player2;
+      const opponent = gameState.player1.userId === userId ? gameState.player2 : gameState.player1;
+
+      if (!currentPlayer || !opponent) {
+        socket.emit('fire-error', {
+          error: 'Player not found',
+          message: 'Could not find player or opponent'
+        });
+        return;
+      }
+
+      // Simple distance-based scoring:
+      // Calculate distance from impact point to opponent center
+      // Score inversely proportional to distance
+      const impactX = currentPlayer.position.x + Math.cos((angle * Math.PI) / 180) * 200;
+      const impactY = currentPlayer.position.y + Math.sin((angle * Math.PI) / 180) * 200;
+
+      const distanceToOpponent = Math.sqrt(
+        Math.pow(impactX - opponent.position.x, 2) + Math.pow(impactY - opponent.position.y, 2)
+      );
+
+      // Calculate hit accuracy (0-100, where 100 is direct hit)
+      const hitAccuracy = Math.max(0, 100 - (distanceToOpponent / 100) * 100);
+
+      // Damage calculation: base 10 + accuracy bonus
+      const damage = 10 + Math.round(hitAccuracy * 0.9);
+
+      // Score calculation: 100 * accuracy percentage
+      const scoreGained = Math.round(hitAccuracy);
+
+      // Apply damage to opponent
+      opponent.health = Math.max(0, opponent.health - damage);
+      currentPlayer.score = (currentPlayer.score || 0) + scoreGained;
+
+      // Update last action
+      gameState.lastAction = {
+        type: 'fire',
+        playerId: userId,
+        weaponId,
+        angle,
+        power,
+        targetPosition: opponent.position,
+        impactPosition: { x: impactX, y: impactY },
+        distance: Math.round(distanceToOpponent),
+        hitAccuracy: Math.round(hitAccuracy),
+        damage: Math.round(damage),
+        score: scoreGained,
+        timestamp: new Date().toISOString()
+      };
+
+      // Update game state
+      gameStateManager.updateGameState(matchId, gameState);
+
+      // Broadcast projectile fired event to both players
+      io.to(`match:${matchId}`).emit('projectile-fired', {
+        matchId,
+        playerId: userId,
+        weaponId,
+        angle,
+        power,
+        timestamp: new Date().toISOString()
+      });
+
+      // Broadcast hit event with scoring info
+      io.to(`match:${matchId}`).emit('projectile-hit', {
+        matchId,
+        playerId: userId,
+        impactPosition: { x: Math.round(impactX), y: Math.round(impactY) },
+        targetPosition: opponent.position,
+        distance: Math.round(distanceToOpponent),
+        hitAccuracy: Math.round(hitAccuracy),
+        damage: Math.round(damage),
+        timestamp: new Date().toISOString()
+      });
+
+      // Broadcast damage applied
+      io.to(`match:${matchId}`).emit('damage-applied', {
+        matchId,
+        targetPlayerId: opponent.userId,
+        damage: Math.round(damage),
+        newHealth: opponent.health,
+        timestamp: new Date().toISOString()
+      });
+
+      // Broadcast score update
+      io.to(`match:${matchId}`).emit('score-updated', {
+        matchId,
+        playerId: userId,
+        scoreGained,
+        totalScore: currentPlayer.score,
+        timestamp: new Date().toISOString()
+      });
+
+      // Broadcast updated game state to both players
+      emitGameStateUpdate(io, matchId, gameState);
+
+      // Check if match ended
+      if (opponent.health <= 0) {
+        gameState.gameStatus = 'finished';
+        gameState.winner = userId;
+        gameStateManager.updateGameState(matchId, gameState);
+
+        io.to(`match:${matchId}`).emit('match-ended', {
+          matchId,
+          winner: userId,
+          winnerName: currentPlayer.username || 'Player',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error handling player fire:', error);
+      socket.emit('fire-error', {
+        error: 'Fire failed',
+        message: error.message
+      });
+    }
+  });
+
   // Handle player movement input (server-authoritative)
   socket.on('player-move', data => {
     try {
@@ -302,7 +445,12 @@ io.on('connection', socket => {
         return;
       }
 
-      const playerKey = state.player1?.userId === userId ? 'player1' : state.player2?.userId === userId ? 'player2' : null;
+      const playerKey =
+        state.player1?.userId === userId
+          ? 'player1'
+          : state.player2?.userId === userId
+            ? 'player2'
+            : null;
       if (!playerKey) {
         return;
       }
@@ -326,9 +474,14 @@ io.on('connection', socket => {
       const moveY = normY * distance;
 
       const { mainWalkablePolygon, leftWalkablePolygon, rightWalkablePolygon } = getPolygons();
-      const playerPolygon = playerKey === 'player1'
-        ? (leftWalkablePolygon.length ? leftWalkablePolygon : mainWalkablePolygon)
-        : (rightWalkablePolygon.length ? rightWalkablePolygon : mainWalkablePolygon);
+      const playerPolygon =
+        playerKey === 'player1'
+          ? leftWalkablePolygon.length
+            ? leftWalkablePolygon
+            : mainWalkablePolygon
+          : rightWalkablePolygon.length
+            ? rightWalkablePolygon
+            : mainWalkablePolygon;
 
       let nextPosition = null;
       if (playerPolygon.length > 0) {
