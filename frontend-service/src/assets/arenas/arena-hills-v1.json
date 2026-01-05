@@ -6,9 +6,13 @@
     "width": 2048,
     "height": 1536
   },
+  "spawnPositions": {
+    "leftPlayer": { "x": 392, "y": 450 },
+    "rightPlayer": { "x": 1100, "y": 435 }
+  },
   "walkableZones": [
     {
-      "id": "player-walkable-zone",
+      "id": "left-walkable-zone",
       "polygon": [
         {
           "x": 63,
@@ -685,7 +689,7 @@
       ]
     },
     {
-      "id": "opponent-hill",
+      "id": "right-walkable-zone",
       "polygon": [
         {
           "x": 905,

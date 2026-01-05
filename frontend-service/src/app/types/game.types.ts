@@ -14,6 +14,7 @@ export interface Hero {
     x: number;
     y: number;
   };
+  facingAngle?: number;
   health: number;
   maxHealth: number;
   score: number;
@@ -35,6 +36,10 @@ export interface GameState {
   };
   gameStatus: 'waiting' | 'active' | 'paused' | 'finished';
   winner?: string; // userId of winner
+  zoneAssignments?: {
+    player1Zone: 'left-walkable-zone' | 'right-walkable-zone';
+    player2Zone: 'left-walkable-zone' | 'right-walkable-zone';
+  };
   createdAt: number;
   updatedAt: number;
 }

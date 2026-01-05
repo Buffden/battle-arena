@@ -53,6 +53,15 @@ export class GameComponent implements OnInit {
     if (this.matchId) {
       this.currentUserName = this.currentUserId || 'You';
       this.opponentName = this.opponentId || 'Opponent';
+
+      // Connect to the game engine for this match
+      this.gameService.connectToGame(this.matchId).subscribe({
+        next: () => {},
+        error: err => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to connect to game service', err);
+        }
+      });
     }
   }
 }

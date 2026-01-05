@@ -22,6 +22,11 @@ export class GameService {
     message: string;
   } | null>(null);
   public readonly gameJoined$ = this.gameJoinedSubject.asObservable();
+  private readonly playerPositionSubject = new Subject<{
+    userId: string;
+    position: { x: number; y: number; facingAngle: number };
+  }>();
+  public readonly playerPosition$ = this.playerPositionSubject.asObservable();
   private isConnected = false;
   private currentMatchId: string | null = null;
 
@@ -198,6 +203,14 @@ export class GameService {
         this.socket.on('game-error', onGameError);
         this.socket.on('disconnect', onDisconnect);
 
+        // Listen for real-time player position updates
+        this.socket.on(
+          'player-position-update',
+          (data: { userId: string; position: { x: number; y: number; facingAngle: number } }) => {
+            this.playerPositionSubject.next(data);
+          }
+        );
+
         // Return cleanup function
         return () => {
           cleanupAll();
@@ -260,5 +273,60 @@ export class GameService {
    */
   resetConnection(): void {
     this.disconnect();
+  }
+
+  sendPlayerMove(
+    matchId: string,
+    userId: string,
+    input: { dx: number; dy: number; deltaMs: number }
+  ): void {
+    if (!this.socket || !this.isConnected || !this.socket.connected) return;
+    this.socket.emit('player-move', {
+      matchId,
+      userId,
+      input
+    });
+  }
+
+  /**
+   * Send zone assignment to backend for persistence
+   * @param matchId - Match ID
+   * @param zoneAssignments - Zone assignments for both players
+   */
+  sendZoneAssignments(
+    matchId: string,
+    zoneAssignments: {
+      player1Zone: 'left-walkable-zone' | 'right-walkable-zone';
+      player2Zone: 'left-walkable-zone' | 'right-walkable-zone';
+    }
+  ): void {
+    if (!this.socket || !this.isConnected || !this.socket.connected) return;
+    this.socket.emit('zone-assignments', {
+      matchId,
+      zoneAssignments
+    });
+  }
+
+  /**
+   * Send player position update to backend for real-time synchronization
+   * @param matchId - Match ID
+   * @param userId - User ID
+   * @param position - Player position and facing angle
+   */
+  sendPlayerPosition(
+    matchId: string,
+    userId: string,
+    position: {
+      x: number;
+      y: number;
+      facingAngle: number;
+    }
+  ): void {
+    if (!this.socket || !this.isConnected || !this.socket.connected) return;
+    this.socket.emit('player-position-update', {
+      matchId,
+      userId,
+      position
+    });
   }
 }
