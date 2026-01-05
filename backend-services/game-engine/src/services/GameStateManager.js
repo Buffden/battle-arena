@@ -6,10 +6,7 @@
  */
 
 const gameConfig = require('../config/game.config');
-const {
-  getPolygons,
-  findSpawnPositionsForSides
-} = require('../utils/arena');
+const { getPolygons, findSpawnPositionsForSides } = require('../utils/arena');
 
 class GameStateManager {
   constructor() {
