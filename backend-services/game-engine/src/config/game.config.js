@@ -16,6 +16,8 @@ module.exports = {
     defaultMaxHealth: 100,
     defaultMovesRemaining: 4,
     defaultScore: 0,
+    // Movement speed in world units per millisecond; used server-side to apply player inputs
+    moveSpeedPerMs: 0.25,
     startingPositions: {
       player1: { x: 100, y: 500 }, // Left side
       player2: { x: 700, y: 500 } // Right side

@@ -6,6 +6,10 @@
  */
 
 const gameConfig = require('../config/game.config');
+const {
+  getPolygons,
+  findSpawnPositionsForSides
+} = require('../utils/arena');
 
 class GameStateManager {
   constructor() {
@@ -29,6 +33,18 @@ class GameStateManager {
     }
 
     const now = Date.now();
+    const { arenaData, leftWalkablePolygon, rightWalkablePolygon } = getPolygons();
+    const spawn = findSpawnPositionsForSides({
+      arenaData,
+      leftPolygon: leftWalkablePolygon,
+      rightPolygon: rightWalkablePolygon.length ? rightWalkablePolygon : leftWalkablePolygon
+    });
+    const arenaBounds = arenaData?.worldBounds || {
+      x: 0,
+      y: 0,
+      width: gameConfig.arena.defaultWidth,
+      height: gameConfig.arena.defaultHeight
+    };
 
     const gameState = {
       matchId,
@@ -41,9 +57,10 @@ class GameStateManager {
         userId: players[0].userId,
         heroId: players[0].heroId || 'default-hero',
         position: {
-          x: gameConfig.hero.startingPositions.player1.x,
-          y: gameConfig.hero.startingPositions.player1.y
+          x: spawn.player1.x,
+          y: spawn.player1.y
         },
+        facingAngle: 0,
         health: gameConfig.hero.defaultHealth,
         maxHealth: gameConfig.hero.defaultMaxHealth,
         score: gameConfig.hero.defaultScore,
@@ -54,20 +71,22 @@ class GameStateManager {
         userId: players[1].userId,
         heroId: players[1].heroId || 'default-hero',
         position: {
-          x: gameConfig.hero.startingPositions.player2.x,
-          y: gameConfig.hero.startingPositions.player2.y
+          x: spawn.player2.x,
+          y: spawn.player2.y
         },
+        facingAngle: 180,
         health: gameConfig.hero.defaultHealth,
         maxHealth: gameConfig.hero.defaultMaxHealth,
         score: gameConfig.hero.defaultScore,
         movesRemaining: gameConfig.hero.defaultMovesRemaining
       },
       arena: {
-        width: gameConfig.arena.defaultWidth,
-        height: gameConfig.arena.defaultHeight,
+        width: arenaBounds.width,
+        height: arenaBounds.height,
         terrain: gameConfig.arena.defaultTerrain
       },
       gameStatus: gameConfig.game.defaultStatus,
+      zoneAssignments: undefined, // Will be set when players send zone-assignments event
       createdAt: now,
       updatedAt: now
     };

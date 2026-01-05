@@ -3,8 +3,10 @@ const http = require('node:http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const gameStateManager = require('./src/services/GameStateManager');
+const { emitGameStateUpdate } = require('./src/services/GameStateUpdateEmitter');
 const gameConfig = require('./src/config/game.config');
 const TurnManager = require('./src/services/TurnManager');
+const { getPolygons, slideWithinPolygon, pointInPolygon } = require('./src/utils/arena');
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5002;
@@ -85,24 +87,6 @@ io.engine.on('initial_headers', (headers, req) => {
   console.log('Path:', req.url.split('?')[0]);
 });
 
-// Log handshake attempts
-io.engine.on('connection_error', err => {
-  // eslint-disable-next-line no-console
-  console.error('=== Socket.io connection error ===');
-  // eslint-disable-next-line no-console
-  console.error('Error code:', err.code);
-  // eslint-disable-next-line no-console
-  console.error('Error message:', err.message);
-  // eslint-disable-next-line no-console
-  console.error('Request URL:', err.req?.url);
-  // eslint-disable-next-line no-console
-  console.error('Request method:', err.req?.method);
-  // eslint-disable-next-line no-console
-  console.error('Request headers:', err.req?.headers);
-  // eslint-disable-next-line no-console
-  console.error('Context:', err.context);
-});
-
 // Player tracking: matchId -> Map<userId, { socketId, userId, heroId }>
 const playerTracking = new Map();
 
@@ -178,6 +162,27 @@ io.on('connection', socket => {
       });
 
       const connectedPlayers = Array.from(matchPlayers.values());
+
+      // If a game state already exists for this match, treat this as a reconnect
+      const existingState = gameStateManager.getGameState(matchId);
+      if (existingState) {
+        // Update socket room membership is already done above
+        // Send the latest state only to the reconnecting socket
+        socket.emit('game-joined', {
+          matchId,
+          message: 'Rejoined match'
+        });
+
+        socket.emit('game-state-update', {
+          matchId,
+          gameRoomId: matchId,
+          gameState: existingState
+        });
+
+        // eslint-disable-next-line no-console
+        console.log(`Player ${userId} rejoined match ${matchId}. Sent current game state.`);
+        return;
+      }
 
       // eslint-disable-next-line no-console
       console.log(`Match ${matchId}: ${connectedPlayers.length} player(s) connected`);
@@ -278,6 +283,146 @@ io.on('connection', socket => {
         error: 'Join failed',
         message: error.message
       });
+    }
+  });
+
+  // Handle player movement input (server-authoritative)
+  socket.on('player-move', data => {
+    try {
+      const matchId = data?.matchId;
+      const userId = data?.userId;
+      const input = data?.input || {};
+
+      if (!matchId || !userId) {
+        return;
+      }
+
+      const state = gameStateManager.getGameState(matchId);
+      if (!state) {
+        return;
+      }
+
+      const playerKey = state.player1?.userId === userId ? 'player1' : state.player2?.userId === userId ? 'player2' : null;
+      if (!playerKey) {
+        return;
+      }
+
+      const player = state[playerKey];
+      const dx = Number(input.dx) || 0;
+      const dy = Number(input.dy) || 0;
+      const deltaMs = Math.max(0, Math.min(Number(input.deltaMs) || 16, 200));
+
+      const magnitude = Math.hypot(dx, dy);
+      if (magnitude === 0) {
+        return;
+      }
+
+      const normX = dx / magnitude;
+      const normY = dy / magnitude;
+      const speed = gameConfig.hero.moveSpeedPerMs;
+      const distance = speed * deltaMs;
+
+      const moveX = normX * distance;
+      const moveY = normY * distance;
+
+      const { mainWalkablePolygon, leftWalkablePolygon, rightWalkablePolygon } = getPolygons();
+      const playerPolygon = playerKey === 'player1'
+        ? (leftWalkablePolygon.length ? leftWalkablePolygon : mainWalkablePolygon)
+        : (rightWalkablePolygon.length ? rightWalkablePolygon : mainWalkablePolygon);
+
+      let nextPosition = null;
+      if (playerPolygon.length > 0) {
+        nextPosition = slideWithinPolygon(player.position, moveX, moveY, playerPolygon);
+      }
+
+      if (!nextPosition) {
+        // Fallback: simple bounds clamp if polygon not available or slide failed
+        const arenaWidth = state.arena?.width || gameConfig.arena.defaultWidth;
+        const arenaHeight = state.arena?.height || gameConfig.arena.defaultHeight;
+        const cx = Math.max(0, Math.min(arenaWidth, player.position.x + moveX));
+        const cy = Math.max(0, Math.min(arenaHeight, player.position.y + moveY));
+        if (!playerPolygon.length || pointInPolygon(playerPolygon, cx, cy)) {
+          nextPosition = { x: cx, y: cy };
+        }
+      }
+
+      if (!nextPosition) {
+        return;
+      }
+
+      const facingRad = Math.atan2(-dy, dx);
+      const facingDeg = ((facingRad * 180) / Math.PI + 360) % 360;
+
+      const updatedPlayer = {
+        ...player,
+        position: nextPosition,
+        facingAngle: facingDeg
+      };
+
+      const updates = {
+        [playerKey]: updatedPlayer
+      };
+
+      gameStateManager.updateGameState(matchId, updates);
+      const updatedState = gameStateManager.getGameState(matchId);
+      emitGameStateUpdate(io, matchId, updatedState);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error handling player-move:', error);
+    }
+  });
+
+  // Handle zone assignments (persist zone allocations for the match)
+  socket.on('zone-assignments', data => {
+    try {
+      const matchId = data?.matchId;
+      const zoneAssignments = data?.zoneAssignments;
+
+      if (!matchId || !zoneAssignments) {
+        return;
+      }
+
+      const state = gameStateManager.getGameState(matchId);
+      if (!state) {
+        return;
+      }
+
+      // Update game state with zone assignments
+      const updates = {
+        zoneAssignments: {
+          player1Zone: zoneAssignments.player1Zone,
+          player2Zone: zoneAssignments.player2Zone
+        }
+      };
+
+      gameStateManager.updateGameState(matchId, updates);
+      const updatedState = gameStateManager.getGameState(matchId);
+      emitGameStateUpdate(io, matchId, updatedState);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error handling zone-assignments:', error);
+    }
+  });
+
+  // Handle real-time player position updates
+  socket.on('player-position-update', data => {
+    try {
+      const matchId = data?.matchId;
+      const userId = data?.userId;
+      const position = data?.position;
+
+      if (!matchId || !userId || !position) {
+        return;
+      }
+
+      // Broadcast position update to all other players in the match
+      socket.to(`match:${matchId}`).emit('player-position-update', {
+        userId,
+        position
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error handling player-position-update:', error);
     }
   });
 
