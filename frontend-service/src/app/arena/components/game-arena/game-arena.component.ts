@@ -18,6 +18,16 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   activeZoneId = 'player-walkable-zone';
   walkableZones = new Map<string, WalkableZone>();
 
+  // Arena scaling (canonical → current)
+  // Defaults, will be overridden by arena JSON data
+  private referenceArenaWidth = 1511;
+  private referenceArenaHeight = 860;
+  private currentArenaWidth = this.referenceArenaWidth;
+  private currentArenaHeight = this.referenceArenaHeight;
+  private originalWalkableZones = new Map<string, { x: number; y: number }[]>();
+  private originalArenaBounds: { x: number; y: number; width: number; height: number } | null =
+    null;
+
   // Track zone assignments for 2-player game
   private player1AssignedZone: 'left-walkable-zone' | 'right-walkable-zone' = 'left-walkable-zone';
   private player2AssignedZone: 'left-walkable-zone' | 'right-walkable-zone' = 'right-walkable-zone';
@@ -141,6 +151,11 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     const viewportWidth = globalThis.window?.innerWidth || 800;
     const viewportHeight = globalThis.window?.innerHeight || 600;
     this.phaserGame.scale.resize(viewportWidth, viewportHeight);
+
+    // Update dimensions and rescale polygons & bounds
+    this.updateArenaDimensions(viewportWidth, viewportHeight);
+    this.rescaleAllPolygons();
+    this.rescaleArenaBounds();
   }
 
   drawWalkablePolygon(scene: Phaser.Scene): void {
@@ -416,14 +431,28 @@ export class GameArenaComponent implements OnInit, OnDestroy {
         backgroundImage.setDepth(0);
 
         const arenaData = this.cache.json.get('arena-hills-v1') as {
-          worldBounds: { x: number; y: number; width: number; height: number };
+          worldBounds: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            referenceArenaWidth?: number;
+            referenceArenaHeight?: number;
+          };
           walkableZones: {
             id: string;
             polygon: { x: number; y: number }[];
           }[];
         };
 
-        const { x, y, width, height } = arenaData.worldBounds;
+        const { x, y, width, height, referenceArenaWidth, referenceArenaHeight } =
+          arenaData.worldBounds;
+
+        // Load reference dimensions from arena data if available
+        if (referenceArenaWidth && referenceArenaHeight) {
+          this.component.referenceArenaWidth = referenceArenaWidth;
+          this.component.referenceArenaHeight = referenceArenaHeight;
+        }
 
         // Authoritative arena bounds
         this.component.arenaBounds = {
@@ -432,14 +461,38 @@ export class GameArenaComponent implements OnInit, OnDestroy {
           maxX: x + width,
           maxY: y + height
         };
+        if (!this.component.originalArenaBounds) {
+          this.component.originalArenaBounds = { x, y, width, height };
+        }
 
         // Camera bound to arena (world space)
         this.cameras.main.setBounds(x, y, width, height);
 
-        // Register walkable zones with distinct colors
+        // Determine current viewport dimensions
+        const currentWidth = globalThis.window?.innerWidth || this.component.currentArenaWidth;
+        const currentHeight = globalThis.window?.innerHeight || this.component.currentArenaHeight;
+        this.component.updateArenaDimensions(currentWidth, currentHeight);
+
+        // Register walkable zones scaled to current viewport via ratio method
         for (const zone of arenaData.walkableZones) {
-          const flatPoints = zone.polygon.flatMap(p => [p.x, p.y]);
-          const poly = new Phaser.Geom.Polygon(flatPoints);
+          // Store original polygon once (canonical coordinates)
+          if (!this.component.originalWalkableZones.has(zone.id)) {
+            this.component.originalWalkableZones.set(
+              zone.id,
+              JSON.parse(JSON.stringify(zone.polygon))
+            );
+          }
+
+          const scaleX = this.component.currentArenaWidth / this.component.referenceArenaWidth;
+          const scaleY = this.component.currentArenaHeight / this.component.referenceArenaHeight;
+          const scaled = this.component
+            .scalePolygonCoordinates(
+              this.component.originalWalkableZones.get(zone.id)!,
+              scaleX,
+              scaleY
+            )
+            .flatMap(p => [p.x, p.y]);
+          const poly = new Phaser.Geom.Polygon(scaled);
 
           this.component.walkableZones.set(zone.id, { id: zone.id, polygon: poly });
 
@@ -889,5 +942,55 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     }
 
     return edgeDir;
+  }
+
+  // ===== Arena scaling helpers =====
+  private updateArenaDimensions(width: number, height: number): void {
+    this.currentArenaWidth = width;
+    this.currentArenaHeight = height;
+  }
+
+  private getScaleFactors(): { x: number; y: number } {
+    return {
+      x: this.currentArenaWidth / this.referenceArenaWidth,
+      y: this.currentArenaHeight / this.referenceArenaHeight
+    };
+  }
+
+  private rescaleAllPolygons(): void {
+    if (this.originalWalkableZones.size === 0) return;
+    const { x: scaleX, y: scaleY } = this.getScaleFactors();
+    for (const [zoneId, original] of this.originalWalkableZones.entries()) {
+      const scaledPoints = this.scalePolygonCoordinates(original, scaleX, scaleY).flatMap(p => [
+        p.x,
+        p.y
+      ]);
+      const poly = new Phaser.Geom.Polygon(scaledPoints);
+      this.walkableZones.set(zoneId, { id: zoneId, polygon: poly });
+    }
+    // Refresh active polygon reference
+    if (this.walkableZones.has(this.activeZoneId)) {
+      this.walkableGeom = this.walkableZones.get(this.activeZoneId)!.polygon;
+    }
+  }
+
+  private rescaleArenaBounds(): void {
+    if (!this.originalArenaBounds) return;
+    const { x: scaleX, y: scaleY } = this.getScaleFactors();
+    const { x, y, width, height } = this.originalArenaBounds;
+    this.arenaBounds = {
+      minX: x * scaleX,
+      minY: y * scaleY,
+      maxX: (x + width) * scaleX,
+      maxY: (y + height) * scaleY
+    };
+  }
+
+  private scalePolygonCoordinates(
+    polygon: { x: number; y: number }[],
+    scaleX: number,
+    scaleY: number
+  ): { x: number; y: number }[] {
+    return polygon.map(p => ({ x: p.x * scaleX, y: p.y * scaleY }));
   }
 }

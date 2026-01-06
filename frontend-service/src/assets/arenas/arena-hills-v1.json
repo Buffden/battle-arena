@@ -4,7 +4,9 @@
     "x": 0,
     "y": 0,
     "width": 2048,
-    "height": 1536
+    "height": 1536,
+    "referenceArenaWidth": 1511,
+    "referenceArenaHeight": 860
   },
   "spawnPositions": {
     "leftPlayer": { "x": 392, "y": 450 },
