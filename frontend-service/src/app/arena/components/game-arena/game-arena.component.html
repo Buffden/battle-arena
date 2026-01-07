@@ -1,5 +1,12 @@
 <div class="game-arena-wrapper">
   <div id="game-arena-container" class="game-arena-container"></div>
+  <button
+    class="debug-toggle-btn"
+    (click)="toggleDebugMode()"
+    [title]="debugMode ? 'Debug Mode: ON' : 'Debug Mode: OFF'"
+  >
+    🐛
+  </button>
   @if (cursorPositionText) {
     <div class="cursor-coordinates">{{ cursorPositionText }}</div>
   }

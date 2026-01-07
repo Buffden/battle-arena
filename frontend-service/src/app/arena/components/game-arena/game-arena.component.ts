@@ -48,11 +48,11 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   private readonly POSITION_UPDATE_INTERVAL = 50;
   private clickedPoints: { x: number; y: number }[] = [];
 
-  // Debug toggles (press D to toggle all, or use individual toggles)
-  private debugMode = true;
-  private showCursorOverlay = true;
-  private showZoneBoundary = true;
-  private logClickCoordinates = true;
+  // Debug toggles (press L to toggle all, or use button in top-right)
+  debugMode = false;
+  private showCursorOverlay = false;
+  private showZoneBoundary = false;
+  private logClickCoordinates = false;
 
   constructor(
     private readonly gameService: GameService,
@@ -663,39 +663,28 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle debug key presses to toggle debug features.
-   * D = toggle all debug, C = toggle cursor overlay, Z = toggle zone boundary, L = toggle click logging
+   * Handle debug key press (L) to toggle all debug features.
    */
   private handleDebugKeyPress(event: KeyboardEvent): void {
     const key = event.key?.toLowerCase();
 
-    switch (key) {
-      case 'd':
-        // Toggle all debug features
-        this.debugMode = !this.debugMode;
-        // eslint-disable-next-line no-console
-        console.log(`🐛 Debug Mode: ${this.debugMode ? 'ON' : 'OFF'}`);
-        break;
-      case 'c':
-        // Toggle cursor overlay
-        this.showCursorOverlay = !this.showCursorOverlay;
-        // eslint-disable-next-line no-console
-        console.log(`👁️ Cursor Overlay: ${this.showCursorOverlay ? 'ON' : 'OFF'}`);
-        break;
-      case 'z':
-        // Toggle zone boundary visualization
-        this.showZoneBoundary = !this.showZoneBoundary;
-        // eslint-disable-next-line no-console
-        console.log(`🎨 Zone Boundary: ${this.showZoneBoundary ? 'ON' : 'OFF'}`);
-        this.updateZoneBoundaryVisibility();
-        break;
-      case 'l':
-        // Toggle click coordinate logging
-        this.logClickCoordinates = !this.logClickCoordinates;
-        // eslint-disable-next-line no-console
-        console.log(`📋 Click Logging: ${this.logClickCoordinates ? 'ON' : 'OFF'}`);
-        break;
+    if (key === 'l') {
+      this.toggleDebugMode();
     }
+  }
+
+  /**
+   * Toggle all debug features on/off (called by button or L key).
+   */
+  toggleDebugMode(): void {
+    this.debugMode = !this.debugMode;
+    this.showCursorOverlay = !this.showCursorOverlay;
+    this.showZoneBoundary = !this.showZoneBoundary;
+    this.logClickCoordinates = !this.logClickCoordinates;
+    this.updateZoneBoundaryVisibility();
+
+    // eslint-disable-next-line no-console
+    console.log(`🐛 Debug Mode: ${this.debugMode ? 'ON' : 'OFF'}`);
   }
 
   /**
