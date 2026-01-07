@@ -48,6 +48,12 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   private readonly POSITION_UPDATE_INTERVAL = 50;
   private clickedPoints: { x: number; y: number }[] = [];
 
+  // Debug toggles (press D to toggle all, or use individual toggles)
+  private debugMode = true;
+  private showCursorOverlay = true;
+  private showZoneBoundary = true;
+  private logClickCoordinates = true;
+
   constructor(
     private readonly gameService: GameService,
     private readonly authService: AuthService,
@@ -118,12 +124,15 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     if (globalThis.window) {
       this.onWindowResize = this.onWindowResize.bind(this);
       globalThis.window.addEventListener('resize', this.onWindowResize);
+      // Add debug mode toggle listener
+      globalThis.window.addEventListener('keydown', this.handleDebugKeyPress.bind(this));
     }
   }
 
   ngOnDestroy(): void {
     if (globalThis.window) {
       globalThis.window.removeEventListener('resize', this.onWindowResize);
+      globalThis.window.removeEventListener('keydown', this.handleDebugKeyPress.bind(this));
     }
 
     if (this.cursorRafId !== null) {
@@ -596,17 +605,24 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
     this.inputService.handlePointerDown(pointer);
 
-    // Calculate and log click position in both pixel and percentage coordinates
-    const clickPercent = this.calculateClickPercentage(pointer.worldX, pointer.worldY);
-    // eslint-disable-next-line no-console
-    console.log(
-      `🖱️ Click Position - Pixels: (${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}) | Percentage:`,
-      clickPercent
-    );
+    // Log click coordinates if debug flag is enabled
+    if (this.logClickCoordinates && this.debugMode) {
+      const clickPercent = this.calculateClickPercentage(pointer.worldX, pointer.worldY);
+      // eslint-disable-next-line no-console
+      console.log(
+        `🖱️ Click Position - Pixels: (${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}) | Percentage:`,
+        clickPercent
+      );
+    }
   }
 
   private handlePointerMove(pointer: Phaser.Input.Pointer): void {
     const pos = this.inputService.handlePointerMove(pointer);
+
+    if (!this.showCursorOverlay || !this.debugMode) {
+      this.cursorPositionText = '';
+      return;
+    }
 
     if (this.cursorRafId !== null) return;
 
@@ -644,5 +660,57 @@ export class GameArenaComponent implements OnInit, OnDestroy {
    */
   private clearClickedPoints(): void {
     this.clickedPoints = [];
+  }
+
+  /**
+   * Handle debug key presses to toggle debug features.
+   * D = toggle all debug, C = toggle cursor overlay, Z = toggle zone boundary, L = toggle click logging
+   */
+  private handleDebugKeyPress(event: KeyboardEvent): void {
+    const key = event.key?.toLowerCase();
+
+    switch (key) {
+      case 'd':
+        // Toggle all debug features
+        this.debugMode = !this.debugMode;
+        // eslint-disable-next-line no-console
+        console.log(`🐛 Debug Mode: ${this.debugMode ? 'ON' : 'OFF'}`);
+        break;
+      case 'c':
+        // Toggle cursor overlay
+        this.showCursorOverlay = !this.showCursorOverlay;
+        // eslint-disable-next-line no-console
+        console.log(`👁️ Cursor Overlay: ${this.showCursorOverlay ? 'ON' : 'OFF'}`);
+        break;
+      case 'z':
+        // Toggle zone boundary visualization
+        this.showZoneBoundary = !this.showZoneBoundary;
+        // eslint-disable-next-line no-console
+        console.log(`🎨 Zone Boundary: ${this.showZoneBoundary ? 'ON' : 'OFF'}`);
+        this.updateZoneBoundaryVisibility();
+        break;
+      case 'l':
+        // Toggle click coordinate logging
+        this.logClickCoordinates = !this.logClickCoordinates;
+        // eslint-disable-next-line no-console
+        console.log(`📋 Click Logging: ${this.logClickCoordinates ? 'ON' : 'OFF'}`);
+        break;
+    }
+  }
+
+  /**
+   * Update zone boundary visibility by toggling graphics elements.
+   */
+  private updateZoneBoundaryVisibility(): void {
+    if (!this.gameScene) return;
+
+    // Toggle visibility of all graphics objects (zone boundaries)
+    const graphics = this.gameScene.children.list.filter(
+      child => child instanceof Phaser.GameObjects.Graphics
+    ) as Phaser.GameObjects.Graphics[];
+
+    graphics.forEach(g => {
+      g.setVisible(this.showZoneBoundary);
+    });
   }
 }
