@@ -3,9 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import * as Phaser from 'phaser';
 import { GameService } from '../../../services/game.service';
-import { GameState, WalkableZone } from '../../../types/game.types';
+import { GameState } from '../../../types/game.types';
 import { gameConfig } from '../../../config/game.config';
 import { AuthService } from '../../../services/auth.service';
+import { ArenaScalingService } from '../../services/arena-scaling.service';
+import { TankSpawnerService } from '../../services/tank-spawner.service';
+import { TankMovementService } from '../../services/tank-movement.service';
+import { OpponentSyncService } from '../../services/opponent-sync.service';
+import { ZoneAssignmentService } from '../../services/zone-assignment.service';
+import { ArenaInputService } from '../../services/arena-input.service';
 @Component({
   selector: 'app-game-arena',
   standalone: true,
@@ -16,50 +22,15 @@ import { AuthService } from '../../../services/auth.service';
 export class GameArenaComponent implements OnInit, OnDestroy {
   @Input() matchId: string | null = null;
   activeZoneId = 'player-walkable-zone';
-  walkableZones = new Map<string, WalkableZone>();
-
-  // Arena scaling (canonical → current)
-  // Defaults, will be overridden by arena JSON data
-  private referenceArenaWidth = 1511;
-  private referenceArenaHeight = 860;
-  private currentArenaWidth = this.referenceArenaWidth;
-  private currentArenaHeight = this.referenceArenaHeight;
-  private originalWalkableZones = new Map<string, { x: number; y: number }[]>();
-  private originalArenaBounds: { x: number; y: number; width: number; height: number } | null =
-    null;
-
-  // Track zone assignments for 2-player game
-  private player1AssignedZone: 'left-walkable-zone' | 'right-walkable-zone' = 'left-walkable-zone';
-  private player2AssignedZone: 'left-walkable-zone' | 'right-walkable-zone' = 'right-walkable-zone';
 
   walkableGeom!: Phaser.Geom.Polygon;
-  testTank: Phaser.GameObjects.Sprite | null = null; // Current player's tank
-  opponentTank: Phaser.GameObjects.Sprite | null = null; // Opponent's tank
-  private playerNameTag: Phaser.GameObjects.Text | null = null; // Current player's name tag
-  private opponentNameTag: Phaser.GameObjects.Text | null = null; // Opponent's name tag
-  private currentPlayerName: string = 'Player 1'; // Store player name
-  private opponentPlayerName: string = 'Player 2'; // Store opponent name
-  private zoneAssignmentDetermined = false; // Flag to track if zones have been assigned
+  testTank: Phaser.GameObjects.Sprite | null = null;
+  opponentTank: Phaser.GameObjects.Sprite | null = null;
+  private playerNameTag: Phaser.GameObjects.Text | null = null;
+  private opponentNameTag: Phaser.GameObjects.Text | null = null;
+  private currentPlayerName: string = 'Player 1';
+  private opponentPlayerName: string = 'Player 2';
   private tankAngle = 0;
-  private readonly tankBaseScale = 1.2;
-  private readonly panzer4MergedAngles = [0, 45, 90, 135, 180, 225, 270, 315];
-  private readonly panzer4MergedTextureFiles: Record<number, string> = {
-    0: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_0.png',
-    45: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_45.png',
-    90: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_90.png',
-    135: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_135.png',
-    180: 'assets/heroes/tanks/panzer_export/Merged/german_panzer__merged_180.png',
-    225: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_225.png',
-    270: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_270.png',
-    315: 'assets/heroes/tanks/panzer_export/Merged/german_panzer_merged_315.png'
-  };
-
-  arenaBounds = {
-    minX: 0,
-    minY: 0,
-    maxX: 0,
-    maxY: 0
-  };
 
   gameState: GameState | null = null;
   gameScene: Phaser.Scene | null = null;
@@ -71,17 +42,22 @@ export class GameArenaComponent implements OnInit, OnDestroy {
   private gameErrorSubscription?: Subscription;
   private playerPositionSubscription?: Subscription;
   private currentUserId: string | null = null;
-  clickCoordinates: { x: number; y: number }[] = [];
   cursorPositionText = '';
   private cursorRafId: number | null = null;
-  private pendingCursorPos: { x: number; y: number } | null = null;
   private lastPositionUpdateTime = 0;
-  private readonly POSITION_UPDATE_INTERVAL = 50; // Send position updates every 50ms (20 times per second)
+  private readonly POSITION_UPDATE_INTERVAL = 50;
+  private clickedPoints: { x: number; y: number }[] = [];
 
   constructor(
     private readonly gameService: GameService,
     private readonly authService: AuthService,
-    private readonly zone: NgZone
+    private readonly zone: NgZone,
+    private readonly scalingService: ArenaScalingService,
+    private readonly spawnerService: TankSpawnerService,
+    private readonly movementService: TankMovementService,
+    private readonly opponentService: OpponentSyncService,
+    private readonly zoneService: ZoneAssignmentService,
+    private readonly inputService: ArenaInputService
   ) {}
 
   ngOnInit(): void {
@@ -89,18 +65,14 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const initialWidth = globalThis.window?.innerWidth || 1024;
+    const initialHeight = globalThis.window?.innerHeight || 768;
+    // eslint-disable-next-line no-console
+    console.log(
+      `📐 Initial Screen Dimensions - Width: ${initialWidth}px, Height: ${initialHeight}px`
+    );
+
     this.currentUserId = this.authService.getUserIdFromToken();
-
-    // Randomly assign zones to players
-    this.assignZonesToPlayers();
-
-    // Handle window resize for fullscreen
-    if (globalThis.window) {
-      this.onWindowResize = this.onWindowResize.bind(this);
-      globalThis.window.addEventListener('resize', this.onWindowResize);
-    }
-
-    // TEMP: initialize Phaser locally for movement/terrain work
     this.initializePhaser();
 
     this.gameService.gameJoined$.subscribe(data => {
@@ -116,15 +88,13 @@ export class GameArenaComponent implements OnInit, OnDestroy {
 
         // Load zone assignments from game state if available
         if (state.zoneAssignments) {
-          this.player1AssignedZone = state.zoneAssignments.player1Zone;
-          this.player2AssignedZone = state.zoneAssignments.player2Zone;
-        } else if (!this.hasAssignedZones()) {
+          this.zoneService.setAssignedZones(
+            state.zoneAssignments.player1Zone,
+            state.zoneAssignments.player2Zone
+          );
+        } else if (!this.zoneService.isZoneAssignmentDetermined()) {
           // Determine zone assignment based on sorted player IDs
-          const isCurrentPlayerPlayer1 = this.currentUserId === state.player1.userId;
-          const currentPlayer = isCurrentPlayerPlayer1 ? state.player1 : state.player2;
-          const opponentPlayer = isCurrentPlayerPlayer1 ? state.player2 : state.player1;
-
-          this.determineZoneAssignment(currentPlayer.userId, opponentPlayer.userId);
+          this.zoneService.determineZoneAssignment(state.player1.userId, state.player2.userId);
 
           // Save the determined assignments to backend
           this.saveZoneAssignmentsToBackend();
@@ -143,228 +113,12 @@ export class GameArenaComponent implements OnInit, OnDestroy {
         this.updateOpponentPosition(data.position);
       }
     });
-  }
 
-  private onWindowResize(): void {
-    if (!this.phaserGame) return;
-
-    const viewportWidth = globalThis.window?.innerWidth || 800;
-    const viewportHeight = globalThis.window?.innerHeight || 600;
-    this.phaserGame.scale.resize(viewportWidth, viewportHeight);
-
-    // Update dimensions and rescale polygons & bounds
-    this.updateArenaDimensions(viewportWidth, viewportHeight);
-    this.rescaleAllPolygons();
-    this.rescaleArenaBounds();
-  }
-
-  drawWalkablePolygon(scene: Phaser.Scene): void {
-    if (!this.walkableGeom) return;
-
-    const graphics = scene.add.graphics();
-
-    graphics.lineStyle(2, 0x00ff00, 1);
-    graphics.fillStyle(0x00ff00, 0.15);
-
-    const poly = this.walkableGeom.points;
-
-    graphics.beginPath();
-    graphics.moveTo(poly[0].x, poly[0].y);
-
-    for (let i = 1; i < poly.length; i++) graphics.lineTo(poly[i].x, poly[i].y);
-    graphics.closePath();
-    graphics.strokePath();
-    graphics.fillPath();
-    graphics.setDepth(9999);
-  }
-
-  private assignZonesToPlayers(): void {
-    // Deterministic zone assignment based on player IDs
-    // The logged-in player is "player1", the other is "player2"
-    // If player1 ID > player2 ID, then player1 gets left zone, otherwise right zone
-    // This ensures consistent, persistent zone assignment across page refreshes
-
-    if (!this.currentUserId) {
-      return;
+    // Handle window resize for fullscreen
+    if (globalThis.window) {
+      this.onWindowResize = this.onWindowResize.bind(this);
+      globalThis.window.addEventListener('resize', this.onWindowResize);
     }
-
-    // When game state is loaded, this will be called with actual player IDs
-    // For now, mark that we need to assign zones when we have both player IDs
-    this.logZoneAssignmentLogic('Initial assignment - waiting for game state');
-  }
-
-  private determineZoneAssignment(currentPlayerId: string, opponentPlayerId: string): void {
-    // Deterministic assignment: compare player IDs
-    const currentPlayerGetsLeft = currentPlayerId > opponentPlayerId;
-
-    if (currentPlayerGetsLeft) {
-      this.player1AssignedZone = 'left-walkable-zone';
-      this.player2AssignedZone = 'right-walkable-zone';
-      // eslint-disable-next-line no-console
-      console.log('📊 Zone Assignment:', {
-        logic: `currentPlayerId (${currentPlayerId}) > opponentPlayerId (${opponentPlayerId})`,
-        result: true,
-        currentPlayer: 'LEFT ZONE',
-        opponent: 'RIGHT ZONE'
-      });
-    } else {
-      this.player1AssignedZone = 'right-walkable-zone';
-      this.player2AssignedZone = 'left-walkable-zone';
-      // eslint-disable-next-line no-console
-      console.log('📊 Zone Assignment:', {
-        logic: `currentPlayerId (${currentPlayerId}) > opponentPlayerId (${opponentPlayerId})`,
-        result: false,
-        currentPlayer: 'RIGHT ZONE',
-        opponent: 'LEFT ZONE'
-      });
-    }
-
-    // Mark zones as determined and spawn tank if scene is ready
-    this.zoneAssignmentDetermined = true;
-    if (this.gameScene) {
-      this.spawnPlayerTank();
-    }
-  }
-
-  private logZoneAssignmentLogic(message: string): void {
-    // eslint-disable-next-line no-console
-    console.log(`🔄 Zone Assignment Status: ${message}`);
-  }
-
-  private getPlayerZone(isPlayer1: boolean): 'left-walkable-zone' | 'right-walkable-zone' {
-    return isPlayer1 ? this.player1AssignedZone : this.player2AssignedZone;
-  }
-
-  private hasAssignedZones(): boolean {
-    return (
-      this.player1AssignedZone !== 'left-walkable-zone' ||
-      this.player2AssignedZone !== 'right-walkable-zone'
-    );
-  }
-
-  private saveZoneAssignmentsToBackend(): void {
-    if (!this.matchId) return;
-
-    this.gameService.sendZoneAssignments(this.matchId, {
-      player1Zone: this.player1AssignedZone,
-      player2Zone: this.player2AssignedZone
-    });
-  }
-
-  private spawnPlayerTank(): void {
-    // This method spawns the player's tank once zone assignment is determined
-    if (!this.gameScene) return;
-
-    // Don't spawn if tank already exists
-    if (this.testTank) {
-      // eslint-disable-next-line no-console
-      console.log('⚠️ Player tank already spawned, skipping duplicate spawn');
-      return;
-    }
-
-    // We need to load arena data again to get spawn positions
-    // This is a workaround - ideally we'd store spawnPositions in the component
-    const arenaData = this.gameScene.cache.json.get('arena-hills-v1') as {
-      spawnPositions?: {
-        leftPlayer: { x: number; y: number };
-        rightPlayer: { x: number; y: number };
-      };
-      walkableZones: {
-        id: string;
-        polygon: { x: number; y: number }[];
-      }[];
-    };
-
-    const spawnPositions = this.calculateSpawnPositions(arenaData);
-
-    // Determine initial tank angle based on assigned zone
-    const isPlayer1InLeftZone = this.player1AssignedZone === 'left-walkable-zone';
-    const initialAngle = isPlayer1InLeftZone ? 0 : 180;
-    this.tankAngle = initialAngle;
-
-    // Spawn tank in player's assigned zone
-    const spawnPos = isPlayer1InLeftZone ? spawnPositions.leftSpawn : spawnPositions.rightSpawn;
-
-    const tank = this.gameScene.add
-      .sprite(spawnPos.x, spawnPos.y, this.getPanzer4TextureKey(initialAngle))
-      .setOrigin(0.5, 0.5)
-      .setScale(this.tankBaseScale);
-    tank.setData('vy', 0);
-    tank.setData('onGround', false);
-    this.testTank = tank;
-
-    // Create name tag for current player's tank
-    const playerNameTag = this.gameScene.add
-      .text(spawnPos.x, spawnPos.y - 50, this.currentPlayerName, {
-        fontSize: '16px',
-        color: '#00ff00',
-        align: 'center',
-        backgroundColor: '#000000',
-        padding: { x: 8, y: 4 }
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(1000);
-    this.playerNameTag = playerNameTag;
-
-    // eslint-disable-next-line no-console
-    console.log('🎮 Player tank spawned at:', {
-      x: spawnPos.x,
-      y: spawnPos.y,
-      zone: this.player1AssignedZone,
-      angle: initialAngle
-    });
-  }
-
-  calculateSpawnPositions(arenaData: {
-    spawnPositions?: {
-      leftPlayer: { x: number; y: number };
-      rightPlayer: { x: number; y: number };
-    };
-    walkableZones: {
-      id: string;
-      polygon: { x: number; y: number }[];
-    }[];
-  }): { leftSpawn: { x: number; y: number }; rightSpawn: { x: number; y: number } } {
-    // Check if arena data has predefined spawn positions
-    if (arenaData.spawnPositions?.leftPlayer && arenaData.spawnPositions?.rightPlayer) {
-      return {
-        leftSpawn: arenaData.spawnPositions.leftPlayer,
-        rightSpawn: arenaData.spawnPositions.rightPlayer
-      };
-    }
-
-    // Fallback: Calculate spawn positions based on zone centroids
-    const leftZone = arenaData.walkableZones.find(z => z.id === 'left-walkable-zone');
-    const rightZone = arenaData.walkableZones.find(z => z.id === 'right-walkable-zone');
-
-    const leftSpawn = leftZone ? this.getPolygonSpawnPoint(leftZone.polygon) : { x: 200, y: 400 };
-    const rightSpawn = rightZone
-      ? this.getPolygonSpawnPoint(rightZone.polygon)
-      : { x: 1400, y: 400 };
-
-    return { leftSpawn, rightSpawn };
-  }
-
-  private getPolygonSpawnPoint(polygon: { x: number; y: number }[]): { x: number; y: number } {
-    if (polygon.length === 0) {
-      return { x: 0, y: 0 };
-    }
-
-    // Calculate the centroid of the polygon
-    let sumX = 0;
-    let sumY = 0;
-
-    for (const point of polygon) {
-      sumX += point.x;
-      sumY += point.y;
-    }
-
-    const centroid = {
-      x: sumX / polygon.length,
-      y: sumY / polygon.length
-    };
-
-    return centroid;
   }
 
   ngOnDestroy(): void {
@@ -394,6 +148,67 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     this.gameService.disconnect();
   }
 
+  private onWindowResize(): void {
+    if (!this.phaserGame) return;
+
+    const viewportWidth = globalThis.window?.innerWidth || 800;
+    const viewportHeight = globalThis.window?.innerHeight || 600;
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `📐 Window Resized - New Width: ${viewportWidth}px, New Height: ${viewportHeight}px`
+    );
+
+    // Compute previous scale before changing dimensions
+    const prevScale = this.scalingService.getScaleFactors();
+
+    this.phaserGame.scale.resize(viewportWidth, viewportHeight);
+
+    // Update dimensions and rescale polygons & bounds
+    this.scalingService.updateDimensions(viewportWidth, viewportHeight);
+    const newScale = this.scalingService.getScaleFactors();
+    const ratioX = newScale.x / Math.max(prevScale.x, 1e-6);
+    const ratioY = newScale.y / Math.max(prevScale.y, 1e-6);
+
+    this.scalingService.rescaleAllPolygons();
+    this.scalingService.rescaleArenaBounds();
+
+    // Adjust current tank and opponent positions to remain inside rescaled polygons
+    if (this.testTank) {
+      this.testTank.x *= ratioX;
+      this.testTank.y *= ratioY;
+      if (this.playerNameTag) {
+        this.playerNameTag.x = this.testTank.x;
+        this.playerNameTag.y = this.testTank.y - 50;
+      }
+    }
+
+    if (this.opponentTank) {
+      this.opponentTank.x *= ratioX;
+      this.opponentTank.y *= ratioY;
+      if (this.opponentNameTag) {
+        this.opponentNameTag.x = this.opponentTank.x;
+        this.opponentNameTag.y = this.opponentTank.y - 50;
+      }
+    }
+
+    // Update active zone if it exists
+    const zoneId = this.activeZoneId;
+    const scaledZone = this.scalingService.getWalkableZone(zoneId);
+    if (scaledZone) {
+      this.walkableGeom = scaledZone;
+    }
+  }
+
+  private saveZoneAssignmentsToBackend(): void {
+    if (!this.matchId) return;
+    const zones = this.zoneService.getAssignedZones();
+    this.gameService.sendZoneAssignments(this.matchId, {
+      player1Zone: zones.player1Zone,
+      player2Zone: zones.player2Zone
+    });
+  }
+
   private initializePhaser(): void {
     if (this.phaserGame) return;
 
@@ -408,36 +223,42 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       preload(): void {
         this.load.json('arena-hills-v1', 'assets/arenas/arena-hills-v1.json');
         this.load.image('arena-02', 'assets/arenas/arena-02.png');
-        for (const angle of this.component.panzer4MergedAngles) {
-          const key = this.component.getPanzer4TextureKey(angle);
-          const file = this.component.panzer4MergedTextureFiles[angle];
+
+        // Load tank textures from spawnerService
+        const angles = [0, 45, 90, 135, 180, 225, 270, 315];
+        for (const angle of angles) {
+          const key = this.component.spawnerService.getPanzer4TextureKey(angle);
+          const file = this.component.spawnerService.getPanzer4TextureFile(angle);
           this.load.image(key, file);
         }
       }
 
       create(): void {
         this.component.gameScene = this;
+
+        // Add background image
         this.add.image(0, 0, 'arena-02').setOrigin(0, 0);
         const backgroundImage = this.add.image(
           this.cameras.main.centerX,
           this.cameras.main.centerY,
           'arena-02'
         );
-
-        // Scale to fit viewport
         backgroundImage.setDisplaySize(this.cameras.main.width, this.cameras.main.height);
-
-        // Set depth so other objects appear on top
         backgroundImage.setDepth(0);
 
+        // Load arena data
         const arenaData = this.cache.json.get('arena-hills-v1') as {
-          worldBounds: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
+          worldBounds?: {
+            x?: number;
+            y?: number;
+            width?: number;
+            height?: number;
             referenceArenaWidth?: number;
             referenceArenaHeight?: number;
+          };
+          spawnPositions?: {
+            leftPlayer: { x: number; y: number };
+            rightPlayer: { x: number; y: number };
           };
           walkableZones: {
             id: string;
@@ -445,80 +266,78 @@ export class GameArenaComponent implements OnInit, OnDestroy {
           }[];
         };
 
-        const { x, y, width, height, referenceArenaWidth, referenceArenaHeight } =
-          arenaData.worldBounds;
+        const DEFAULT_REF_WIDTH = 1511;
+        const DEFAULT_REF_HEIGHT = 860;
 
-        // Load reference dimensions from arena data if available
-        if (referenceArenaWidth && referenceArenaHeight) {
-          this.component.referenceArenaWidth = referenceArenaWidth;
-          this.component.referenceArenaHeight = referenceArenaHeight;
-        }
+        const worldBounds = arenaData.worldBounds || {};
+        const referenceArenaWidth = worldBounds.referenceArenaWidth ?? DEFAULT_REF_WIDTH;
+        const referenceArenaHeight = worldBounds.referenceArenaHeight ?? DEFAULT_REF_HEIGHT;
+        const boundsX = worldBounds.x ?? 0;
+        const boundsY = worldBounds.y ?? 0;
+        const boundsWidth = worldBounds.width ?? referenceArenaWidth;
+        const boundsHeight = worldBounds.height ?? referenceArenaHeight;
 
-        // Authoritative arena bounds
-        this.component.arenaBounds = {
-          minX: x,
-          minY: y,
-          maxX: x + width,
-          maxY: y + height
-        };
-        if (!this.component.originalArenaBounds) {
-          this.component.originalArenaBounds = { x, y, width, height };
-        }
+        // Initialize scaling service with arena dimensions
+        const currentWidth = globalThis.window?.innerWidth || 1024;
+        const currentHeight = globalThis.window?.innerHeight || 768;
+        this.component.scalingService.initializeFromArenaData(
+          referenceArenaWidth,
+          referenceArenaHeight,
+          currentWidth,
+          currentHeight
+        );
 
-        // Camera bound to arena (world space)
-        this.cameras.main.setBounds(x, y, width, height);
+        // Set camera bounds
+        this.cameras.main.setBounds(boundsX, boundsY, boundsWidth, boundsHeight);
 
-        // Determine current viewport dimensions
-        const currentWidth = globalThis.window?.innerWidth || this.component.currentArenaWidth;
-        const currentHeight = globalThis.window?.innerHeight || this.component.currentArenaHeight;
-        this.component.updateArenaDimensions(currentWidth, currentHeight);
-
-        // Register walkable zones scaled to current viewport via ratio method
+        // Register walkable zones with scaling service
+        const scales = this.component.scalingService.getScaleFactors();
         for (const zone of arenaData.walkableZones) {
-          // Store original polygon once (canonical coordinates)
-          if (!this.component.originalWalkableZones.has(zone.id)) {
-            this.component.originalWalkableZones.set(
-              zone.id,
-              JSON.parse(JSON.stringify(zone.polygon))
-            );
-          }
+          // Check if polygon coordinates are in percentage format (0-1 range)
+          const polygon = zone.polygon.map(point => {
+            const isPercentage = point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+            if (isPercentage) {
+              // Convert percentage to pixel coordinates using reference dimensions
+              return {
+                x: point.x * referenceArenaWidth,
+                y: point.y * referenceArenaHeight
+              };
+            }
+            return point;
+          });
 
-          const scaleX = this.component.currentArenaWidth / this.component.referenceArenaWidth;
-          const scaleY = this.component.currentArenaHeight / this.component.referenceArenaHeight;
-          const scaled = this.component
-            .scalePolygonCoordinates(
-              this.component.originalWalkableZones.get(zone.id)!,
-              scaleX,
-              scaleY
-            )
-            .flatMap(p => [p.x, p.y]);
-          const poly = new Phaser.Geom.Polygon(scaled);
-
-          this.component.walkableZones.set(zone.id, { id: zone.id, polygon: poly });
-
-          // DEBUG DRAW - Use different colors for left and right zones
-          const graphics = this.add.graphics();
-          const isLeftZone = zone.id === 'left-walkable-zone';
-          const color = isLeftZone ? 0x0099ff : 0xff9900; // Blue for left, Orange for right
-          const fillColor = isLeftZone ? 0x0099ff : 0xff9900;
-
-          graphics.lineStyle(2, color, 1);
-          graphics.fillStyle(fillColor, 0.15);
-          graphics.strokePoints(poly.points, true);
-          graphics.fillPoints(poly.points, true);
+          this.component.scalingService.registerWalkableZone(zone.id, polygon, scales.x, scales.y);
         }
 
-        // Set active zone based on currently assigned zones
-        // Use player1's assigned zone as the active zone for now
-        this.component.activeZoneId = this.component.player1AssignedZone;
-        this.component.walkableGeom = this.component.walkableZones.get(
-          this.component.activeZoneId
-        )!.polygon;
+        // Get scaled zones for rendering
+        for (const zone of arenaData.walkableZones) {
+          const scaledZone = this.component.scalingService.getWalkableZone(zone.id);
+          if (scaledZone) {
+            // DEBUG DRAW - visualize zones
+            const graphics = this.add.graphics();
+            let color = 0xff9900; // default orange
+            if (zone.id === 'left-walkable-zone') {
+              color = 0x0099ff; // blue
+            } else if (zone.id === 'new') {
+              color = 0xaa00ff; // purple for the new polygon
+            }
+            graphics.lineStyle(2, color, 1);
+            graphics.fillStyle(color, 0.15);
+            graphics.strokePoints(scaledZone.points, true);
+            graphics.fillPoints(scaledZone.points, true);
+          }
+        }
 
-        // Input
-        this.component.keys = this.input.keyboard?.addKeys('W,A,S,D') as
-          | Record<string, Phaser.Input.Keyboard.Key>
-          | undefined;
+        // Store arena bounds in scaling service
+        this.component.scalingService.rescaleArenaBounds({
+          x: boundsX,
+          y: boundsY,
+          width: boundsWidth,
+          height: boundsHeight
+        });
+
+        // Set up input
+        this.component.keys = this.component.inputService.initializeKeyboard(this.input);
 
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
           this.component.handlePointerDown(pointer);
@@ -527,47 +346,10 @@ export class GameArenaComponent implements OnInit, OnDestroy {
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
           this.component.handlePointerMove(pointer);
         });
-
-        // Spawn tank only after zone assignment is determined
-        if (this.component.zoneAssignmentDetermined) {
-          this.component.spawnPlayerTank();
-        }
       }
 
       override update(_time: number, delta: number): void {
         this.component.updateTank(delta);
-
-        // if (this.component.testTank) {
-        //   this.updateCamera([this.component.testTank]);
-        // }
-      }
-
-      private updateCamera(players: Phaser.GameObjects.GameObject[]): void {
-        const cam = this.cameras.main;
-
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-
-        for (const p of players) {
-          const obj = p as Phaser.GameObjects.GameObject & { x: number; y: number };
-          minX = Math.min(minX, obj.x);
-          minY = Math.min(minY, obj.y);
-          maxX = Math.max(maxX, obj.x);
-          maxY = Math.max(maxY, obj.y);
-        }
-
-        const padding = 200;
-        minX -= padding;
-        minY -= padding;
-        maxX += padding;
-        maxY += padding;
-
-        const centerX = (minX + maxX) * 0.5;
-        const centerY = (minY + maxY) * 0.5;
-
-        cam.centerOn(centerX, centerY);
       }
     }
 
@@ -595,126 +377,58 @@ export class GameArenaComponent implements OnInit, OnDestroy {
 
     if (!tank || !keys || !this.walkableGeom) return;
 
-    const denom = Math.max(1, this.arenaBounds.maxY - this.arenaBounds.minY);
-    const depthT = Phaser.Math.Clamp((tank.y - this.arenaBounds.minY) / denom, 0, 1);
-    const depthScale = Phaser.Math.Linear(0.3, 2.2, depthT);
-    const speed = 0.1 * delta * depthScale;
+    const result = this.movementService.updateTank(
+      delta,
+      tank,
+      keys,
+      this.walkableGeom,
+      this.scalingService.arenaBounds,
+      this.tankAngle,
+      this.playerNameTag
+    );
 
-    let dx = 0;
-    let dy = 0;
-
-    if (keys['W']?.isDown) dy -= 1;
-    if (keys['S']?.isDown) dy += 1;
-    if (keys['A']?.isDown) dx -= 1;
-    if (keys['D']?.isDown) dx += 1;
-
-    if (dx !== 0 && dy !== 0) {
-      const inv = Math.SQRT1_2;
-      dx *= inv;
-      dy *= inv;
+    if (result.newAngle !== this.tankAngle) {
+      this.tankAngle = result.newAngle;
+      tank.setTexture(this.spawnerService.getPanzer4TextureKey(this.tankAngle));
     }
-
-    const moveX = dx * speed;
-    const moveY = dy * speed;
-
-    if (dx !== 0 || dy !== 0) {
-      const nextAngle = this.snapAngleToDirection(dx, dy);
-      if (nextAngle !== this.tankAngle) {
-        this.tankAngle = nextAngle;
-        tank.setTexture(this.getPanzer4TextureKey(this.tankAngle));
-      }
-    }
-
-    const fullX = tank.x + moveX;
-    const fullY = tank.y + moveY;
-
-    let tankMoved = false;
-
-    if (Phaser.Geom.Polygon.Contains(this.walkableGeom, fullX, fullY)) {
-      tank.x = fullX;
-      tank.y = fullY;
-      tankMoved = true;
-
-      // Update name tag position
-      if (this.playerNameTag) {
-        this.playerNameTag.x = tank.x;
-        this.playerNameTag.y = tank.y - 50;
-      }
-
-      // Log live position when tank moves
-      if (dx !== 0 || dy !== 0) {
-        // eslint-disable-next-line no-console
-        console.log('🎮 LIVE POSITION - Current Player Tank:', {
-          position: { x: Math.round(tank.x), y: Math.round(tank.y) },
-          facingAngle: this.tankAngle,
-          movement: { dx: dx.toFixed(2), dy: dy.toFixed(2) }
-        });
-      }
-    } else {
-      const edge = this.getClosestEdge(tank.x, tank.y);
-      if (edge) {
-        const projected = this.projectVector(moveX, moveY, edge.x, edge.y);
-        const slideX = tank.x + projected.x;
-        const slideY = tank.y + projected.y;
-
-        if (Phaser.Geom.Polygon.Contains(this.walkableGeom, slideX, slideY)) {
-          tank.x = slideX;
-          tank.y = slideY;
-          tankMoved = true;
-
-          // Update name tag position
-          if (this.playerNameTag) {
-            this.playerNameTag.x = tank.x;
-            this.playerNameTag.y = tank.y - 50;
-          }
-
-          // Log live position when tank slides along edge
-          if (dx !== 0 || dy !== 0) {
-            // eslint-disable-next-line no-console
-            console.log('🎮 LIVE POSITION (edge slide) - Current Player Tank:', {
-              position: { x: Math.round(tank.x), y: Math.round(tank.y) },
-              facingAngle: this.tankAngle
-            });
-          }
-        }
-      }
-    }
-
-    tank.setScale(this.tankBaseScale * depthScale);
-    tank.setDepth(Math.floor(tank.y));
 
     // Send position updates to backend (throttled)
-    if (tankMoved && this.matchId && this.currentUserId) {
+    if (result.moved && this.matchId && this.currentUserId) {
       const currentTime = Date.now();
       if (currentTime - this.lastPositionUpdateTime >= this.POSITION_UPDATE_INTERVAL) {
         this.lastPositionUpdateTime = currentTime;
+
+        // Send as viewport-normalized ratios (0–1) for responsive layouts
+        const { width: currentWidth, height: currentHeight } =
+          this.scalingService.getCurrentDimensions();
         this.gameService.sendPlayerPosition(this.matchId, this.currentUserId, {
-          x: tank.x,
-          y: tank.y,
+          x: tank.x / currentWidth,
+          y: tank.y / currentHeight,
           facingAngle: this.tankAngle
         });
       }
     }
   }
 
-  private updateScene(): void {
-    // Update logic can be added here if needed
-  }
-
   private updateGameScene(state: GameState): void {
     if (!this.gameScene) return;
 
-    // Update the active zone based on whose turn it is
+    // Determine zones
     const isPlayer1Turn = state.currentTurn === state.player1.userId;
-    const activeZone = this.getPlayerZone(isPlayer1Turn);
+    const zones = this.zoneService.getAssignedZones();
+    const activeZone = isPlayer1Turn ? zones.player1Zone : zones.player2Zone;
+    const isCurrentPlayerPlayer1 = this.currentUserId === state.player1.userId;
+    const playerZone = isCurrentPlayerPlayer1 ? zones.player1Zone : zones.player2Zone;
 
-    if (activeZone !== this.activeZoneId) {
-      this.activeZoneId = activeZone;
-      this.walkableGeom = this.walkableZones.get(this.activeZoneId)!.polygon;
+    // Keep activeZoneId for any UI needs, but movement uses playerZone
+    this.activeZoneId = activeZone;
+
+    const playerScaledZone = this.scalingService.getWalkableZone(playerZone);
+    if (playerScaledZone) {
+      this.walkableGeom = playerScaledZone;
     }
 
     // Determine if current player is player1 or player2
-    const isCurrentPlayerPlayer1 = this.currentUserId === state.player1.userId;
     const currentPlayer = isCurrentPlayerPlayer1 ? state.player1 : state.player2;
     const opponentPlayer = isCurrentPlayerPlayer1 ? state.player2 : state.player1;
 
@@ -726,32 +440,60 @@ export class GameArenaComponent implements OnInit, OnDestroy {
       this.playerNameTag.setText(this.currentPlayerName);
     }
 
-    // Console log player and opponent details
-    // eslint-disable-next-line no-console
-    console.log('=== GAME ARENA PLAYER DETAILS ===');
-    // eslint-disable-next-line no-console
-    console.log('Current Player:', {
-      userId: currentPlayer.userId,
-      heroId: currentPlayer.heroId,
-      position: { x: currentPlayer.position.x, y: currentPlayer.position.y },
-      facingAngle: currentPlayer.facingAngle,
-      health: currentPlayer.health,
-      zone: isCurrentPlayerPlayer1 ? this.player1AssignedZone : this.player2AssignedZone,
-      isMyTurn: state.currentTurn === this.currentUserId
-    });
-    // eslint-disable-next-line no-console
-    console.log('Opponent Player:', {
-      userId: opponentPlayer.userId,
-      heroId: opponentPlayer.heroId,
-      position: { x: opponentPlayer.position.x, y: opponentPlayer.position.y },
-      facingAngle: opponentPlayer.facingAngle,
-      health: opponentPlayer.health,
-      zone: isCurrentPlayerPlayer1 ? this.player2AssignedZone : this.player1AssignedZone,
-      isTheirTurn: state.currentTurn === opponentPlayer.userId
-    });
-    // eslint-disable-next-line no-console
-    console.log('===================================');
+    // Spawn local player tank once
+    if (!this.testTank) {
+      const arenaData = this.gameScene.cache.json.get('arena-hills-v1') as {
+        spawnPositions?: {
+          leftPlayer: { x: number; y: number };
+          rightPlayer: { x: number; y: number };
+        };
+      };
 
+      const scales = this.scalingService.getScaleFactors();
+      const { width: currentWidth, height: currentHeight } =
+        this.scalingService.getCurrentDimensions();
+      const spawnPositions = this.spawnerService.calculateSpawnPositions(
+        arenaData,
+        scales.x,
+        scales.y,
+        currentWidth,
+        currentHeight
+      );
+      const mySpawn =
+        playerZone === 'left-walkable-zone' ? spawnPositions.leftSpawn : spawnPositions.rightSpawn;
+
+      // Face toward center: left zone -> 0°, right zone -> 180°
+      this.tankAngle = playerZone === 'left-walkable-zone' ? 0 : 180;
+      const textureKey = this.spawnerService.getPanzer4TextureKey(this.tankAngle);
+      const baseScale = this.opponentService.getTankBaseScale();
+
+      const tank = this.gameScene.add
+        .sprite(mySpawn.x, mySpawn.y, textureKey)
+        .setOrigin(0.5, 0.5)
+        .setScale(baseScale);
+
+      const nameTag = this.gameScene.add
+        .text(mySpawn.x, mySpawn.y - 50, this.currentPlayerName, {
+          fontSize: '16px',
+          color: '#00ff00',
+          align: 'center',
+          backgroundColor: '#000000',
+          padding: { x: 8, y: 4 }
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(1000);
+
+      this.testTank = tank;
+      this.playerNameTag = nameTag;
+
+      // Seed walkable geometry if not yet set
+      if (!this.walkableGeom) {
+        const initialZone = this.scalingService.getWalkableZone(playerZone);
+        if (initialZone) {
+          this.walkableGeom = initialZone;
+        }
+      }
+    }
     // Create or update opponent tank
     this.renderOpponentTank(opponentPlayer, state);
   }
@@ -762,7 +504,8 @@ export class GameArenaComponent implements OnInit, OnDestroy {
     // Determine opponent's zone and initial angle
     const isCurrentPlayerPlayer1 = this.currentUserId === state.player1.userId;
     const opponentIsPlayer1 = !isCurrentPlayerPlayer1;
-    const opponentZone = opponentIsPlayer1 ? this.player1AssignedZone : this.player2AssignedZone;
+    const zones = this.zoneService.getAssignedZones();
+    const opponentZone = opponentIsPlayer1 ? zones.player1Zone : zones.player2Zone;
     const opponentAngle = opponentZone === 'left-walkable-zone' ? 0 : 180;
 
     // Store opponent name
@@ -775,222 +518,131 @@ export class GameArenaComponent implements OnInit, OnDestroy {
           leftPlayer: { x: number; y: number };
           rightPlayer: { x: number; y: number };
         };
-        walkableZones: {
-          id: string;
-          polygon: { x: number; y: number }[];
-        }[];
       };
 
-      const spawnPositions = this.calculateSpawnPositions(arenaData);
+      const scales = this.scalingService.getScaleFactors();
+      const { width: currentWidth, height: currentHeight } =
+        this.scalingService.getCurrentDimensions();
+
+      const spawnPositions = this.spawnerService.calculateSpawnPositions(
+        arenaData,
+        scales.x,
+        scales.y,
+        currentWidth,
+        currentHeight
+      );
       const opponentSpawnPos =
         opponentZone === 'left-walkable-zone'
           ? spawnPositions.leftSpawn
           : spawnPositions.rightSpawn;
 
       // Create opponent tank sprite at their correct spawn position
-      this.opponentTank = this.gameScene.add
-        .sprite(opponentSpawnPos.x, opponentSpawnPos.y, this.getPanzer4TextureKey(opponentAngle))
-        .setOrigin(0.5, 0.5)
-        .setScale(this.tankBaseScale);
-      this.opponentTank.setData('isOpponent', true);
+      const textureKey = this.spawnerService.getPanzer4TextureKey(opponentAngle);
+      const { tank, nameTag } = this.opponentService.createOpponentTank(
+        this.gameScene,
+        opponentSpawnPos,
+        textureKey,
+        this.opponentPlayerName
+      );
 
-      // Create name tag for opponent's tank
-      this.opponentNameTag = this.gameScene.add
-        .text(opponentSpawnPos.x, opponentSpawnPos.y - 50, this.opponentPlayerName, {
-          fontSize: '16px',
-          color: '#ff0000',
-          align: 'center',
-          backgroundColor: '#000000',
-          padding: { x: 8, y: 4 }
-        })
-        .setOrigin(0.5, 1)
-        .setDepth(1000);
-
-      // eslint-disable-next-line no-console
-      console.log('👥 Opponent Tank Created:', {
-        userId: opponentPlayer.userId,
-        spawnPosition: { x: opponentSpawnPos.x, y: opponentSpawnPos.y },
-        zone: opponentZone,
-        initialAngle: opponentAngle
-      });
+      this.opponentTank = tank;
+      this.opponentNameTag = nameTag;
     } else {
       // Update opponent tank position and angle
-      this.opponentTank.x = opponentPlayer.position.x;
-      this.opponentTank.y = opponentPlayer.position.y;
       const opponentFacingAngle = opponentPlayer.facingAngle || opponentAngle;
-      this.opponentTank.setTexture(this.getPanzer4TextureKey(opponentFacingAngle));
-
-      // Update opponent name tag position
-      if (this.opponentNameTag) {
-        this.opponentNameTag.x = opponentPlayer.position.x;
-        this.opponentNameTag.y = opponentPlayer.position.y - 50;
-      }
-
-      // eslint-disable-next-line no-console
-      console.log('👥 Opponent Tank Updated:', {
-        userId: opponentPlayer.userId,
-        position: {
-          x: Math.round(opponentPlayer.position.x),
-          y: Math.round(opponentPlayer.position.y)
-        },
+      const textureKey = this.spawnerService.getPanzer4TextureKey(opponentFacingAngle);
+      const { width: currentWidth, height: currentHeight } =
+        this.scalingService.getCurrentDimensions();
+      const scaledPos = {
+        x: opponentPlayer.position.x * currentWidth,
+        y: opponentPlayer.position.y * currentHeight,
         facingAngle: opponentFacingAngle
-      });
+      };
+
+      this.opponentService.updateOpponentTankPosition(
+        this.opponentTank,
+        this.opponentNameTag,
+        scaledPos,
+        textureKey,
+        this.scalingService.arenaBounds
+      );
     }
   }
 
   private updateOpponentPosition(position: { x: number; y: number; facingAngle: number }): void {
     if (!this.opponentTank || !this.gameScene) return;
 
-    // Update opponent tank position
-    this.opponentTank.x = position.x;
-    this.opponentTank.y = position.y;
+    // Scale position from server ratios (0–1) to viewport pixels
+    const { width: currentWidth, height: currentHeight } =
+      this.scalingService.getCurrentDimensions();
+    const scaledPos = {
+      x: position.x * currentWidth,
+      y: position.y * currentHeight,
+      facingAngle: position.facingAngle
+    };
 
     // Update opponent tank texture based on facing angle
-    this.opponentTank.setTexture(this.getPanzer4TextureKey(position.facingAngle));
+    const textureKey = this.spawnerService.getPanzer4TextureKey(scaledPos.facingAngle);
 
-    // Update depth based on y position
-    const denom = Math.max(1, this.arenaBounds.maxY - this.arenaBounds.minY);
-    const depthT = Phaser.Math.Clamp((position.y - this.arenaBounds.minY) / denom, 0, 1);
-    const depthScale = Phaser.Math.Linear(0.3, 2.2, depthT);
-    this.opponentTank.setScale(this.tankBaseScale * depthScale);
-    this.opponentTank.setDepth(Math.floor(position.y));
-
-    // Update opponent name tag position
-    if (this.opponentNameTag) {
-      this.opponentNameTag.x = position.x;
-      this.opponentNameTag.y = position.y - 50;
-    }
-
-    // eslint-disable-next-line no-console
-    console.log('🔄 Real-time Opponent Position Update:', {
-      position: { x: Math.round(position.x), y: Math.round(position.y) },
-      facingAngle: position.facingAngle
-    });
-  }
-
-  private getPanzer4TextureKey(angle: number): string {
-    return `panzer4-merged-${angle}`;
-  }
-
-  private snapAngleToDirection(dx: number, dy: number): number {
-    const rawDeg = Phaser.Math.RadToDeg(Math.atan2(-dy, dx));
-    const normalized = (rawDeg + 360) % 360;
-    const snapped = Math.round(normalized / 45) * 45;
-    return snapped % 360;
+    this.opponentService.updateOpponentTankPosition(
+      this.opponentTank,
+      this.opponentNameTag,
+      scaledPos,
+      textureKey,
+      this.scalingService.arenaBounds
+    );
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
-    const x = Math.round(pointer.worldX);
-    const y = Math.round(pointer.worldY);
-    this.clickCoordinates.push({ x, y });
-    // Log the full click history as requested.
+    this.inputService.handlePointerDown(pointer);
+
+    // Calculate and log click position in both pixel and percentage coordinates
+    const clickPercent = this.calculateClickPercentage(pointer.worldX, pointer.worldY);
     // eslint-disable-next-line no-console
-    console.log(this.clickCoordinates);
+    console.log(
+      `🖱️ Click Position - Pixels: (${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)}) | Percentage:`,
+      clickPercent
+    );
   }
 
   private handlePointerMove(pointer: Phaser.Input.Pointer): void {
-    this.pendingCursorPos = {
-      x: Math.round(pointer.worldX),
-      y: Math.round(pointer.worldY)
-    };
+    const pos = this.inputService.handlePointerMove(pointer);
 
     if (this.cursorRafId !== null) return;
 
     this.cursorRafId = globalThis.requestAnimationFrame(() => {
-      const pos = this.pendingCursorPos;
-      this.pendingCursorPos = null;
-      this.cursorRafId = null;
-      if (!pos) return;
-
       this.zone.run(() => {
         this.cursorPositionText = `X: ${pos.x}, Y: ${pos.y}`;
       });
+      this.cursorRafId = null;
     });
   }
 
-  projectVector(vx: number, vy: number, tx: number, ty: number): { x: number; y: number } {
-    const lenSq = tx * tx + ty * ty;
-    if (lenSq === 0) return { x: 0, y: 0 };
+  /**
+   * Calculate clicked point coordinates and convert to percentage (0-1 scale)
+   * based on reference arena dimensions (1511x860).
+   * Accumulates all clicked points in an array.
+   * @param pixelX X coordinate in pixels
+   * @param pixelY Y coordinate in pixels
+   * @returns Array of all clicked points with percentage coordinates (0-1 range)
+   */
+  private calculateClickPercentage(pixelX: number, pixelY: number): { x: number; y: number }[] {
+    const REFERENCE_WIDTH = 1511;
+    const REFERENCE_HEIGHT = 860;
 
-    const dot = vx * tx + vy * ty;
-    const scale = dot / lenSq;
-
-    return { x: tx * scale, y: ty * scale };
-  }
-  getClosestEdge(x: number, y: number): { x: number; y: number } | null {
-    if (!this.walkableGeom) return null;
-
-    const poly = this.walkableGeom.points;
-    let closestDist = Infinity;
-    let edgeDir: { x: number; y: number } | null = null;
-
-    for (let i = 0; i < poly.length; i++) {
-      const p1 = poly[i];
-      const p2 = poly[(i + 1) % poly.length];
-
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-
-      const mx = (p1.x + p2.x) * 0.5;
-      const my = (p1.y + p2.y) * 0.5;
-
-      const dist = Phaser.Math.Distance.Between(x, y, mx, my);
-      if (dist < closestDist) {
-        closestDist = dist;
-        edgeDir = { x: dx, y: dy };
-      }
-    }
-
-    return edgeDir;
-  }
-
-  // ===== Arena scaling helpers =====
-  private updateArenaDimensions(width: number, height: number): void {
-    this.currentArenaWidth = width;
-    this.currentArenaHeight = height;
-  }
-
-  private getScaleFactors(): { x: number; y: number } {
-    return {
-      x: this.currentArenaWidth / this.referenceArenaWidth,
-      y: this.currentArenaHeight / this.referenceArenaHeight
+    const newPoint = {
+      x: pixelX / REFERENCE_WIDTH,
+      y: pixelY / REFERENCE_HEIGHT
     };
+
+    this.clickedPoints.push(newPoint);
+    return this.clickedPoints;
   }
 
-  private rescaleAllPolygons(): void {
-    if (this.originalWalkableZones.size === 0) return;
-    const { x: scaleX, y: scaleY } = this.getScaleFactors();
-    for (const [zoneId, original] of this.originalWalkableZones.entries()) {
-      const scaledPoints = this.scalePolygonCoordinates(original, scaleX, scaleY).flatMap(p => [
-        p.x,
-        p.y
-      ]);
-      const poly = new Phaser.Geom.Polygon(scaledPoints);
-      this.walkableZones.set(zoneId, { id: zoneId, polygon: poly });
-    }
-    // Refresh active polygon reference
-    if (this.walkableZones.has(this.activeZoneId)) {
-      this.walkableGeom = this.walkableZones.get(this.activeZoneId)!.polygon;
-    }
-  }
-
-  private rescaleArenaBounds(): void {
-    if (!this.originalArenaBounds) return;
-    const { x: scaleX, y: scaleY } = this.getScaleFactors();
-    const { x, y, width, height } = this.originalArenaBounds;
-    this.arenaBounds = {
-      minX: x * scaleX,
-      minY: y * scaleY,
-      maxX: (x + width) * scaleX,
-      maxY: (y + height) * scaleY
-    };
-  }
-
-  private scalePolygonCoordinates(
-    polygon: { x: number; y: number }[],
-    scaleX: number,
-    scaleY: number
-  ): { x: number; y: number }[] {
-    return polygon.map(p => ({ x: p.x * scaleX, y: p.y * scaleY }));
+  /**
+   * Clear all accumulated clicked points.
+   */
+  private clearClickedPoints(): void {
+    this.clickedPoints = [];
   }
 }
