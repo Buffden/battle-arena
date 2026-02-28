@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload dependency check results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: security-report-java-${{ matrix.service }}-${{ github.sha }}
           path: backend-services/${{ matrix.service }}/reports/**
@@ -170,7 +170,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-report-nodejs-${{ matrix.service }}-${{ github.sha }}
@@ -239,7 +239,7 @@ jobs:
           fi
 
       - name: Upload npm audit results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-report-frontend-${{ github.sha }}
@@ -265,7 +265,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
+        uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
@@ -306,7 +306,7 @@ jobs:
         continue-on-error: true
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
+        uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
         with:
           category: "/language:${{ matrix.language }}"
         continue-on-error: true
